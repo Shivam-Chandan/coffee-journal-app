@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+ * Contains entity_clone_extras.module.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Session\AccountInterface;
+
+/**
+ * Implements hook_help().
+ */
+function entity_clone_extras_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the entity_clone_extras module.
+    case 'help.page.entity_clone_extras':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Allow for bundle-level permissions for Node (and Media) entity types') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_entity_operation_alter().
+ */
+function entity_clone_extras_entity_operation_alter(array &$operations, EntityInterface $entity) {
+  // Check if entity type supports cloning:
+  if ($entity->hasLinkTemplate('clone-form')) {
+    // If it does, get the current user.
+    $user = \Drupal::currentUser();
+    $entity_types = entity_clone_extras_supported_entity_types();
+    if (in_array($entity->getEntityTypeId(), $entity_types)) {
+      if (!$user->hasPermission('clone ' . $entity->getEntityTypeId() . ' entity')) {
+        // If we are dealing with a supported entity type, we handle permissions
+        // per bundle.
+        $bundle = $entity->bundle();
+        $entity_type = $entity->getEntityTypeId();
+        // Check the bundle access.
+        if (!$user->hasPermission("clone $bundle $entity_type entities")) {
+          // Remove the operation if the user has no access to it.
+          unset($operations['clone']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_access().
+ */
+function entity_clone_extras_entity_access(EntityInterface $entity, $operation, AccountInterface $account) {
+  $entity_types = entity_clone_extras_supported_entity_types();
+  if ($operation === 'clone' && in_array($entity->getEntityTypeId(), $entity_types)) {
+    return AccessResult::allowedIfHasPermission($account, 'clone ' . $entity->bundle() . ' ' . $entity->getEntityTypeId() . ' entities');
+  }
+  return AccessResult::neutral();
+}
+
+/**
+ * Define the supported entity types.
+ *
+ * @return string[]
+ *   The entity types.
+ */
+function entity_clone_extras_supported_entity_types() {
+  $entity_types = ['node'];
+  // Support media entities when media module is installed.
+  if (\Drupal::moduleHandler()->moduleExists('media')) {
+    $entity_types[] = 'media';
+  }
+  return $entity_types;
+}

@@ -1,0 +1,201 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the acquia_cms_image module.
+ */
+
+use Drupal\acquia_cms_image\SiteLogo;
+use Drupal\image\Entity\ImageStyle;
+
+/**
+ * Implements hook_install().
+ */
+function acquia_cms_image_modules_installed($modules, $is_syncing) {
+  if (!$is_syncing && in_array('acquia_cms_image', $modules)) {
+    _acquia_cms_common_editor_config_rewrite(TRUE);
+    \Drupal::classResolver(SiteLogo::class)->createLogo()->setLogo();
+  }
+}
+
+/**
+ * Update image style to use 'Focal point scale and crop' effect.
+ */
+function acquia_cms_image_update_8001() {
+
+  // Image styles for updating Focal point scale and crop effect.
+  $image_styles = [
+    "coh_small_square" => [568, 568],
+    "coh_large_landscape" => [1024, 683],
+    "coh_small_landscape" => [568, 352],
+    "coh_medium_landscape" => [768, 512],
+    "coh_x_large_landscape" => [1360, 908],
+    "coh_xx_small_landscape" => [160, 120],
+    "coh_xx_large_landscape" => [1600, 1067],
+    "coh_large_super_landscape" => [1024, 480],
+    "coh_medium_super_landscape" => [768, 360],
+    "coh_x_large_super_landscape" => [1360, 640],
+  ];
+  foreach ($image_styles as $image_style => $size) {
+    $imageStyle = ImageStyle::load($image_style);
+    if ($imageStyle instanceof ImageStyle) {
+      [$width, $height] = $size;
+      $imageStyle->addImageEffect([
+        'id' => 'focal_point_scale_and_crop',
+        'weight' => 1,
+        'data' => [
+          'width' => $width,
+          'height' => $height,
+          'crop_type' => 'focal_point',
+        ],
+      ]);
+      foreach ($imageStyle->getEffects() as $effect) {
+        if ($effect->getPluginId() == "image_scale_and_crop") {
+          $imageStyle->deleteImageEffect($effect);
+          break;
+        }
+      }
+      $imageStyle->save();
+    }
+  }
+}
+
+/**
+ * Update the Image styles on Manage display pages of Image media.
+ */
+function acquia_cms_image_update_8002() {
+  $configFactory = \Drupal::service('config.factory');
+  $viewModes = [
+    'core.entity_view_display.media.image.embedded' => '',
+    'core.entity_view_display.media.image.large' => 'coh_large',
+    'core.entity_view_display.media.image.large_landscape' => 'coh_large_super_landscape',
+    'core.entity_view_display.media.image.medium' => 'coh_medium',
+    'core.entity_view_display.media.image.medium_landscape' => 'coh_medium_landscape',
+    'core.entity_view_display.media.image.small' => 'coh_small',
+    'core.entity_view_display.media.image.small_landscape' => 'coh_small_landscape',
+  ];
+  foreach ($viewModes as $mode => $style) {
+    $config = $configFactory->getEditable($mode);
+    $content = [
+      'image' => [
+        'type' => 'image',
+        'weight' => 0,
+        'region' => 'content',
+        'label' => 'hidden',
+        'settings' => [
+          'image_style' => $style,
+          'image_link' => '',
+        ],
+        'third_party_settings' => [],
+      ],
+    ];
+    if ($config) {
+      $config->set('content', $content)->save();
+    }
+  }
+}
+
+/**
+ * Install new view modes, display modes & image styles.
+ */
+function acquia_cms_image_update_8003() {
+  $configurations = [
+    'core.entity_view_mode.media.teaser',
+    'core.entity_view_display.media.image.default',
+    'core.entity_view_display.media.image.full',
+    'core.entity_view_mode.media.x_small_square',
+    'core.entity_view_display.media.image.teaser',
+    'core.entity_view_mode.media.large_super_landscape',
+    'core.entity_view_display.media.image.x_small_square',
+    'core.entity_view_display.media.image.large_super_landscape',
+    'image.style.x_small_landscape',
+    'image.style.x_small_square',
+  ];
+  foreach ($configurations as $config) {
+    _acquia_cms_common_rewrite_configuration($config, 'acquia_cms_image');
+  }
+
+  $configs = [
+    'embedded' => 'coh_medium',
+    'large' => 'coh_x_large',
+    'large_landscape' => 'coh_x_large_landscape',
+  ];
+  // Iterate config values to update in the configuration files.
+  foreach ($configs as $config_key => $image_style) {
+    $config_name = "core.entity_view_display.media.image.$config_key";
+    $dependency = "core.entity_view_mode.media.$config_key";
+    $image_dependency = "image.style.$image_style";
+    // Prepare the configurations key-value pair.
+    $configurations = [
+      'dependencies.config' => [
+        $dependency,
+        'field.field.media.image.field_categories',
+        'field.field.media.image.field_tags',
+        'field.field.media.image.image',
+        $image_dependency,
+        'media.type.image',
+      ],
+      'content.image.settings' => [
+        'image_style' => $image_style,
+        'image_loading' => ['attribute' => 'lazy'],
+      ],
+    ];
+    _acquia_cms_common_update_page_configurations($config_name, $configurations);
+  }
+}
+
+/**
+ * Added enforced dependency in site studio templates for Acquia CMS Image.
+ *
+ * Implements hook_update_N().
+ */
+function acquia_cms_image_update_8004() {
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('acquia_cms_site_studio')) {
+    $module_path = \Drupal::service('extension.list.module')->getPath('acquia_cms_image');
+    $directory = $module_path . '/config/pack_acquia_cms_image';
+    if (is_dir($directory)) {
+      $files = \Drupal::service('file_system')->scanDirectory($directory, '/.*\.yml$/');
+      foreach ($files as $file) {
+        $sitestudio_template = \Drupal::configFactory()->getEditable($file->name);
+        if ($sitestudio_template && is_null($sitestudio_template->get('dependencies.enforced.module')) && $sitestudio_template->get('status')) {
+          $sitestudio_template->set('dependencies.enforced.module', [
+            'acquia_cms_image',
+            'acquia_cms_site_studio',
+          ]);
+          $sitestudio_template->save(TRUE);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Deletes the Site Studio configurations containing invalid data.
+ *
+ * Implements hook_update_N().
+ */
+function acquia_cms_image_update_8005() {
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('acquia_cms_site_studio')) {
+    $module_path = \Drupal::service('extension.list.module')->getPath('acquia_cms_image');
+    $directories = [
+      $module_path . '/config/pack_acquia_cms_image',
+      $module_path . '/config/pack_acquia_cms_image_core',
+    ];
+    foreach ($directories as $directory) {
+      if (is_dir($directory)) {
+        $files = \Drupal::service('file_system')->scanDirectory($directory, '/.*\.yml$/');
+        foreach ($files as $file) {
+          $sitestudio_template = \Drupal::configFactory()->getEditable($file->name);
+          if ($sitestudio_template && !$sitestudio_template->isNew() && !$sitestudio_template->get("uuid") && !$sitestudio_template->get("id")) {
+            $sitestudio_template->delete();
+            \Drupal::logger("acquia_cms_image")->notice(
+              sprintf("The configuration `%s` deleted containing invalid data.", $file->name)
+            );
+          }
+        }
+      }
+    }
+  }
+}

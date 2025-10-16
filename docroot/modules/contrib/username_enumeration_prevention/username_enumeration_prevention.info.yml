@@ -1,0 +1,13 @@
+name: Username Enumeration Prevention
+type: module
+description: |-
+  Removes the error message produced by the forgot password form, when an
+  invalid user has been supplied.
+core_version_requirement: ^9.5 || ^10 || ^11
+dependencies:
+  - drupal:user
+
+# Information added by Drupal.org packaging script on 2024-09-05
+version: '8.x-1.4'
+project: 'username_enumeration_prevention'
+datestamp: 1725566330

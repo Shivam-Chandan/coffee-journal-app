@@ -33,10 +33,10 @@ class Condition extends ConditionBase {
         if (!in_array($condition['operator'], ['IS NULL', 'IS NOT NULL'], TRUE)) {
           // Lowercase condition value(s) for case-insensitive matches.
           if (is_array($condition['value'])) {
-            $condition['value'] = array_map('mb_strtolower', $condition['value']);
+            $condition['value'] = array_map('mb_strtolower', $condition['value'] ?? '');
           }
           elseif (!is_bool($condition['value'])) {
-            $condition['value'] = mb_strtolower($condition['value']);
+            $condition['value'] = mb_strtolower($condition['value'] ?? '');
           }
         }
 
@@ -171,7 +171,7 @@ class Condition extends ConditionBase {
     if (isset($value)) {
       // We always want a case-insensitive match.
       if (!is_bool($value)) {
-        $value = mb_strtolower($value);
+        $value = mb_strtolower($value ?? '');
       }
 
       switch ($condition['operator']) {

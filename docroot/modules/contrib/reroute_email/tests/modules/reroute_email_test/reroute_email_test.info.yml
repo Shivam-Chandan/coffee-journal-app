@@ -1,0 +1,10 @@
+name: 'Reroute Email Test'
+description: 'Helper module for the reroute email tests.'
+package: Testing
+hidden: true
+type: module
+
+# Information added by Drupal.org packaging script on 2024-10-28
+version: '2.3.0-rc2'
+project: 'reroute_email'
+datestamp: 1730150312

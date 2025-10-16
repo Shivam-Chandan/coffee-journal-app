@@ -6,6 +6,10 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Stiphle' => array($vendorDir . '/davedevelopment/stiphle/src'),
+    'HTMLPurifier' => array($vendorDir . '/ezyang/htmlpurifier/library'),
     'Console' => array($vendorDir . '/pear/console_getopt'),
+    'Composer\\CustomDirectoryInstaller' => array($vendorDir . '/mnsami/composer-custom-directory-installer/src'),
+    'Caxy\\HtmlDiff' => array($vendorDir . '/caxy/php-htmldiff/lib'),
     'Archive_Tar' => array($vendorDir . '/pear/archive_tar'),
 );

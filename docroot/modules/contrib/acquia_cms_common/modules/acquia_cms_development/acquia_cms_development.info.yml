@@ -1,0 +1,14 @@
+name: 'Acquia CMS Development'
+package: 'Acquia CMS'
+description: 'Contains development configuration.'
+core_version_requirement: ^10.2.2 || ^11
+type: module
+dependencies:
+  - acquia_connector:acquia_connector
+  - acquia_search:acquia_search
+  - config_rewrite:config_rewrite
+
+# Information added by Drupal.org packaging script on 2025-09-12
+version: '3.3.13'
+project: 'acquia_cms_common'
+datestamp: 1757698599

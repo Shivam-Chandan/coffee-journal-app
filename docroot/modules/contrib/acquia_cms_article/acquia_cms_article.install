@@ -1,0 +1,270 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the acquia_cms_article module.
+ */
+
+use Drupal\Core\Field\FieldConfigBase;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\user\RoleInterface;
+
+/**
+ * Implements hook_content_model_role_presave_alter().
+ */
+function acquia_cms_article_content_model_role_presave_alter(RoleInterface &$role) {
+  switch ($role->id()) {
+    case 'content_author':
+      foreach ([
+        'create article content',
+        'edit own article content',
+        'delete own article content',
+      ] as $permission) {
+        $role->grantPermission($permission);
+      }
+      break;
+
+    case 'content_editor':
+      foreach (['edit any article content', 'delete any article content'] as $permission) {
+        $role->grantPermission($permission);
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_module_preinstall().
+ */
+function acquia_cms_article_module_preinstall($module) {
+  \Drupal::service('acquia_cms_common.utility')->setModulePreinstallTriggered($module);
+}
+
+/**
+ * Implements hook_update_N().
+ */
+function acquia_cms_article_update_8001() {
+  if (\Drupal::moduleHandler()->moduleExists('acquia_cms_common') && \Drupal::moduleHandler()->moduleExists('acquia_cms_site_studio')) {
+    _acquia_cms_common_update_view_display_options_style('article_cards', 'default', 'view_tpl_article_cards_slider');
+  }
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Make Display Author field optional.
+ */
+function acquia_cms_article_update_8002() {
+  /** @var \Drupal\Core\Field\FieldConfigBase $field */
+  $field = FieldConfig::loadByName('node', 'article', 'field_display_author');
+  if ($field instanceof FieldConfigBase && $field->isRequired()) {
+    $field->setRequired(FALSE);
+    $field->save();
+  }
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Update node type conditions from node_type to entity_bundle.
+ */
+function acquia_cms_article_update_8003() {
+  // Load all pattern configuration entities.
+  $pattern_config = \Drupal::configFactory()->getEditable('pathauto.pattern.article');
+
+  // Loop patterns and swap the node_type plugin by the entity_bundle:node
+  // plugin.
+  if ($pattern_config->get('type') === 'canonical_entities:node') {
+    $selection_criteria = $pattern_config->get('selection_criteria');
+    foreach ($selection_criteria as $uuid => $condition) {
+      if ($condition['id'] === 'node_type') {
+        $pattern_config->set("selection_criteria.$uuid.id", 'entity_bundle:node');
+        $pattern_config->save();
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Updating the target bundles for field article media.
+ *
+ * Implements hook_update_N().
+ */
+function acquia_cms_article_update_8004() {
+  if ($field_config = \Drupal::configFactory()->getEditable('field.field.node.article.field_article_media')) {
+    $value = $field_config->get('settings.handler_settings.target_bundles');
+    if (is_null($value)) {
+      $value = [
+        'image' => 'image',
+      ];
+      $field_config->set('settings.handler_settings.target_bundles', $value);
+      $field_config->save(TRUE);
+    }
+  }
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Update Article display modes.
+ */
+function acquia_cms_article_update_8005() {
+  // Load and update default view mode.
+  $article_image_field = [
+    'field_article_image' => [
+      'type' => 'entity_reference_entity_view',
+      'label' => 'hidden',
+      'settings' => [
+        'view_mode' => 'full',
+        'link' => 'false',
+      ],
+      'third_party_settings' => [],
+      'weight' => 3,
+      'region' => 'content',
+    ],
+  ];
+  $display_modes = [
+    'default',
+    'card',
+    'horizontal_card',
+    'search_results',
+    'teaser',
+  ];
+  $view_modes = [
+    'large_super_landscape',
+    'small_landscape',
+    'small_landscape',
+    'teaser',
+    'teaser',
+  ];
+  // Update Image field.
+  foreach ($display_modes as $key => $display_mode) {
+    $article_view_mode = \Drupal::configFactory()->getEditable('core.entity_view_display.node.article.' . $display_mode);
+    if ($article_view_mode->get('hidden.field_article_image')) {
+      $article_image_field['field_article_image']['settings']['view_mode'] = $view_modes[$key];
+      $article_view_mode->set('content', array_merge($article_view_mode->get('content'), $article_image_field));
+      $article_view_mode->clear('hidden.field_article_image');
+      $article_view_mode->save();
+    }
+  }
+
+  // Update Display Author field.
+  $field_display_author = [
+    'field_display_author' => [
+      'type' => 'entity_reference_entity_view',
+      'label' => 'hidden',
+      'settings' => [
+        'view_mode' => 'referenced_image',
+        'link' => 'false',
+      ],
+      'third_party_settings' => [],
+      'weight' => 4,
+      'region' => 'content',
+    ],
+  ];
+  $article_view_mode = \Drupal::configFactory()->getEditable('core.entity_view_display.node.article.default');
+  if ($article_view_mode->get('hidden.field_display_author')) {
+    $article_view_mode->set('content', array_merge($article_view_mode->get('content'), $field_display_author));
+    $article_view_mode->clear('hidden.field_display_author');
+    $article_view_mode->save();
+  }
+}
+
+/**
+ * Updates for scheduler option in Article content type.
+ *
+ * Implements hook_update_N().
+ */
+function acquia_cms_article_update_8006() {
+  $formStorage = \Drupal::entityTypeManager()->getStorage('entity_form_display');
+  $formDisplay = $formStorage->load('node.article.default');
+  if ($formDisplay) {
+    $formDisplay
+      ->setComponent('publish_on', [
+        'type' => 'datetime_timestamp_no_default',
+        'region' => 'content',
+        'weight' => 14,
+        'settings' => [],
+      ])
+      ->setComponent('publish_state', [
+        'type' => 'scheduler_moderation',
+        'region' => 'content',
+        'weight' => 16,
+        'settings' => [],
+      ])
+      ->setComponent('scheduler_settings', [
+        'region' => 'content',
+        'weight' => 13,
+        'settings' => [],
+      ])
+      ->setComponent('unpublish_on', [
+        'type' => 'datetime_timestamp_no_default',
+        'region' => 'content',
+        'weight' => 15,
+        'settings' => [],
+      ])
+      ->setComponent('unpublish_state', [
+        'type' => 'scheduler_moderation',
+        'region' => 'content',
+        'weight' => 17,
+        'settings' => [],
+      ])
+      ->save();
+  }
+}
+
+/**
+ * Added enforced dependency in site studio templates for Acquia CMS Article.
+ *
+ * Implements hook_update_N().
+ */
+function acquia_cms_article_update_8007() {
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('acquia_cms_site_studio')) {
+    $module_path = \Drupal::service('extension.list.module')->getPath('acquia_cms_article');
+    $directory = $module_path . '/config/pack_acquia_cms_article';
+    if (is_dir($directory)) {
+      $files = \Drupal::service('file_system')->scanDirectory($directory, '/.*\.yml$/');
+      foreach ($files as $file) {
+        $sitestudio_template = \Drupal::configFactory()->getEditable($file->name);
+        if ($sitestudio_template && is_null($sitestudio_template->get('dependencies.enforced.module')) && $sitestudio_template->get('status')) {
+          $sitestudio_template->set('dependencies.enforced.module', [
+            'acquia_cms_article',
+            'acquia_cms_site_studio',
+          ]);
+          $sitestudio_template->save(TRUE);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Deletes the Site Studio configurations containing invalid data.
+ *
+ * Implements hook_update_N().
+ */
+function acquia_cms_article_update_8008() {
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('acquia_cms_site_studio')) {
+    $module_path = \Drupal::service('extension.list.module')->getPath('acquia_cms_article');
+    $directories = [
+      $module_path . '/config/pack_acquia_cms_article',
+      $module_path . '/config/pack_acquia_cms_article_search',
+    ];
+    foreach ($directories as $directory) {
+      if (is_dir($directory)) {
+        $files = \Drupal::service('file_system')->scanDirectory($directory, '/.*\.yml$/');
+        foreach ($files as $file) {
+          $sitestudio_template = \Drupal::configFactory()->getEditable($file->name);
+          if ($sitestudio_template && !$sitestudio_template->isNew() && !$sitestudio_template->get("uuid") && !$sitestudio_template->get("id")) {
+            $sitestudio_template->delete();
+            \Drupal::logger("acquia_cms_article")->notice(
+              sprintf("The configuration `%s` deleted containing invalid data.", $file->name)
+            );
+          }
+        }
+      }
+    }
+  }
+}

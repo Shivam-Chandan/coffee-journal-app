@@ -1,0 +1,59 @@
+services:
+  acquia_cms_common.route_subscriber:
+    class: Drupal\acquia_cms_common\Routing\RouteSubscriber
+    tags:
+      - { name: event_subscriber }
+
+  acquia_cms_common.event_subscriber:
+    class: '\Drupal\acquia_cms_common\EventSubscriber\ConfigEventsSubscriber'
+    arguments: ['@module_handler', '@acquia_cms_common.utility']
+    tags:
+      - { name: 'event_subscriber' }
+
+  acquia_cms_common.toggle_modules:
+    class:  Drupal\acquia_cms_common\Services\ToggleModulesService
+    arguments: ['@extension.list.module', '@module_installer']
+
+  acquia_cms_common.utility:
+    class:  Drupal\acquia_cms_common\Services\AcmsUtilityService
+    arguments: ['@module_handler', '@config.factory', '@state']
+
+  acquia_cms_common.uninstall_validator:
+    class: Drupal\acquia_cms_common\AcmsModulesUninstallValidator
+    tags:
+      - { name: module_install.uninstall_validator }
+    arguments: ['@entity_type.manager', '@string_translation']
+    lazy: true
+
+  acquia_cms_common.https_redirect_subscriber:
+    class: '\Drupal\acquia_cms_common\EventSubscriber\HttpsRedirectSubscriber'
+    arguments: ['@config.factory', '@cache.config', '@request_stack']
+    tags:
+      - { name: 'event_subscriber' }
+
+  acquia_cms_common.config.importer:
+    class: 'Drupal\acquia_cms_common\Services\ConfigImporterService'
+    arguments:
+      - '@config.manager'
+      - '@config.storage'
+      - '@cache.config'
+      - '@module_handler'
+      - '@event_dispatcher'
+      - '@lock'
+      - '@config.typed'
+      - '@module_installer'
+      - '@theme_handler'
+      - '@string_translation'
+      - '@extension.list.module'
+      - '@extension.list.theme'
+  acquia_cms_common.telemetry:
+    class: Drupal\acquia_cms_common\EventSubscriber\KernelTerminate\AcquiaCmsTelemetry
+    arguments:
+      - '@extension.list.module'
+      - '@config.factory'
+      - '@state'
+      - '%site.path%'
+      - '@datetime.time'
+      - '@logger.factory'
+    tags:
+      - { name: event_subscriber }

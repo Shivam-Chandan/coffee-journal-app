@@ -1,0 +1,11 @@
+name: 'Moderation Sidebar Test'
+type: module
+description: 'Provides default config for Moderation Sidebar tests.'
+package: Testing
+dependencies:
+  - moderation_sidebar:moderation_sidebar
+
+# Information added by Drupal.org packaging script on 2024-08-29
+version: '8.x-1.8'
+project: 'moderation_sidebar'
+datestamp: 1724947841

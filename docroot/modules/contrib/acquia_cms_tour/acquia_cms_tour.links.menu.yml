@@ -1,0 +1,9 @@
+acquia_cms_tour.tour:
+  title: 'Acquia CMS Wizard'
+  description: 'Access the Acquia CMS Wizard'
+  parent: system.admin
+  route_name: acquia_cms_tour.enabled_modules
+  weight: 10
+  options:
+    attributes:
+      class: ['toolbar-icon', 'toolbar-icon-help-main']

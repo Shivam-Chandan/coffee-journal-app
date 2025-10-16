@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the entity_clone module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function entity_clone_install($is_syncing) {
+  if ($is_syncing) {
+    // If config is syncing, we do nothing here.
+    return;
+  }
+
+  // Enable all entity types to be cloneable.
+  $entity_types = array_keys(\Drupal::entityTypeManager()->getDefinitions());
+  \Drupal::configFactory()->getEditable('entity_clone.cloneable_entities')->set('cloneable_entities', $entity_types)->save();
+}

@@ -1,0 +1,14 @@
+name: "Acquia CMS Event"
+package: 'Acquia CMS'
+description: 'Provides an Event content type and related configuration.'
+type: module
+core_version_requirement: ^9.4 || ^10 || ^11
+dependencies:
+  - acquia_cms_place:acquia_cms_place
+  - drupal:datetime
+  - schema_metatag:schema_event
+
+# Information added by Drupal.org packaging script on 2025-09-12
+version: '1.6.4'
+project: 'acquia_cms_event'
+datestamp: 1757699144

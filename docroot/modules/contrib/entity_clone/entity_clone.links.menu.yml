@@ -1,0 +1,11 @@
+entity_clone.settings:
+  title: 'Entity clone settings'
+  description: 'Entity clone settings.'
+  route_name: entity_clone.settings
+  parent: 'system.admin_config_content'
+
+entity_clone.cloneable_entities:
+  title: 'Cloneable entities'
+  description: 'Entity clone cloneable entities setting.'
+  route_name: entity_clone.cloneable_entities
+  parent: 'entity_clone.settings'

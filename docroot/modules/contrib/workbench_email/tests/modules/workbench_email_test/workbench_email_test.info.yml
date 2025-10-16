@@ -1,0 +1,11 @@
+name: Workbench email test
+description: 'Test functionality for workbench email'
+package: Testing
+type: module
+dependencies:
+  - workbench_email:workbench_email
+
+# Information added by Drupal.org packaging script on 2024-07-26
+version: '3.0.5'
+project: 'workbench_email'
+datestamp: 1721954473

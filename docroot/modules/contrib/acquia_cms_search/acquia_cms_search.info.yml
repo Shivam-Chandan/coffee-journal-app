@@ -1,0 +1,19 @@
+name: "Acquia CMS Search"
+package: "Acquia CMS"
+description: "Provides powerful search capabilities to the site"
+type: module
+core_version_requirement: ^10.1 || ^11
+dependencies:
+  - acquia_cms_common:acquia_cms_common
+  - collapsiblock:collapsiblock
+  - facets:facets
+  - facets_pretty_paths:facets_pretty_paths
+  - drupal:node
+  - search_api_autocomplete:search_api_autocomplete
+  - drupal:views
+  - search_api:search_api_db
+
+# Information added by Drupal.org packaging script on 2024-09-24
+version: '1.6.2'
+project: 'acquia_cms_search'
+datestamp: 1727199801

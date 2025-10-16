@@ -1,0 +1,189 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the acquia_cms_person module.
+ */
+
+use Drupal\user\RoleInterface;
+
+/**
+ * Implements hook_content_model_role_presave_alter().
+ */
+function acquia_cms_person_content_model_role_presave_alter(RoleInterface &$role) {
+  switch ($role->id()) {
+    case 'content_author':
+      foreach ([
+        'create person content',
+        'edit own person content',
+        'delete own person content',
+      ] as $permission) {
+        $role->grantPermission($permission);
+      }
+      break;
+
+    case 'content_editor':
+      foreach (['edit any person content', 'delete any person content'] as $permission) {
+        $role->grantPermission($permission);
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_module_preinstall().
+ */
+function acquia_cms_person_module_preinstall($module) {
+  \Drupal::service('acquia_cms_common.utility')->setModulePreinstallTriggered($module);
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Update node type conditions from node_type to entity_bundle.
+ */
+function acquia_cms_person_update_8001() {
+  // Load all pattern configuration entities.
+  $pattern_config = \Drupal::configFactory()->getEditable('pathauto.pattern.person');
+
+  // Loop patterns and swap the node_type plugin by the entity_bundle:node
+  // plugin.
+  if ($pattern_config->get('type') === 'canonical_entities:node') {
+    $selection_criteria = $pattern_config->get('selection_criteria');
+    foreach ($selection_criteria as $uuid => $condition) {
+      if ($condition['id'] === 'node_type') {
+        $pattern_config->set("selection_criteria.$uuid.id", 'entity_bundle:node');
+        $pattern_config->save();
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Update Person display modes.
+ */
+function acquia_cms_person_update_8002() {
+  // Load and update default view mode.
+  $display_modes = [
+    'default',
+    'card',
+    'horizontal_card',
+    'search_results',
+    'teaser',
+  ];
+  // Update Image field.
+  foreach ($display_modes as $display_mode) {
+    $person_view_mode = \Drupal::configFactory()->getEditable('core.entity_view_display.node.person.' . $display_mode);
+    if ($person_view_mode->get('content.field_person_image.type') == 'entity_reference_label') {
+      $person_view_mode->set('content.field_person_image.type', 'entity_reference_entity_view');
+      $person_view_mode->set('content.field_person_image.settings.view_mode', 'x_small_square');
+      $person_view_mode->save();
+    }
+  }
+
+  // Add referenced image view mode.
+  _acquia_cms_common_rewrite_configuration('core.entity_view_display.node.person.referenced_image', 'acquia_cms_person');
+
+}
+
+/**
+ * Updates for scheduler option in Person content type.
+ *
+ * Implements hook_update_N().
+ */
+function acquia_cms_person_update_8003() {
+  $formStorage = \Drupal::entityTypeManager()->getStorage('entity_form_display');
+  $formDisplay = $formStorage->load('node.person.default');
+  if ($formDisplay) {
+    $formDisplay
+      ->setComponent('publish_on', [
+        'type' => 'datetime_timestamp_no_default',
+        'region' => 'content',
+        'weight' => 17,
+        'settings' => [],
+      ])
+      ->setComponent('publish_state', [
+        'type' => 'scheduler_moderation',
+        'region' => 'content',
+        'weight' => 19,
+        'settings' => [],
+      ])
+      ->setComponent('scheduler_settings', [
+        'region' => 'content',
+        'weight' => 16,
+        'settings' => [],
+      ])
+      ->setComponent('unpublish_on', [
+        'type' => 'datetime_timestamp_no_default',
+        'region' => 'content',
+        'weight' => 18,
+        'settings' => [],
+      ])
+      ->setComponent('unpublish_state', [
+        'type' => 'scheduler_moderation',
+        'region' => 'content',
+        'weight' => 12,
+        'settings' => [],
+      ])
+      ->save();
+  }
+}
+
+/**
+ * Added enforced dependency in site studio templates for Acquia CMS Person.
+ *
+ * Implements hook_update_N().
+ */
+function acquia_cms_person_update_8004() {
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('acquia_cms_site_studio')) {
+    $module_path = \Drupal::service('extension.list.module')->getPath('acquia_cms_person');
+    $directory = $module_path . '/config/pack_acquia_cms_person';
+    if (is_dir($directory)) {
+      $files = \Drupal::service('file_system')->scanDirectory($directory, '/.*\.yml$/');
+      foreach ($files as $file) {
+        $sitestudio_template = \Drupal::configFactory()->getEditable($file->name);
+        if ($sitestudio_template && is_null($sitestudio_template->get('dependencies.enforced.module')) && $sitestudio_template->get('status')) {
+          $sitestudio_template->set('dependencies.enforced.module', [
+            'acquia_cms_person',
+            'acquia_cms_site_studio',
+          ]);
+          $sitestudio_template->save(TRUE);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Deletes the Site Studio configurations containing invalid data.
+ *
+ * Implements hook_update_N().
+ */
+function acquia_cms_person_update_8005() {
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('acquia_cms_site_studio')) {
+    $module_path = \Drupal::service('extension.list.module')->getPath('acquia_cms_person');
+    $directories = [
+      $module_path . '/config/pack_acquia_cms_person',
+      $module_path . '/config/pack_acquia_cms_person_search',
+    ];
+    foreach ($directories as $directory) {
+      if (is_dir($directory)) {
+        $files = \Drupal::service('file_system')->scanDirectory($directory, '/.*\.yml$/');
+        foreach ($files as $file) {
+          $sitestudio_template = \Drupal::configFactory()->getEditable($file->name);
+          if ($sitestudio_template && !$sitestudio_template->isNew() && !$sitestudio_template->get("uuid") && !$sitestudio_template->get("id")) {
+            $sitestudio_template->delete();
+            \Drupal::logger("acquia_cms_person")->notice(
+              sprintf("The configuration `%s` deleted containing invalid data.", $file->name)
+            );
+          }
+        }
+      }
+    }
+  }
+}

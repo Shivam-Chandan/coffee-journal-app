@@ -1,0 +1,94 @@
+<?php
+
+/**
+ * @file
+ * Intercepts all outgoing emails to be rerouted to a configurable destination.
+ */
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Ensure reroute_email runs last when hook_mail_alter is invoked.
+ */
+function reroute_email_module_implements_alter(&$implementations, $hook) {
+  // Testing with isset is only necessary if module doesn't implement the hook.
+  if ($hook == 'mail_alter') {
+
+    // Move our hook implementation to the bottom.
+    $group = $implementations['reroute_email'];
+    unset($implementations['reroute_email']);
+    $implementations['reroute_email'] = $group;
+
+    // If the queue_mail module is installed, ensure that comes after ours so
+    // queued emails are still rerouted.
+    if (isset($implementations['queue_mail'])) {
+      $group = $implementations['queue_mail'];
+      unset($implementations['queue_mail']);
+      $implementations['queue_mail'] = $group;
+    }
+  }
+}
+
+/**
+ * Implements hook_mail_alter().
+ *
+ * Alter destination of outgoing emails if reroute_email is enabled.
+ *
+ * @throws \Drupal\Component\Plugin\Exception\PluginException
+ */
+function reroute_email_mail_alter(&$message) {
+  // Skip processing empty emails.
+  if (empty($message) || !is_array($message)) {
+    return;
+  }
+
+  /** @var \Drupal\reroute_email\RerouteEmailHandlerPluginManager $reroute_handlers_manager */
+  $reroute_handlers_manager = \Drupal::service('plugin.manager.reroute_email_handler');
+  $reroute_handlers_manager->processAllByType("hook_mail_alter", $message);
+}
+
+/**
+ * Implements hook_mail().
+ */
+function reroute_email_mail($key, &$message, $params) {
+  // Process only emails from the reroute_email test form.
+  if ($message['id'] !== 'reroute_email_test_email_form') {
+    return;
+  }
+
+  if (!empty($params['cc'])) {
+    $message['headers']['cc'] = $params['cc'];
+  }
+  if (!empty($params['bcc'])) {
+    $message['headers']['bcc'] = $params['bcc'];
+  }
+  $message['subject'] = $params['subject'];
+  $message['body'][] = $params['body'];
+}
+
+/**
+ * Split a string into an array by pre-defined allowed delimiters.
+ *
+ * Items may be separated by any number and combination of:
+ * spaces, commas, semicolons, or newlines.
+ *
+ * @param string|null $string
+ *   A string to be split into an array.
+ *
+ * @return array
+ *   An array of unique values from a string.
+ */
+function reroute_email_split_string(?string $string): array {
+
+  // Split string into array of emails.
+  $addresses = [];
+  if (!empty($string)) {
+    $addresses = preg_split('/[\s,;\n]+/', $string, -1, PREG_SPLIT_NO_EMPTY);
+  }
+
+  // Remove duplications.
+  $addresses = array_unique($addresses);
+
+  // Make everything lowercased.
+  return array_map('mb_strtolower', $addresses);
+}

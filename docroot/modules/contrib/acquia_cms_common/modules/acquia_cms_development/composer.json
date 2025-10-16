@@ -1,0 +1,14 @@
+{
+    "name": "drupal/acquia_cms_development",
+    "description": "Contains development configuration.",
+    "license": "GPL-2.0-or-later",
+    "type": "drupal-module",
+    "config": {
+        "allow-plugins": {
+            "cweagans/composer-patches": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true,
+            "webdriver-binary/binary-chromedriver": true
+        }
+    }
+}

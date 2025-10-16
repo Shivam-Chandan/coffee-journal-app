@@ -1,0 +1,15 @@
+{
+    "name": "drupal/moderation_sidebar",
+    "description": "Provides an off-canvas menu to moderate the current Entity.",
+    "type": "drupal-module",
+    "homepage": "http://drupal.org/project/moderation_sidebar",
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/moderation_sidebar"
+    },
+    "license": "GPL-2.0-or-later",
+    "extra": {
+        "branch-alias": {
+            "dev-8.x-1.x": "1.x-dev"
+        }
+    }
+}

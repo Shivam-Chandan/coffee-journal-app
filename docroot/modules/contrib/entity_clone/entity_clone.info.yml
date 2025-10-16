@@ -1,0 +1,16 @@
+name: Entity Clone
+description: Add a clone action for all entities
+core_version_requirement: ^9 || ^10 || ^11
+type: module
+configure: entity_clone.settings
+package: 'Entity Clone'
+test_dependencies:
+  - entity_browser:entity_browser
+  - entity_usage:entity_usage
+  - paragraphs:paragraphs
+  - search_api:search_api
+
+# Information added by Drupal.org packaging script on 2024-07-21
+version: '2.1.0-beta1'
+project: 'entity_clone'
+datestamp: 1721571017

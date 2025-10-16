@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the acquia_cms_tour module.
+ */
+
+use Drupal\user\Entity\Role;
+
+/**
+ * Add state key for existing sites with Acquia CMS profile.
+ */
+function acquia_cms_tour_update_8001() {
+  \Drupal::state()->set('acquia_cms_existing_site', TRUE);
+}
+
+/**
+ * Remove permissions from roles.
+ */
+function acquia_cms_tour_update_8002() {
+  if ($roles = Role::loadMultiple()) {
+    foreach ($roles as $role) {
+      if ($role->hasPermission('access acquia cms tour')) {
+        $role->revokePermission('access acquia cms tour')->save();
+      }
+    }
+  }
+}
+
+/**
+ * Update state key for existing sites with Acquia CMS profile, module.
+ */
+function acquia_cms_tour_update_8003() {
+  \Drupal::state()->set('acquia_cms_existing_site', TRUE);
+  \Drupal::state()->delete('existing_site_acquia_cms');
+}

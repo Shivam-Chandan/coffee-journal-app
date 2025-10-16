@@ -1,0 +1,13 @@
+name: "Acquia CMS Person"
+package: 'Acquia CMS'
+description: 'Provides a Person content type, a structured data representation of people associated with a website or organization.'
+type: module
+core_version_requirement: ^9.4 || ^10 || ^11
+dependencies:
+  - acquia_cms_place:acquia_cms_place
+  - scheduler:scheduler
+
+# Information added by Drupal.org packaging script on 2024-09-19
+version: '1.6.3'
+project: 'acquia_cms_person'
+datestamp: 1726725249
