@@ -1,0 +1,17 @@
+acquia/acquia-cms-starterkit:
+  type: project
+
+# Do not install acquia_cms and Lightning modules.
+acquia/acquia_cms: ~
+
+# Adding allowed composer plugins for ORCA.
+phpro/grumphp-shim:
+  type: composer-plugin
+webdriver-binary/binary-chromedriver:
+  type: composer-plugin
+wikimedia/composer-merge-plugin:
+  type: composer-plugin
+
+# DO not install acquia_perz module as it requires `symfony/psr-http-message-bridge: ^1.1.2 || ^2.0`
+# While drupal/core-recommended requires `symfony/psr-http-message-bridge: ~6.4.0`. So it's failing CI.
+drupal/acquia_perz: ~

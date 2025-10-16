@@ -1,0 +1,44 @@
+---
+services:
+  _defaults:
+    autoconfigure: true
+    autowire: true
+    public: true
+    bind:
+      $project_dir: "%kernel.project_dir%"
+      $root_dir: "%app.base_dir%"
+
+  AcquiaCMS\Cli\:
+    exclude: ../src/Kernel.php
+    public: false
+    resource: ../src
+
+  Symfony\Component\Console\Application: ~
+  AcquiaCMS\Cli\Helpers\Process\Commands\Drush: ~
+  AcquiaCMS\Cli\Helpers\Process\Commands\Composer: ~
+  AcquiaCMS\Cli\Helpers\Process\Commands\Generic: ~
+  AcquiaCMS\Cli\Helpers\Task\Steps\AskQuestions: ~
+  AcquiaCMS\Cli\Helpers\Task\Steps\DownloadDrupal: ~
+  AcquiaCMS\Cli\Helpers\Task\Steps\DownloadModules: ~
+  AcquiaCMS\Cli\Helpers\Task\Steps\EnableModules: ~
+  AcquiaCMS\Cli\Helpers\Task\Steps\EnableThemes: ~
+  AcquiaCMS\Cli\Helpers\Task\Steps\InitNextjsApp: ~
+  AcquiaCMS\Cli\Helpers\Task\Steps\SiteInstall: ~
+  AcquiaCMS\Cli\Helpers\Task\Steps\ValidateDrupal: ~
+  AcquiaCMS\Cli\Helpers\Task\Steps\ToggleModules: ~
+  Symfony\Component\Filesystem\Filesystem: ~
+  AcquiaCMS\Cli\Helpers\Packages: ~
+  Symfony\Component\DependencyInjection\ContainerInterface: '@service_container'
+
+  Symfony\Component\Console\Input\ArgvInput: ~
+  Symfony\Component\Console\Input\InputInterface:
+    alias: Symfony\Component\Console\Input\ArgvInput
+
+  Symfony\Component\Console\Output\ConsoleOutput: ~
+  Symfony\Component\Console\Output\OutputInterface:
+    alias: Symfony\Component\Console\Output\ConsoleOutput
+
+  Symfony\Component\Console\Style\SymfonyStyle: ~
+
+  Symfony\Contracts\HttpClient\HttpClientInterface:
+    factory: ['Symfony\Component\HttpClient\HttpClient', 'create']
