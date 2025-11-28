@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace JsonSchema\Constraints;
 
 use JsonSchema\ConstraintError;
-use JsonSchema\DraftIdentifiers;
 use JsonSchema\Entity\JsonPointer;
 use JsonSchema\Exception\InvalidArgumentException;
 use JsonSchema\Exception\InvalidSchemaException;
@@ -27,7 +26,7 @@ use JsonSchema\Validator;
  */
 class SchemaConstraint extends Constraint
 {
-    private const DEFAULT_SCHEMA_SPEC = DraftIdentifiers::DRAFT_4;
+    private const DEFAULT_SCHEMA_SPEC = 'http://json-schema.org/draft-04/schema#';
 
     /**
      * {@inheritdoc}

@@ -448,12 +448,11 @@ class FormatterOptions
      * options for this request.
      *
      * @param InputInterface $input
-     * @return self
+     * @return type
      */
     public function setInput(InputInterface $input)
     {
         $this->input = $input;
-        return $this;
     }
 
     /**

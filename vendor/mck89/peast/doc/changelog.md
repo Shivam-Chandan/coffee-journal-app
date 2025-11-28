@@ -1,12 +1,6 @@
 Changelog
 ==========
 
-#### 1.17.4
-* Fixed warning on PHP 8.5 when handling large numbers
-
-#### 1.17.3
-* Fixed compatibility with PHP 8.5
-
 #### 1.17.2
 * Fixed bug where `const` declarations were allowed without an initializer
 

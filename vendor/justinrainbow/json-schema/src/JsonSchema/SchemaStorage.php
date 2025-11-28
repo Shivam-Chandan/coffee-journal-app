@@ -62,9 +62,9 @@ class SchemaStorage implements SchemaStorageInterface
         // workaround for bug in draft-03 & draft-04 meta-schemas (id & $ref defined with incorrect format)
         // see https://github.com/json-schema-org/JSON-Schema-Test-Suite/issues/177#issuecomment-293051367
         if (is_object($schema) && property_exists($schema, 'id')) {
-            if ($schema->id === DraftIdentifiers::DRAFT_4) {
+            if ($schema->id === 'http://json-schema.org/draft-04/schema#') {
                 $schema->properties->id->format = 'uri-reference';
-            } elseif ($schema->id === DraftIdentifiers::DRAFT_3) {
+            } elseif ($schema->id === 'http://json-schema.org/draft-03/schema#') {
                 $schema->properties->id->format = 'uri-reference';
                 $schema->properties->{'$ref'}->format = 'uri-reference';
             }
@@ -106,10 +106,9 @@ class SchemaStorage implements SchemaStorageInterface
                 continue;
             }
 
-            $schemaId = $this->findSchemaIdInObject($schema);
             $childId = $parentId;
-            if (is_string($schemaId) && $childId !== $schemaId) {
-                $childId = $this->uriResolver->resolve($schemaId, $childId);
+            if (property_exists($schema, 'id') && is_string($schema->id) && $childId !== $schema->id) {
+                $childId = $this->uriResolver->resolve($schema->id, $childId);
             }
 
             $this->expandRefs($member, $childId);
@@ -147,7 +146,6 @@ class SchemaStorage implements SchemaStorageInterface
         // get & process the schema
         $refSchema = $this->getSchema($fileName);
         foreach ($jsonPointer->getPropertyPaths() as $path) {
-            $path = urldecode($path);
             if (is_object($refSchema) && property_exists($refSchema, $path)) {
                 $refSchema = $this->resolveRefSchema($refSchema->{$path}, $resolveStack);
             } elseif (is_array($refSchema) && array_key_exists($path, $refSchema)) {
@@ -181,10 +179,6 @@ class SchemaStorage implements SchemaStorageInterface
             return $this->resolveRef($refSchema->{'$ref'}, $resolveStack);
         }
 
-        if (is_object($refSchema) && array_keys(get_object_vars($refSchema)) === ['']) {
-            $refSchema = get_object_vars($refSchema)[''];
-        }
-
         return $refSchema;
     }
 
@@ -202,35 +196,17 @@ class SchemaStorage implements SchemaStorageInterface
                 continue;
             }
 
-            $potentialSubSchemaId = $this->findSchemaIdInObject($potentialSubSchema);
-            if (is_string($potentialSubSchemaId) && property_exists($potentialSubSchema, 'type')) {
+            if (property_exists($potentialSubSchema, 'id') && is_string($potentialSubSchema->id) && property_exists($potentialSubSchema, 'type')) {
                 // Enum and const don't allow id as a keyword, see https://github.com/json-schema-org/JSON-Schema-Test-Suite/pull/471
                 if (in_array($propertyName, ['enum', 'const'])) {
                     continue;
                 }
 
-                // $id in unknow keywords is not valid
-                if (in_array($propertyName, [])) {
-                    continue;
-                }
-
                 // Found sub schema
-                $this->addSchema($this->uriResolver->resolve($potentialSubSchemaId, $parentId), $potentialSubSchema);
+                $this->addSchema($this->uriResolver->resolve($potentialSubSchema->id, $parentId), $potentialSubSchema);
             }
 
             $this->scanForSubschemas($potentialSubSchema, $parentId);
         }
-    }
-
-    private function findSchemaIdInObject(object $schema): ?string
-    {
-        if (property_exists($schema, 'id') && is_string($schema->id)) {
-            return $schema->id;
-        }
-        if (property_exists($schema, '$id') && is_string($schema->{'$id'})) {
-            return $schema->{'$id'};
-        }
-
-        return null;
     }
 }

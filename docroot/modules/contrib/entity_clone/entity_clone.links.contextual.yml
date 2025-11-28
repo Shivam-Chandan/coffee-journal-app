@@ -1,3 +1,0 @@
-entity_clone.contextual_links:
-  deriver: 'Drupal\entity_clone\Plugin\Derivative\EntityCloneContextualLinks'
-  weight: 3

@@ -1,6 +1,0 @@
-{
-    "name": "drupal/acquia_cms_site_studio_content",
-    "description": "Contains the example Site Studio content for demonstration.",
-    "license": "GPL-2.0-or-later",
-    "type": "drupal-module"
-}

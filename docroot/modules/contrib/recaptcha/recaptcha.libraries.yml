@@ -1,6 +1,0 @@
-recaptcha:
-  js:
-    js/recaptcha.js: {}
-  dependencies:
-    - core/drupal
-    - core/jquery

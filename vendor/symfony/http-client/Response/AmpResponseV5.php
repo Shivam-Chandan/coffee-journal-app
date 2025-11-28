@@ -96,8 +96,7 @@ final class AmpResponseV5 implements ResponseInterface, StreamableInterface
         };
 
         $pause = 0.0;
-        $this->id = $id = self::$nextId;
-        self::$nextId = str_increment(self::$nextId);
+        $this->id = $id = self::$nextId++;
 
         $info['pause_handler'] = static function (float $duration) use (&$pause) {
             $pause = $duration;
@@ -123,12 +122,12 @@ final class AmpResponseV5 implements ResponseInterface, StreamableInterface
         return null !== $type ? $this->info[$type] ?? null : $this->info;
     }
 
-    public function __serialize(): array
+    public function __sleep(): array
     {
         throw new \BadMethodCallException('Cannot serialize '.__CLASS__);
     }
 
-    public function __unserialize(array $data): void
+    public function __wakeup(): void
     {
         throw new \BadMethodCallException('Cannot unserialize '.__CLASS__);
     }
@@ -241,10 +240,6 @@ final class AmpResponseV5 implements ResponseInterface, StreamableInterface
             $body = $response->getBody();
 
             while (true) {
-                if (!isset($multi->openHandles[$id])) {
-                    return;
-                }
-
                 $multi->openHandles[$id]->complete();
                 $multi->openHandles[$id] = new DeferredFuture();
 

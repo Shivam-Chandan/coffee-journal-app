@@ -1,7 +1,0 @@
-behaviour
-diffadminplugins
-Guguel
-htmldiff
-langname
-nextlink
-prevlink
