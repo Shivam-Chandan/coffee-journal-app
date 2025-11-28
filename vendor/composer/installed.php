@@ -3,7 +3,7 @@
         'name' => 'acquia/drupal-recommended-project',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '5dbaca110b7835a20309c2d118118bb72117350b',
+        'reference' => 'b2130c6c060f6d7771d27925a4871d45d103c3a9',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -31,7 +31,7 @@
         'acquia/drupal-recommended-project' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '5dbaca110b7835a20309c2d118118bb72117350b',
+            'reference' => 'b2130c6c060f6d7771d27925a4871d45d103c3a9',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
