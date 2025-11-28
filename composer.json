@@ -1,62 +1,78 @@
 {
-    "name": "acquia/drupal-recommended-project",
-    "description": "Acquia-compatible Drupal application based on the Drupal Recommended Project",
+    "name": "acquia/drupal-cms-project",
+    "description": "Drupal with a bunch of useful stuff and a scaffold tailored to Acquia hosting.",
+    "type": "project",
     "license": "GPL-2.0-or-later",
     "authors": [
         {
             "name": "Acquia Engineering",
-            "homepage": "https://www.acquia.com",
+            "email": "engineering@acquia.org",
             "role": "Maintainer"
         }
     ],
+    "homepage": "https://github.com/acquia/drupal-cms-project",
+    "repositories": {
+        "drupal": {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    },
     "require": {
-        "php": ">=8.3",
-        "acquia/acquia-cms-starterkit": "^1",
         "acquia/drupal-environment-detector": "^1",
-        "acquia/drupal-recommended-settings": "^1.0",
+        "acquia/drupal-recommended-settings": "^1",
         "acquia/memcache-settings": "^1",
-        "composer/installers": "^2.1",
-        "cweagans/composer-patches": "^1.6",
+        "composer/installers": "^2.3",
+        "cweagans/composer-patches": "^1.7",
+        "dealerdirect/phpcodesniffer-composer-installer": "1.0.0",
         "drupal/config_sync_without_site_uuid": "^1.0@beta",
-        "drupal/core-composer-scaffold": "^11",
-        "drupal/core-recommended": "^11",
+        "drupal/core-composer-scaffold": "^11.1.1",
+        "drupal/core-recommended": "^11.1.1",
+        "drupal/drupal_cms_accessibility_tools": "*",
+        "drupal/drupal_cms_ai": "*",
+        "drupal/drupal_cms_analytics": "*",
+        "drupal/drupal_cms_blog": "*",
+        "drupal/drupal_cms_case_study": "*",
+        "drupal/drupal_cms_events": "*",
+        "drupal/drupal_cms_forms": "*",
+        "drupal/drupal_cms_news": "*",
+        "drupal/drupal_cms_person": "*",
+        "drupal/drupal_cms_project": "*",
+        "drupal/drupal_cms_seo_tools": "*",
+        "drupal/drupal_cms_starter": "*",
         "drupal/mysql57": "^1.0",
-        "drush/drush": "^13",
-        "oomphinc/composer-installers-extender": "^2"
+        "drupal/recipe_installer_kit": "^1.0.0-alpha5",
+        "drush/drush": "^13"
     },
     "require-dev": {
-        "acquia/coding-standards": "^3.0.0",
-        "drupal/core-dev": "^11.1.8"
+        "drupal/core-dev": "^11"
     },
+    "conflict": {
+        "drupal/drupal": "*"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "config": {
         "allow-plugins": {
-            "acquia/drupal-recommended-settings": true,
             "composer/installers": true,
-            "cweagans/composer-patches": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true,
             "drupal/core-composer-scaffold": true,
-            "ergebnis/composer-normalize": true,
-            "oomphinc/composer-installers-extender": true,
+            "drupal/core-project-message": true,
             "php-http/discovery": true,
+            "acquia/drupal-recommended-settings": true,
             "phpstan/extension-installer": true,
-            "tbachert/spi": true
+            "tbachert/spi": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "cweagans/composer-patches": true
         },
-        "platform": {
-            "php": "8.3"
-        },
-        "sort-packages": true
+        "sort-packages": true,
+        "optimize-autoloader": true
     },
     "extra": {
         "composer-exit-on-patch-failure": true,
         "drupal-scaffold": {
-            "allowed-packages": [
-                "acquia/acquia_cms"
-            ],
+            "locations": {
+                "web-root": "docroot/"
+            },
             "file-mapping": {
-                "[profile-root]/.editorconfig": false,
-                "[profile-root]/.gitattributes": false,
-                "[profile-root]/.travis.yml": false,
-                "[profile-root]/acquia-pipelines.yml": false,
                 "[web-root]/sites/default/default.services.yml": {
                     "mode": "replace",
                     "overwrite": false,
@@ -67,66 +83,23 @@
                     "overwrite": false,
                     "path": "docroot/core/assets/scaffold/files/default.settings.php"
                 }
-            },
-            "gitignore": true,
-            "locations": {
-                "profile-root": "docroot/profiles/contrib/acquia_cms",
-                "web-root": "docroot/"
             }
         },
-        "enable-patching": true,
         "installer-paths": {
-            "docroot/core": [
-                "type:drupal-core"
-            ],
-            "docroot/libraries/{$name}": [
-                "type:drupal-library",
-                "type:bower-asset",
-                "type:npm-asset"
-            ],
-            "docroot/modules/contrib/{$name}": [
-                "type:drupal-module"
-            ],
-            "docroot/modules/custom/{$name}": [
-                "type:drupal-custom-module"
-            ],
-            "docroot/profiles/contrib/{$name}": [
-                "type:drupal-profile"
-            ],
-            "docroot/themes/contrib/{$name}": [
-                "type:drupal-theme"
-            ],
-            "docroot/themes/custom/{$name}": [
-                "type:drupal-custom-theme"
-            ],
-            "drush/Commands/contrib/{$name}": [
-                "type:drupal-drush"
-            ]
-        },
-        "installer-types": [
-            "bower-asset",
-            "npm-asset"
-        ],
-        "patchLevel": {
-            "drupal/core": "-p2"
+            "docroot/core": ["type:drupal-core"],
+            "docroot/libraries/{$name}": ["type:drupal-library"],
+            "docroot/modules/contrib/{$name}": ["type:drupal-module"],
+            "docroot/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "docroot/themes/contrib/{$name}": ["type:drupal-theme"],
+            "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
+            "docroot/modules/custom/{$name}": ["type:drupal-custom-module"],
+            "docroot/profiles/custom/{$name}": ["type:drupal-custom-profile"],
+            "recipes/{$name}": ["type:drupal-recipe"],
+            "docroot/themes/custom/{$name}": ["type:drupal-custom-theme"]
         },
         "patches": {}
     },
-    "repositories": {
-        "drupal": {
-            "type": "composer",
-            "url": "https://packages.drupal.org/8"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "scripts": {
-        "acms:install": [
-            "Composer\\Config::disableProcessTimeout",
-            "./vendor/bin/acms acms:install"
-        ],
-        "nuke": [
-            "rm -rf docroot vendor composer.lock"
-        ]
+        "post-create-project-cmd": "rm -rf .github/"
     }
 }
