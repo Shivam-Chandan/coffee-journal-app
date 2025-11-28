@@ -33,7 +33,7 @@ use Symfony\Contracts\HttpClient\ResponseStreamInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 if (!interface_exists(DelegateHttpClient::class)) {
-    throw new \LogicException('You cannot use "Symfony\Component\HttpClient\AmpHttpClient" as the "amphp/http-client" package is not installed. Try running "composer require amphp/http-client:^4.2.1".');
+    throw new \LogicException('You cannot use "Symfony\Component\HttpClient\AmpHttpClient" as the "amphp/http-client" package is not installed. Try running "composer require amphp/http-client:^5".');
 }
 
 if (\PHP_VERSION_ID < 80400 && is_subclass_of(Request::class, HttpMessage::class)) {
@@ -78,6 +78,9 @@ final class AmpHttpClient implements HttpClientInterface, LoggerAwareInterface, 
         if (is_subclass_of(Request::class, HttpMessage::class)) {
             $this->multi = new AmpClientStateV5($clientConfigurator, $maxHostConnections, $maxPendingPushes, $this->logger);
         } else {
+            if (\PHP_VERSION_ID >= 80400) {
+                trigger_deprecation('symfony/http-client', '7.4', 'Using amphp/http-client < 5 is deprecated. Try running "composer require amphp/http-client:^5".');
+            }
             $this->multi = new AmpClientStateV4($clientConfigurator, $maxHostConnections, $maxPendingPushes, $this->logger);
         }
     }

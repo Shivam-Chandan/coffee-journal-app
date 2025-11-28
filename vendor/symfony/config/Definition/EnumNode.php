@@ -76,18 +76,18 @@ class EnumNode extends ScalarNode
     /**
      * @internal
      */
-    public function getPermissibleValues(string $separator): string
+    public function getPermissibleValues(string $separator, bool $trim = true): string
     {
         if (is_subclass_of($this->enumFqcn, \BackedEnum::class)) {
             return implode($separator, array_column($this->enumFqcn::cases(), 'value'));
         }
 
-        return implode($separator, array_unique(array_map(static function (mixed $value): string {
+        return implode($separator, array_unique(array_map(static function ($value) use ($trim) {
             if (!$value instanceof \UnitEnum) {
                 return json_encode($value);
             }
 
-            return ltrim(var_export($value, true), '\\');
+            return $trim ? ltrim(var_export($value, true), '\\') : var_export($value, true);
         }, $this->values)));
     }
 
@@ -103,6 +103,10 @@ class EnumNode extends ScalarNode
     protected function finalizeValue(mixed $value): mixed
     {
         $value = parent::finalizeValue($value);
+
+        if (null === $value && $this->enumFqcn) {
+            return null;
+        }
 
         if (!$this->enumFqcn) {
             if (!\in_array($value, $this->values, true)) {
