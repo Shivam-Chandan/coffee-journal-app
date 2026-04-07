@@ -1,7 +1,7 @@
 version: 1.1.0
 
 # Acquia Pipelines build definition for Brewtal
-# - PHP 8.3 (explicitly set via runtime)
+# - PHP 8.3
 # - MySQL 5.7 (drupal/mysql57 module included via Composer)
 # - Builds from master branch, deploys artifact to pipelines-build-master
 
@@ -11,22 +11,23 @@ variables:
 
 events:
   build:
-    # Use PHP 8.3 runtime in the build container
-    php: 8.3
+    php: "8.3"
     steps:
       - setup:
           type: script
           script:
+            - export PATH="/usr/local/php8.3/bin:$PATH"
             - echo "==> PHP version"
             - php --version
             - echo "==> Composer version"
-            - composer --version
+            - php /usr/local/bin/composer --version
 
       - composer-install:
           type: script
           script:
+            - export PATH="/usr/local/php8.3/bin:$PATH"
             - echo "==> Running composer install (no dev, optimised autoloader)"
-            - composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+            - php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
       - prepare-artifact:
           type: script
@@ -35,7 +36,6 @@ events:
             - rm -f phpcs.xml.dist
             - rm -f phpstan.neon.dist
             - rm -f phpunit.xml.dist
-            # Ensure the files and private directories exist
             - mkdir -p docroot/sites/default/files
             - mkdir -p docroot/sites/default/private
             - echo "==> Artifact prepared"
