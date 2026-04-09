@@ -3,15 +3,21 @@
   field--field-rating--node--coffee-bean.html.twig
   Converts integer 1-5 into amber star icons.
 #}
-{% set rating = items[0].content['#context']['value'] | default(items[0].content | render | striptags | trim) %}
-{% set rating_int = rating | number_format(0) %}
-<div class="cj-stars" aria-label="Rating: {{ rating_int }} out of 5">
+{% set rating_value = 0 %}
+{% for item in items %}
+  {% set val = item.content['#markup'] | default('') | striptags | trim %}
+  {% if val %}
+    {% set rating_value = val | number_format(0) %}
+  {% endif %}
+{% endfor %}
+
+<div class="cj-stars" aria-label="Rating: {{ rating_value }} out of 5">
   {% for i in 1..5 %}
-    {% if i <= rating_int %}
+    {% if i <= rating_value %}
       <span class="star filled" aria-hidden="true">★</span>
     {% else %}
       <span class="star" aria-hidden="true">★</span>
     {% endif %}
   {% endfor %}
-  <span class="cj-rating-badge">{{ rating_int }}/5</span>
+  <span class="cj-rating-badge">{{ rating_value }}/5</span>
 </div>

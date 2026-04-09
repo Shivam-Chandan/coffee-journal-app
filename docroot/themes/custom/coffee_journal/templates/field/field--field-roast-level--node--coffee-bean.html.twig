@@ -4,6 +4,7 @@
   Renders roast level as a colour-coded pill badge.
 #}
 {% for item in items %}
-  {% set value = item.content['#markup'] | default(item.content | render | striptags | trim | lower) %}
-  <span class="roast-badge roast-badge--{{ value }}">{{ value | capitalize }}</span>
+  {% set raw = item.content['#markup'] | default(item.content | render | striptags | trim) %}
+  {% set value = raw | lower | trim %}
+  <span class="roast-badge roast-badge--{{ value }}">{{ raw }}</span>
 {% endfor %}
