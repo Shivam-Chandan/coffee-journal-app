@@ -1,0 +1,7 @@
+name: 'Coffee Journal Access'
+type: module
+description: 'Restricts coffee bean node access to the node author only. Users can only view, edit, and delete their own entries.'
+package: Custom
+core_version_requirement: ^10.1 || ^11
+dependencies:
+  - drupal:node

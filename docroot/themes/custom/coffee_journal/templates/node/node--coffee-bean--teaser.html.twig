@@ -3,15 +3,14 @@
   node--coffee-bean--teaser.html.twig
 
   Reads field values directly from the node entity for reliable rendering.
+  Edit/delete actions are shown only to the node owner (via node.access check).
+  Non-owners cannot see CRUD controls — enforced at both UI and backend level.
 #}
-{% set node_id    = node.id() %}
-{% set edit_url   = path('entity.node.edit_form', {'node': node_id}) %}
-{% set delete_url = path('entity.node.delete_form', {'node': node_id}) %}
-
-{% set rating_val  = node.field_rating.value|default(0)|round %}
-{% set roast_val   = node.field_roast_level.value|default('')|lower|trim %}
-{% set brand_val   = node.field_brand_roaster.value|default('') %}
-{% set date_val    = node.field_purchase_date.value|default('') %}
+{% set node_id   = node.id() %}
+{% set rating_val = node.field_rating.value|default(0)|round %}
+{% set roast_val  = node.field_roast_level.value|default('')|lower|trim %}
+{% set brand_val  = node.field_brand_roaster.value|default('') %}
+{% set date_val   = node.field_purchase_date.value|default('') %}
 
 {% set roast_labels = {
   'light':    'Light',
@@ -22,37 +21,41 @@
 
 <article{{ attributes.addClass('cj-card') }}>
 
-  {# ── Header: title + actions ── #}
+  {# ── Header: title + owner-only actions ── #}
   <div class="cj-card__header">
     <div class="cj-card__title">
       <a href="{{ url }}" rel="bookmark">{{ label }}</a>
     </div>
-    <div class="cj-card__actions">
-      <a href="{{ edit_url }}"
-         class="edit"
-         title="{{ 'Edit'|t }} {{ label }}"
-         aria-label="{{ 'Edit'|t }} {{ label }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-          <path d="m15 5 4 4"/>
-        </svg>
-      </a>
-      <a href="{{ delete_url }}"
-         class="delete"
-         title="{{ 'Delete'|t }} {{ label }}"
-         aria-label="{{ 'Delete'|t }} {{ label }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-          <path d="M10 11v6M14 11v6"/>
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-        </svg>
-      </a>
-    </div>
+
+    {# Show edit/delete only to the node owner — backend also enforces this #}
+    {% if node.access('update') %}
+      <div class="cj-card__actions">
+        <a href="{{ path('entity.node.edit_form', {'node': node_id}) }}"
+           class="edit"
+           title="{{ 'Edit'|t }} {{ label }}"
+           aria-label="{{ 'Edit'|t }} {{ label }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+            <path d="m15 5 4 4"/>
+          </svg>
+        </a>
+        <a href="{{ path('entity.node.delete_form', {'node': node_id}) }}"
+           class="delete"
+           title="{{ 'Delete'|t }} {{ label }}"
+           aria-label="{{ 'Delete'|t }} {{ label }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+        </a>
+      </div>
+    {% endif %}
   </div>
 
   {# ── Brand / Roaster ── #}

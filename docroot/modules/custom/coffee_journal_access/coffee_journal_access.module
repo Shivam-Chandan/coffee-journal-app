@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * @file
+ * Coffee Journal Access — node access control for coffee_bean nodes.
+ *
+ * Rules:
+ *   - Authenticated users can VIEW, UPDATE, DELETE only their OWN coffee beans.
+ *   - No user (except admin UID 1) may view, edit, or delete another user's bean.
+ *   - Anonymous users are denied all access.
+ *   - Admin (UID 1) retains full access to all nodes.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_node_access().
+ *
+ * Called for every node access check. Returning FORBIDDEN wins over
+ * any ALLOWED returned by other modules.
+ */
+function coffee_journal_access_node_access(NodeInterface $node, $op, AccountInterface $account) {
+  // Only apply to coffee_bean nodes.
+  if ($node->bundle() !== 'coffee_bean') {
+    return AccessResult::neutral();
+  }
+
+  // Admin (UID 1) always has full access — don't restrict.
+  if ($account->id() == 1) {
+    return AccessResult::neutral()->cachePerUser();
+  }
+
+  // Anonymous users are denied everything.
+  if ($account->isAnonymous()) {
+    return AccessResult::forbidden()->cachePerUser();
+  }
+
+  // Authenticated users: only their own nodes.
+  $is_owner = ((int) $node->getOwnerId() === (int) $account->id());
+
+  if ($is_owner) {
+    // Owner can view, update, and delete their own bean.
+    return AccessResult::allowed()
+      ->cachePerUser()
+      ->addCacheableDependency($node);
+  }
+  else {
+    // Non-owner is forbidden from ALL operations (view, update, delete).
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node);
+  }
+}
+
+/**
+ * Implements hook_node_grants().
+ *
+ * Not needed for this module — we use hook_node_access() which is sufficient
+ * for single-site, non-complex access scenarios.
+ */
