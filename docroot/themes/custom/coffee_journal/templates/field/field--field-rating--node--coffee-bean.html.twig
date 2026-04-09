@@ -1,0 +1,17 @@
+{#
+  Coffee Journal — Star Rating field template
+  field--field-rating--node--coffee-bean.html.twig
+  Converts integer 1-5 into amber star icons.
+#}
+{% set rating = items[0].content['#context']['value'] | default(items[0].content | render | striptags | trim) %}
+{% set rating_int = rating | number_format(0) %}
+<div class="cj-stars" aria-label="Rating: {{ rating_int }} out of 5">
+  {% for i in 1..5 %}
+    {% if i <= rating_int %}
+      <span class="star filled" aria-hidden="true">★</span>
+    {% else %}
+      <span class="star" aria-hidden="true">★</span>
+    {% endif %}
+  {% endfor %}
+  <span class="cj-rating-badge">{{ rating_int }}/5</span>
+</div>

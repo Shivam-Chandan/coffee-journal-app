@@ -1,0 +1,99 @@
+{#
+  Coffee Journal — Coffee Bean card (teaser view mode)
+  node--coffee-bean--teaser.html.twig
+#}
+{% set bean_title  = label %}
+{% set bean_url    = url %}
+{% set node_id     = node.id() %}
+
+{# Gather field values #}
+{% set brand       = content.field_brand_roaster %}
+{% set roast       = content.field_roast_level %}
+{% set rating      = content.field_rating %}
+{% set date        = content.field_purchase_date %}
+
+{# Edit / delete paths #}
+{% set edit_url    = '/node/' ~ node_id ~ '/edit' %}
+{% set delete_url  = '/node/' ~ node_id ~ '/delete' %}
+
+<article{{ attributes.addClass('coffee-card') }}>
+
+  {# ── Card header: title + action buttons ── #}
+  <div class="coffee-card__header">
+    <div class="coffee-card__title">
+      <a href="{{ bean_url }}">{{ bean_title }}</a>
+    </div>
+    <div class="coffee-card__actions">
+      <a href="{{ edit_url }}"
+         class="edit"
+         title="Edit {{ bean_title }}"
+         aria-label="Edit {{ bean_title }}">
+        {# Pencil SVG icon #}
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+          <path d="m15 5 4 4"/>
+        </svg>
+      </a>
+      <a href="{{ delete_url }}"
+         class="delete"
+         title="Delete {{ bean_title }}"
+         aria-label="Delete {{ bean_title }}">
+        {# Trash SVG icon #}
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  {# ── Brand / Roaster ── #}
+  {% if content.field_brand_roaster|render|striptags|trim is not empty %}
+    <div class="coffee-card__brand">
+      {# Bean icon #}
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;opacity:0.6" aria-hidden="true">
+        <path d="M10.5 2.5a7 7 0 0 1 7 10.5C16 18 12 21.5 8 21.5a7 7 0 0 1-7-10.5C2.5 6 6.5 2.5 10.5 2.5z"/>
+        <path d="M10.5 2.5c2.5 2.5 2.5 8 0 12.5"/>
+        <path d="M10.5 2.5c-2.5 2.5-2.5 8 0 12.5"/>
+      </svg>
+      {{ content.field_brand_roaster }}
+    </div>
+  {% endif %}
+
+  {# ── Roast badge + date ── #}
+  <div class="coffee-card__meta">
+    {% if content.field_roast_level|render|striptags|trim is not empty %}
+      {{ content.field_roast_level }}
+    {% endif %}
+    {% if content.field_purchase_date|render|striptags|trim is not empty %}
+      <span class="coffee-card__date">
+        {# Calendar icon #}
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        {{ content.field_purchase_date }}
+      </span>
+    {% endif %}
+  </div>
+
+  {# ── Star rating ── #}
+  {% if content.field_rating|render|striptags|trim is not empty %}
+    <div class="coffee-card__footer">
+      {{ content.field_rating }}
+    </div>
+  {% endif %}
+
+</article>

@@ -1,0 +1,46 @@
+{#
+  Coffee Journal — Views wrapper for frontpage view
+  views-view--frontpage.html.twig
+  Applies coffee-grid to the frontpage too.
+#}
+{% if not view.is_attachment() %}
+  <div class="view view-frontpage{{ classes | join(' ') }}">
+
+    {% if header %}
+      <div class="view-header">{{ header }}</div>
+    {% endif %}
+
+    {% if exposed %}
+      <div class="view-filters">{{ exposed }}</div>
+    {% endif %}
+
+    {% if attachment_before %}
+      <div class="attachment attachment-before">{{ attachment_before }}</div>
+    {% endif %}
+
+    {% if rows %}
+      <div class="coffee-grid view-content">
+        {{ rows }}
+      </div>
+    {% elseif empty %}
+      <div class="view-empty cj-empty-state">
+        {{ empty }}
+      </div>
+    {% endif %}
+
+    {% if pager %}
+      <div class="view-pager">{{ pager }}</div>
+    {% endif %}
+
+    {% if attachment_after %}
+      <div class="attachment attachment-after">{{ attachment_after }}</div>
+    {% endif %}
+
+    {% if more %}
+      <div class="view-more">{{ more }}</div>
+    {% endif %}
+
+  </div>
+{% else %}
+  {{ rows }}
+{% endif %}

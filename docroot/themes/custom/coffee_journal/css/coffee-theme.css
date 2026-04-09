@@ -1,0 +1,990 @@
+/* =============================================================================
+   Coffee Journal — Custom Drupal Theme
+   Inspired by: shivam-coffee-journal-app (React/Ionic)
+   Design tokens: warm dark palette, burnt-orange accent, Inter typography
+   ============================================================================= */
+
+/* --- Google Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* =============================================================================
+   1. CSS CUSTOM PROPERTIES — DARK MODE (default)
+   ============================================================================= */
+:root,
+body.dark-mode {
+  /* Backgrounds */
+  --cj-bg:            hsl(28, 4%, 8%);
+  --cj-bg-surface:    hsl(28, 5%, 10%);
+  --cj-bg-elevated:   hsl(28, 5%, 12%);
+  --cj-bg-muted:      hsl(28, 6%, 18%);
+
+  /* Text */
+  --cj-text:          hsl(30, 5%, 95%);
+  --cj-text-muted:    hsl(30, 5%, 65%);
+  --cj-text-faint:    hsl(30, 4%, 45%);
+
+  /* Borders */
+  --cj-border:        hsl(28, 4%, 18%);
+  --cj-border-card:   hsl(28, 5%, 14%);
+
+  /* Accent — burnt orange / espresso */
+  --cj-primary:       hsl(25, 85%, 42%);
+  --cj-primary-hover: hsl(25, 85%, 50%);
+  --cj-primary-fg:    hsl(25, 10%, 98%);
+
+  /* Stars / rating */
+  --cj-star-filled:   #f59e0b;
+  --cj-star-empty:    hsl(28, 4%, 28%);
+
+  /* Roast badge colours */
+  --cj-roast-light:       hsl(45, 70%, 38%);
+  --cj-roast-light-bg:    hsl(45, 70%, 14%);
+  --cj-roast-medium:      hsl(30, 70%, 40%);
+  --cj-roast-medium-bg:   hsl(30, 70%, 14%);
+  --cj-roast-dark:        hsl(20, 55%, 32%);
+  --cj-roast-dark-bg:     hsl(20, 55%, 12%);
+  --cj-roast-espresso:    hsl(10, 45%, 28%);
+  --cj-roast-espresso-bg: hsl(10, 45%, 10%);
+
+  /* Misc */
+  --cj-radius:        0.5rem;
+  --cj-radius-lg:     0.75rem;
+  --cj-shadow:        0 1px 3px 0 rgba(0,0,0,0.4);
+  --cj-shadow-card:   0 2px 8px 0 rgba(0,0,0,0.5);
+  --cj-transition:    0.18s ease;
+}
+
+/* =============================================================================
+   2. CSS CUSTOM PROPERTIES — LIGHT MODE
+   ============================================================================= */
+body.light-mode {
+  --cj-bg:            hsl(30, 5%, 97%);
+  --cj-bg-surface:    hsl(30, 6%, 95%);
+  --cj-bg-elevated:   hsl(30, 5%, 92%);
+  --cj-bg-muted:      hsl(32, 8%, 88%);
+
+  --cj-text:          hsl(28, 8%, 15%);
+  --cj-text-muted:    hsl(28, 6%, 35%);
+  --cj-text-faint:    hsl(28, 4%, 55%);
+
+  --cj-border:        hsl(30, 5%, 88%);
+  --cj-border-card:   hsl(30, 6%, 90%);
+
+  --cj-primary:       hsl(25, 85%, 42%);
+  --cj-primary-hover: hsl(25, 85%, 35%);
+  --cj-primary-fg:    #fff;
+
+  --cj-star-filled:   #f59e0b;
+  --cj-star-empty:    hsl(30, 8%, 75%);
+
+  --cj-roast-light:       hsl(45, 65%, 32%);
+  --cj-roast-light-bg:    hsl(45, 65%, 92%);
+  --cj-roast-medium:      hsl(30, 65%, 35%);
+  --cj-roast-medium-bg:   hsl(30, 65%, 92%);
+  --cj-roast-dark:        hsl(20, 50%, 28%);
+  --cj-roast-dark-bg:     hsl(20, 50%, 90%);
+  --cj-roast-espresso:    hsl(10, 40%, 22%);
+  --cj-roast-espresso-bg: hsl(10, 40%, 90%);
+
+  --cj-shadow:        0 1px 3px 0 rgba(0,0,0,0.08);
+  --cj-shadow-card:   0 2px 6px 0 rgba(0,0,0,0.10);
+}
+
+/* =============================================================================
+   3. GLOBAL RESET & BASE
+   ============================================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--cj-bg);
+  color: var(--cj-text);
+  font-size: 1rem;
+  line-height: 1.6;
+  transition: background-color var(--cj-transition), color var(--cj-transition);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--cj-primary);
+  text-decoration: none;
+  transition: color var(--cj-transition);
+}
+a:hover {
+  color: var(--cj-primary-hover);
+}
+
+/* =============================================================================
+   4. HEADER / TOOLBAR
+   ============================================================================= */
+.site-header,
+header[role="banner"] {
+  background-color: var(--cj-bg-elevated) !important;
+  border-bottom: 1px solid var(--cj-border) !important;
+  box-shadow: none !important;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Site name / branding */
+.site-branding__name a,
+.site-branding a {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--cj-text) !important;
+  letter-spacing: -0.01em;
+}
+.site-branding__name a::before {
+  content: '☕ ';
+}
+
+/* Navigation menu items */
+nav.block-menu a,
+.primary-nav__menu a {
+  color: var(--cj-text-muted) !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--cj-radius);
+  transition: color var(--cj-transition), background-color var(--cj-transition);
+}
+nav.block-menu a:hover,
+.primary-nav__menu a:hover,
+nav.block-menu a.is-active {
+  color: var(--cj-primary) !important;
+  background-color: rgba(255,255,255,0.05);
+}
+
+/* Dark/light toggle button — injected by JS */
+.cj-theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 4.5rem;
+  z-index: 200;
+  background: var(--cj-bg-elevated);
+  border: 1px solid var(--cj-border);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--cj-text-muted);
+  transition: background-color var(--cj-transition), border-color var(--cj-transition);
+}
+.cj-theme-toggle:hover {
+  background: var(--cj-bg-muted);
+  color: var(--cj-text);
+}
+
+/* =============================================================================
+   5. MAIN LAYOUT
+   ============================================================================= */
+.layout-container,
+main[role="main"],
+.block-system-main-block {
+  background-color: var(--cj-bg) !important;
+  color: var(--cj-text) !important;
+}
+
+.layout-content,
+.views-element-container,
+.view {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 6rem;
+}
+
+/* Page title */
+h1.page-title,
+.page-title,
+h1 {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--cj-text);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+h2, h3, h4 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  color: var(--cj-text);
+}
+
+/* =============================================================================
+   6. COFFEE CARD GRID
+   ============================================================================= */
+.coffee-grid,
+.view-coffee-journal .view-content,
+.view-frontpage .view-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .coffee-grid,
+  .view-coffee-journal .view-content,
+  .view-frontpage .view-content {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .coffee-grid,
+  .view-coffee-journal .view-content,
+  .view-frontpage .view-content {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* =============================================================================
+   7. COFFEE BEAN CARD (teaser)
+   ============================================================================= */
+.coffee-card,
+.node--type-coffee-bean.node--view-mode-teaser {
+  background-color: var(--cj-bg-surface);
+  border: 1px solid var(--cj-border-card);
+  border-radius: var(--cj-radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  box-shadow: var(--cj-shadow-card);
+  transition: transform var(--cj-transition), border-color var(--cj-transition), box-shadow var(--cj-transition);
+  position: relative;
+  overflow: hidden;
+}
+.coffee-card:hover,
+.node--type-coffee-bean.node--view-mode-teaser:hover {
+  transform: translateY(-2px);
+  border-color: var(--cj-primary);
+  box-shadow: 0 4px 16px 0 rgba(0,0,0,0.5);
+}
+
+/* Card accent line top */
+.coffee-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--cj-primary);
+  opacity: 0;
+  transition: opacity var(--cj-transition);
+  border-radius: var(--cj-radius-lg) var(--cj-radius-lg) 0 0;
+}
+.coffee-card:hover::before {
+  opacity: 1;
+}
+
+/* Card header row */
+.coffee-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* Bean name */
+.coffee-card__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--cj-text);
+  line-height: 1.3;
+  flex: 1;
+}
+.coffee-card__title a {
+  color: var(--cj-text) !important;
+  text-decoration: none;
+}
+.coffee-card__title a:hover {
+  color: var(--cj-primary) !important;
+}
+
+/* Card actions (edit/delete) */
+.coffee-card__actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.coffee-card__actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--cj-radius);
+  background: var(--cj-bg-muted);
+  border: 1px solid var(--cj-border);
+  color: var(--cj-text-muted) !important;
+  transition: background-color var(--cj-transition), color var(--cj-transition);
+  text-decoration: none;
+}
+.coffee-card__actions a:hover {
+  background: var(--cj-primary);
+  color: var(--cj-primary-fg) !important;
+  border-color: var(--cj-primary);
+}
+.coffee-card__actions a.delete:hover {
+  background: hsl(0, 65%, 45%);
+  border-color: hsl(0, 65%, 45%);
+}
+
+/* Card meta row */
+.coffee-card__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--cj-text-muted);
+}
+
+/* Brand name */
+.coffee-card__brand {
+  font-size: 0.85rem;
+  color: var(--cj-text-muted);
+  font-weight: 500;
+}
+
+/* Purchase date */
+.coffee-card__date {
+  font-size: 0.78rem;
+  color: var(--cj-text-faint);
+}
+
+/* Card footer */
+.coffee-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--cj-border);
+}
+
+/* =============================================================================
+   8. STAR RATING
+   ============================================================================= */
+.cj-stars {
+  display: inline-flex;
+  gap: 0.1rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.cj-stars .star {
+  color: var(--cj-star-empty);
+  transition: color var(--cj-transition);
+}
+.cj-stars .star.filled {
+  color: var(--cj-star-filled);
+}
+/* Compact star size on cards */
+.coffee-card .cj-stars {
+  font-size: 0.95rem;
+}
+
+/* Numeric badge next to stars */
+.cj-rating-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cj-star-filled);
+  margin-left: 0.25rem;
+}
+
+/* =============================================================================
+   9. ROAST LEVEL BADGE
+   ============================================================================= */
+.roast-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+.roast-badge--light {
+  color: var(--cj-roast-light);
+  background-color: var(--cj-roast-light-bg);
+}
+.roast-badge--medium {
+  color: var(--cj-roast-medium);
+  background-color: var(--cj-roast-medium-bg);
+}
+.roast-badge--dark {
+  color: var(--cj-roast-dark);
+  background-color: var(--cj-roast-dark-bg);
+}
+.roast-badge--espresso {
+  color: var(--cj-roast-espresso);
+  background-color: var(--cj-roast-espresso-bg);
+}
+
+/* =============================================================================
+   10. FLOATING ACTION BUTTON (FAB)
+   ============================================================================= */
+.cj-fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 150;
+  width: 56px;
+  height: 56px;
+  background: var(--cj-primary);
+  color: var(--cj-primary-fg) !important;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 300;
+  line-height: 1;
+  text-decoration: none !important;
+  box-shadow: 0 4px 16px 0 rgba(0,0,0,0.45);
+  cursor: pointer;
+  transition: background-color var(--cj-transition), transform var(--cj-transition), box-shadow var(--cj-transition);
+}
+.cj-fab:hover {
+  background: var(--cj-primary-hover);
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 8px 24px 0 rgba(0,0,0,0.5);
+  color: var(--cj-primary-fg) !important;
+}
+.cj-fab:active {
+  transform: scale(0.97);
+}
+/* Tooltip label */
+.cj-fab::after {
+  content: attr(data-label);
+  position: absolute;
+  right: 110%;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: var(--cj-bg-elevated);
+  border: 1px solid var(--cj-border);
+  color: var(--cj-text);
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--cj-radius);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--cj-transition);
+}
+.cj-fab:hover::after {
+  opacity: 1;
+}
+
+/* =============================================================================
+   11. VIEW HEADER — "Add a Coffee Bean" area (fallback if FAB not used)
+   ============================================================================= */
+.view-header .button,
+.view-header a.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--cj-primary);
+  color: var(--cj-primary-fg) !important;
+  border: none;
+  border-radius: var(--cj-radius);
+  padding: 0.6rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background-color var(--cj-transition), transform var(--cj-transition);
+  margin-bottom: 1.25rem;
+}
+.view-header .button:hover,
+.view-header a.button:hover {
+  background: var(--cj-primary-hover);
+  transform: translateY(-1px);
+  color: var(--cj-primary-fg) !important;
+}
+.view-header a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--cj-primary);
+  color: var(--cj-primary-fg) !important;
+  border: none;
+  border-radius: var(--cj-radius);
+  padding: 0.6rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background-color var(--cj-transition), transform var(--cj-transition);
+  margin-bottom: 1.25rem;
+}
+.view-header a:hover {
+  background: var(--cj-primary-hover);
+  transform: translateY(-1px);
+  color: var(--cj-primary-fg) !important;
+}
+
+/* =============================================================================
+   12. EMPTY STATE
+   ============================================================================= */
+.view-empty,
+.cj-empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--cj-text-muted);
+}
+.view-empty::before,
+.cj-empty-state::before {
+  content: '☕';
+  display: block;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+.view-empty p,
+.cj-empty-state p {
+  font-size: 1rem;
+  margin-bottom: 1.25rem;
+  color: var(--cj-text-muted);
+}
+
+/* =============================================================================
+   13. FULL NODE (coffee bean detail page)
+   ============================================================================= */
+.node--type-coffee-bean.node--view-mode-full {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem 5rem;
+}
+
+.cj-node-header {
+  margin-bottom: 2rem;
+}
+.cj-node-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--cj-text);
+  margin-bottom: 0.5rem;
+}
+.cj-node-header .cj-stars {
+  font-size: 1.4rem;
+}
+
+/* Section card */
+.cj-section {
+  background: var(--cj-bg-surface);
+  border: 1px solid var(--cj-border-card);
+  border-radius: var(--cj-radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.cj-section__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cj-text-faint);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--cj-border);
+}
+.cj-field-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--cj-border);
+}
+.cj-field-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.cj-field-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cj-text-faint);
+  min-width: 120px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-top: 0.1rem;
+}
+.cj-field-value {
+  font-size: 0.95rem;
+  color: var(--cj-text);
+  flex: 1;
+}
+
+/* Notes text */
+.cj-notes-text {
+  font-size: 0.95rem;
+  color: var(--cj-text);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* Back link */
+.cj-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--cj-text-muted) !important;
+  margin-bottom: 1.5rem;
+  text-decoration: none !important;
+  transition: color var(--cj-transition);
+}
+.cj-back-link:hover {
+  color: var(--cj-primary) !important;
+}
+.cj-back-link::before {
+  content: '←';
+}
+
+/* Node action links (edit/delete on detail page) */
+.node__links,
+ul.links {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  list-style: none;
+  padding: 0;
+}
+.node__links a,
+ul.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--cj-radius);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none !important;
+  border: 1px solid var(--cj-border);
+  color: var(--cj-text-muted) !important;
+  background: var(--cj-bg-surface);
+  transition: background-color var(--cj-transition), color var(--cj-transition), border-color var(--cj-transition);
+}
+.node__links a:hover,
+ul.links a:hover {
+  background: var(--cj-primary);
+  color: var(--cj-primary-fg) !important;
+  border-color: var(--cj-primary);
+}
+
+/* =============================================================================
+   14. FORMS
+   ============================================================================= */
+.layout-container form,
+.node-coffee-bean-form {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 5rem;
+}
+
+/* Form field groups — wrap in section cards */
+.form-item,
+.js-form-item {
+  margin-bottom: 1.25rem;
+}
+
+label,
+.form-item label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--cj-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="date"],
+input[type="url"],
+textarea,
+select,
+.form-text,
+.form-email,
+.form-number,
+.form-select,
+.form-textarea {
+  width: 100%;
+  background: var(--cj-bg-elevated) !important;
+  border: 1px solid var(--cj-border) !important;
+  border-radius: var(--cj-radius) !important;
+  color: var(--cj-text) !important;
+  padding: 0.65rem 0.875rem !important;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color var(--cj-transition), box-shadow var(--cj-transition);
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--cj-primary) !important;
+  box-shadow: 0 0 0 3px hsla(25, 85%, 42%, 0.2) !important;
+}
+select option {
+  background: var(--cj-bg-elevated);
+  color: var(--cj-text);
+}
+
+/* Form submit button */
+input[type="submit"],
+button[type="submit"],
+.button--primary,
+.form-submit {
+  background: var(--cj-primary) !important;
+  color: var(--cj-primary-fg) !important;
+  border: none !important;
+  border-radius: var(--cj-radius) !important;
+  padding: 0.7rem 1.75rem !important;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color var(--cj-transition), transform var(--cj-transition) !important;
+}
+input[type="submit"]:hover,
+button[type="submit"]:hover,
+.button--primary:hover,
+.form-submit:hover {
+  background: var(--cj-primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* Secondary / cancel buttons */
+.button:not(.button--primary) {
+  background: var(--cj-bg-muted) !important;
+  color: var(--cj-text-muted) !important;
+  border: 1px solid var(--cj-border) !important;
+  border-radius: var(--cj-radius) !important;
+  padding: 0.65rem 1.5rem !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background-color var(--cj-transition) !important;
+}
+.button:not(.button--primary):hover {
+  background: var(--cj-bg-elevated) !important;
+}
+
+/* Form page heading */
+.node-coffee-bean-form h1,
+.node-coffee-bean-edit-form h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Delete confirm page */
+.form--danger input[type="submit"],
+.node-coffee-bean-delete-form .button--primary {
+  background: hsl(0, 65%, 45%) !important;
+}
+.node-coffee-bean-delete-form .button--primary:hover {
+  background: hsl(0, 65%, 38%) !important;
+}
+
+/* =============================================================================
+   15. MESSAGES / ALERTS
+   ============================================================================= */
+.messages,
+.messages--status,
+.messages--warning,
+.messages--error {
+  border-radius: var(--cj-radius) !important;
+  border-left-width: 4px !important;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+.messages--status {
+  background: hsl(140, 30%, 12%) !important;
+  border-color: hsl(140, 50%, 40%) !important;
+  color: hsl(140, 50%, 80%) !important;
+}
+.messages--error {
+  background: hsl(0, 30%, 12%) !important;
+  border-color: hsl(0, 65%, 45%) !important;
+  color: hsl(0, 60%, 80%) !important;
+}
+.messages--warning {
+  background: hsl(38, 30%, 12%) !important;
+  border-color: hsl(38, 80%, 45%) !important;
+  color: hsl(38, 60%, 80%) !important;
+}
+
+/* =============================================================================
+   16. PAGER
+   ============================================================================= */
+.pager {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 2rem;
+}
+.pager__item a,
+.pager__item--current span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.6rem;
+  border-radius: var(--cj-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid var(--cj-border);
+  background: var(--cj-bg-surface);
+  color: var(--cj-text-muted) !important;
+  text-decoration: none !important;
+  transition: background-color var(--cj-transition), color var(--cj-transition);
+}
+.pager__item a:hover {
+  background: var(--cj-primary);
+  color: var(--cj-primary-fg) !important;
+  border-color: var(--cj-primary);
+}
+.pager__item--current span {
+  background: var(--cj-primary);
+  color: var(--cj-primary-fg) !important;
+  border-color: var(--cj-primary);
+}
+
+/* =============================================================================
+   17. FOOTER
+   ============================================================================= */
+footer {
+  background: var(--cj-bg-elevated) !important;
+  border-top: 1px solid var(--cj-border) !important;
+  color: var(--cj-text-faint) !important;
+  font-size: 0.8rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+/* =============================================================================
+   18. SCROLLBAR (Webkit)
+   ============================================================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cj-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cj-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cj-text-faint);
+}
+
+/* =============================================================================
+   19. UTILITY / OLIVERO OVERRIDES
+   ============================================================================= */
+/* Hide Olivero's default content styling that conflicts */
+.node article,
+.node__content {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  font-size: 0.8rem;
+  color: var(--cj-text-faint) !important;
+  margin-bottom: 1rem;
+}
+.breadcrumb a {
+  color: var(--cj-text-faint) !important;
+}
+.breadcrumb a:hover {
+  color: var(--cj-primary) !important;
+}
+.breadcrumb__separator {
+  color: var(--cj-text-faint) !important;
+}
+
+/* Tables (views table fallback) */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--cj-bg-surface);
+  border-radius: var(--cj-radius-lg);
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+thead th {
+  background: var(--cj-bg-muted);
+  color: var(--cj-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--cj-border);
+  text-align: left;
+}
+tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--cj-border);
+  color: var(--cj-text);
+}
+tbody tr:last-child td {
+  border-bottom: none;
+}
+tbody tr:hover {
+  background: var(--cj-bg-elevated);
+}
+
+/* =============================================================================
+   20. RESPONSIVE
+   ============================================================================= */
+@media (max-width: 639px) {
+  h1, .page-title {
+    font-size: 1.4rem;
+  }
+  .coffee-card {
+    padding: 1rem;
+  }
+  .cj-fab {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 50px;
+    height: 50px;
+    font-size: 1.4rem;
+  }
+  .cj-fab::after {
+    display: none;
+  }
+  .node--type-coffee-bean.node--view-mode-full,
+  .layout-container form {
+    padding: 1rem 0.75rem 5rem;
+  }
+}

@@ -1,0 +1,22 @@
+name: Coffee Journal
+type: theme
+description: 'A warm, dark coffee-themed skin for the Coffee Journal Drupal site.'
+package: Custom
+core_version_requirement: ^10 || ^11
+base theme: olivero
+
+libraries:
+  - coffee_journal/global
+
+regions:
+  header: Header
+  primary_menu: 'Primary menu'
+  secondary_menu: 'Secondary menu'
+  breadcrumb: Breadcrumb
+  highlighted: Highlighted
+  help: Help
+  content: Content
+  sidebar_first: 'Sidebar first'
+  sidebar_second: 'Sidebar second'
+  footer_top: 'Footer top'
+  footer_bottom: 'Footer bottom'

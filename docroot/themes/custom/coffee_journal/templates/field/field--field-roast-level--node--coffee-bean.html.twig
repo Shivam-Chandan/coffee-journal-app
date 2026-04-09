@@ -1,0 +1,9 @@
+{#
+  Coffee Journal — Roast Level field template
+  field--field-roast-level--node--coffee-bean.html.twig
+  Renders roast level as a colour-coded pill badge.
+#}
+{% for item in items %}
+  {% set value = item.content['#markup'] | default(item.content | render | striptags | trim | lower) %}
+  <span class="roast-badge roast-badge--{{ value }}">{{ value | capitalize }}</span>
+{% endfor %}

@@ -1,0 +1,52 @@
+{#
+  Coffee Journal — Views wrapper for coffee_journal view
+  views-view--coffee-journal.html.twig
+  Adds the coffee-grid class and injects a heading.
+#}
+{% if not view.is_attachment() %}
+  <div class="view view-coffee-journal{{ classes | join(' ') }}">
+
+    <div class="view-header">
+      {% if header %}
+        {{ header }}
+      {% endif %}
+    </div>
+
+    {% if exposed %}
+      <div class="view-filters">{{ exposed }}</div>
+    {% endif %}
+
+    {% if attachment_before %}
+      <div class="attachment attachment-before">{{ attachment_before }}</div>
+    {% endif %}
+
+    {% if rows %}
+      <div class="coffee-grid view-content">
+        {{ rows }}
+      </div>
+    {% elseif empty %}
+      <div class="view-empty cj-empty-state">
+        {{ empty }}
+      </div>
+    {% endif %}
+
+    {% if pager %}
+      <div class="view-pager">{{ pager }}</div>
+    {% endif %}
+
+    {% if attachment_after %}
+      <div class="attachment attachment-after">{{ attachment_after }}</div>
+    {% endif %}
+
+    {% if more %}
+      <div class="view-more">{{ more }}</div>
+    {% endif %}
+
+    {% if feed_icons %}
+      <div class="feed-icons">{{ feed_icons }}</div>
+    {% endif %}
+
+  </div>
+{% else %}
+  {{ rows }}
+{% endif %}
