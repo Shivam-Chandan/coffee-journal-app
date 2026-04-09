@@ -1,16 +1,13 @@
 {#
-  Coffee Journal — Views wrapper for coffee_journal view
+  Coffee Journal — My Coffee Journal view wrapper
   views-view--coffee-journal.html.twig
-  Adds the coffee-grid class and injects a heading.
 #}
 {% if not view.is_attachment() %}
-  <div class="view view-coffee-journal{{ classes | join(' ') }}">
+  <div{{ attributes.addClass('view', 'view-coffee-journal') }}>
 
-    <div class="view-header">
-      {% if header %}
-        {{ header }}
-      {% endif %}
-    </div>
+    {% if header %}
+      <div class="cj-view-header">{{ header }}</div>
+    {% endif %}
 
     {% if exposed %}
       <div class="view-filters">{{ exposed }}</div>
@@ -21,13 +18,9 @@
     {% endif %}
 
     {% if rows %}
-      <div class="coffee-grid view-content">
-        {{ rows }}
-      </div>
+      <div class="cj-grid view-content">{{ rows }}</div>
     {% elseif empty %}
-      <div class="view-empty cj-empty-state">
-        {{ empty }}
-      </div>
+      <div class="cj-empty view-empty">{{ empty }}</div>
     {% endif %}
 
     {% if pager %}
@@ -40,10 +33,6 @@
 
     {% if more %}
       <div class="view-more">{{ more }}</div>
-    {% endif %}
-
-    {% if feed_icons %}
-      <div class="feed-icons">{{ feed_icons }}</div>
     {% endif %}
 
   </div>

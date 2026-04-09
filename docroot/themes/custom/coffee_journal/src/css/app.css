@@ -1,0 +1,876 @@
+/* =============================================================================
+   Coffee Journal — Tailwind CSS Source
+   Design: warm dark coffee aesthetic matching shivam-coffee-journal-app
+   ============================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================================================
+   DESIGN TOKENS — CSS Custom Properties
+   ============================================================================= */
+@layer base {
+  :root {
+    /* Dark theme (default) */
+    --cj-bg:             hsl(28, 4%, 8%);
+    --cj-surface:        hsl(28, 5%, 10%);
+    --cj-elevated:       hsl(28, 5%, 13%);
+    --cj-muted:          hsl(28, 6%, 18%);
+    --cj-border:         hsl(28, 4%, 18%);
+    --cj-border-card:    hsl(28, 5%, 14%);
+    --cj-text:           hsl(30, 5%, 95%);
+    --cj-text-muted:     hsl(30, 5%, 65%);
+    --cj-text-faint:     hsl(30, 4%, 45%);
+    --cj-primary:        hsl(25, 85%, 42%);
+    --cj-primary-hover:  hsl(25, 85%, 50%);
+    --cj-primary-fg:     hsl(25, 10%, 98%);
+    --cj-star:           #f59e0b;
+    --cj-radius:         0.5rem;
+    --cj-radius-lg:      0.75rem;
+    --cj-topbar-height:  56px;
+
+    /* Roast badge colours — dark */
+    --cj-roast-light-text: hsl(45, 70%, 65%);
+    --cj-roast-light-bg:   hsl(45, 60%, 14%);
+    --cj-roast-medium-text: hsl(30, 70%, 60%);
+    --cj-roast-medium-bg:  hsl(30, 60%, 14%);
+    --cj-roast-dark-text:  hsl(20, 55%, 55%);
+    --cj-roast-dark-bg:    hsl(20, 50%, 12%);
+    --cj-roast-espresso-text: hsl(10, 45%, 50%);
+    --cj-roast-espresso-bg:   hsl(10, 40%, 10%);
+  }
+
+  .light-mode {
+    --cj-bg:             hsl(30, 5%, 97%);
+    --cj-surface:        hsl(30, 6%, 95%);
+    --cj-elevated:       hsl(30, 5%, 92%);
+    --cj-muted:          hsl(32, 8%, 88%);
+    --cj-border:         hsl(30, 5%, 85%);
+    --cj-border-card:    hsl(30, 6%, 90%);
+    --cj-text:           hsl(28, 8%, 15%);
+    --cj-text-muted:     hsl(28, 6%, 35%);
+    --cj-text-faint:     hsl(28, 4%, 55%);
+    --cj-primary:        hsl(25, 85%, 42%);
+    --cj-primary-hover:  hsl(25, 85%, 35%);
+    --cj-primary-fg:     #fff;
+
+    --cj-roast-light-text: hsl(45, 65%, 32%);
+    --cj-roast-light-bg:   hsl(45, 65%, 92%);
+    --cj-roast-medium-text: hsl(30, 65%, 35%);
+    --cj-roast-medium-bg:  hsl(30, 65%, 92%);
+    --cj-roast-dark-text:  hsl(20, 50%, 28%);
+    --cj-roast-dark-bg:    hsl(20, 50%, 90%);
+    --cj-roast-espresso-text: hsl(10, 40%, 22%);
+    --cj-roast-espresso-bg:   hsl(10, 40%, 90%);
+  }
+
+  /* Base resets */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: 'Inter', 'Open Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--cj-bg);
+    color: var(--cj-text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.18s ease, color 0.18s ease;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Admin toolbar offset — when Drupal toolbar is present */
+  body.toolbar-fixed #cj-app {
+    padding-top: 39px; /* Drupal toolbar height */
+  }
+  body.toolbar-fixed.toolbar-horizontal.toolbar-tray-open #cj-app {
+    padding-top: 79px; /* toolbar + open tray */
+  }
+
+  a {
+    color: var(--cj-primary);
+    text-decoration: none;
+    transition: color 0.18s ease;
+  }
+  a:hover { color: var(--cj-primary-hover); }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+    color: var(--cj-text);
+    line-height: 1.25;
+  }
+
+  img { max-width: 100%; height: auto; }
+
+  /* Webkit scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--cj-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--cj-border); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--cj-text-faint); }
+}
+
+/* =============================================================================
+   LAYOUT — Page shell
+   ============================================================================= */
+@layer components {
+
+  #cj-app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--cj-bg);
+  }
+
+  /* ── TOP BAR ────────────────────────────────────────────────────────────── */
+  #cj-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--cj-topbar-height);
+    background-color: var(--cj-elevated);
+    border-bottom: 1px solid var(--cj-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.25rem;
+    gap: 1rem;
+  }
+
+  /* Site wordmark */
+  .cj-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--cj-text) !important;
+    letter-spacing: -0.01em;
+    text-decoration: none !important;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .cj-brand:hover { color: var(--cj-primary) !important; }
+
+  .cj-brand-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  /* Topbar right cluster */
+  .cj-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  /* Dark/light toggle button */
+  #cj-theme-toggle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--cj-border);
+    background: transparent;
+    color: var(--cj-text-muted);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    flex-shrink: 0;
+  }
+  #cj-theme-toggle:hover {
+    background: var(--cj-muted);
+    color: var(--cj-text);
+    border-color: var(--cj-text-faint);
+  }
+
+  /* User account menu in topbar — override Drupal defaults */
+  #cj-topbar .menu--account {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  #cj-topbar .menu--account li { margin: 0; }
+  #cj-topbar .menu--account a,
+  #cj-topbar .menu--account span {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.7rem;
+    border-radius: var(--cj-radius);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--cj-text-muted) !important;
+    text-decoration: none !important;
+    transition: background-color 0.18s ease, color 0.18s ease;
+    white-space: nowrap;
+  }
+  #cj-topbar .menu--account a:hover {
+    background: var(--cj-muted);
+    color: var(--cj-text) !important;
+  }
+  /* Highlight "Log in" or "My account" as the primary action */
+  #cj-topbar .menu--account li:last-child a {
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg) !important;
+  }
+  #cj-topbar .menu--account li:last-child a:hover {
+    background: var(--cj-primary-hover);
+  }
+
+  /* Site branding block — hide site slogan in topbar */
+  #cj-topbar .site-branding__slogan { display: none; }
+  #cj-topbar .site-branding__name a {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--cj-text) !important;
+    text-decoration: none !important;
+  }
+
+  /* ── MAIN CONTENT AREA ──────────────────────────────────────────────────── */
+  #cj-main {
+    flex: 1;
+    width: 100%;
+    padding: 0 1rem 5rem;
+  }
+
+  .cj-page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 1.5rem;
+  }
+
+  /* Page title — used on add/edit forms and other non-custom pages */
+  .cj-page-inner > h1,
+  .cj-page-inner > .page-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--cj-text);
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  /* Status messages */
+  #cj-status-messages {
+    max-width: 1200px;
+    margin: 1rem auto 0;
+    padding: 0 1rem;
+  }
+
+  /* ── FLOATING ACTION BUTTON ─────────────────────────────────────────────── */
+  .cj-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 150;
+    width: 56px;
+    height: 56px;
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg) !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 300;
+    line-height: 1;
+    text-decoration: none !important;
+    box-shadow: 0 4px 20px hsla(25, 85%, 42%, 0.4), 0 2px 8px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  }
+  .cj-fab:hover {
+    background: var(--cj-primary-hover) !important;
+    color: var(--cj-primary-fg) !important;
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 8px 28px hsla(25, 85%, 42%, 0.5), 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .cj-fab:active { transform: scale(0.97); }
+
+  /* FAB tooltip */
+  .cj-fab::after {
+    content: 'Add a Coffee Bean';
+    position: absolute;
+    right: calc(100% + 0.75rem);
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 500;
+    background: var(--cj-elevated);
+    border: 1px solid var(--cj-border);
+    color: var(--cj-text);
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--cj-radius);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+  .cj-fab:hover::after { opacity: 1; }
+
+  /* ── COFFEE CARD GRID ───────────────────────────────────────────────────── */
+  .cj-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 640px) {
+    .cj-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .cj-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* ── COFFEE CARD ────────────────────────────────────────────────────────── */
+  .cj-card {
+    background-color: var(--cj-surface);
+    border: 1px solid var(--cj-border-card);
+    border-radius: var(--cj-radius-lg);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .cj-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--cj-primary);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  /* Accent top-line on hover */
+  .cj-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--cj-primary);
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    border-radius: var(--cj-radius-lg) var(--cj-radius-lg) 0 0;
+  }
+  .cj-card:hover::before { opacity: 1; }
+
+  /* Card header row */
+  .cj-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .cj-card__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cj-text);
+    line-height: 1.3;
+    flex: 1;
+  }
+  .cj-card__title a {
+    color: var(--cj-text) !important;
+    text-decoration: none !important;
+    transition: color 0.18s ease;
+  }
+  .cj-card__title a:hover { color: var(--cj-primary) !important; }
+
+  /* Card action buttons (edit/delete) */
+  .cj-card__actions {
+    display: flex;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+  .cj-card__actions a {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--cj-radius);
+    background: var(--cj-muted);
+    border: 1px solid var(--cj-border);
+    color: var(--cj-text-muted) !important;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    text-decoration: none !important;
+  }
+  .cj-card__actions a.edit:hover {
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg) !important;
+    border-color: var(--cj-primary);
+  }
+  .cj-card__actions a.delete:hover {
+    background: hsl(0, 65%, 45%);
+    color: #fff !important;
+    border-color: hsl(0, 65%, 45%);
+  }
+
+  /* Card brand */
+  .cj-card__brand {
+    font-size: 0.82rem;
+    color: var(--cj-text-muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  /* Card meta (roast badge + date) */
+  .cj-card__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .cj-card__date {
+    font-size: 0.75rem;
+    color: var(--cj-text-faint);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  /* Card footer (stars) */
+  .cj-card__footer {
+    margin-top: auto;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--cj-border);
+  }
+
+  /* ── ROAST BADGE ────────────────────────────────────────────────────────── */
+  .cj-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    line-height: 1.4;
+  }
+  .cj-badge--light    { color: var(--cj-roast-light-text);   background: var(--cj-roast-light-bg);   }
+  .cj-badge--medium   { color: var(--cj-roast-medium-text);  background: var(--cj-roast-medium-bg);  }
+  .cj-badge--dark     { color: var(--cj-roast-dark-text);    background: var(--cj-roast-dark-bg);    }
+  .cj-badge--espresso { color: var(--cj-roast-espresso-text); background: var(--cj-roast-espresso-bg); }
+
+  /* ── STAR RATING ────────────────────────────────────────────────────────── */
+  .cj-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.05rem;
+  }
+  .cj-stars .star {
+    font-size: 0.95rem;
+    color: var(--cj-muted);
+    line-height: 1;
+  }
+  .cj-stars .star.filled { color: var(--cj-star); }
+  .cj-rating-num {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cj-star);
+    margin-left: 0.3rem;
+  }
+
+  /* ── VIEW HEADER / ADD BUTTON ───────────────────────────────────────────── */
+  .cj-view-header {
+    margin-bottom: 1.25rem;
+  }
+  .cj-view-header a,
+  .cj-view-header .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg) !important;
+    border: none;
+    border-radius: var(--cj-radius);
+    padding: 0.6rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+  }
+  .cj-view-header a:hover,
+  .cj-view-header .button:hover {
+    background: var(--cj-primary-hover) !important;
+    color: var(--cj-primary-fg) !important;
+    transform: translateY(-1px);
+  }
+
+  /* ── EMPTY STATE ────────────────────────────────────────────────────────── */
+  .cj-empty {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: var(--cj-text-muted);
+  }
+  .cj-empty-icon {
+    font-size: 3rem;
+    opacity: 0.4;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  .cj-empty p {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    color: var(--cj-text-muted);
+  }
+  .cj-empty a.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg) !important;
+    border-radius: var(--cj-radius);
+    padding: 0.65rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: background-color 0.18s ease;
+  }
+  .cj-empty a.button:hover { background: var(--cj-primary-hover) !important; }
+
+  /* ── NODE DETAIL PAGE ───────────────────────────────────────────────────── */
+  .cj-node {
+    max-width: 740px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+  }
+
+  .cj-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--cj-text-muted) !important;
+    margin-bottom: 1.5rem;
+    text-decoration: none !important;
+    transition: color 0.18s ease;
+  }
+  .cj-back:hover { color: var(--cj-primary) !important; }
+
+  .cj-node__heading {
+    margin-bottom: 1.5rem;
+  }
+  .cj-node__heading h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--cj-text);
+    letter-spacing: -0.02em;
+    margin: 0 0 0.6rem;
+  }
+
+  /* Detail section card */
+  .cj-section {
+    background: var(--cj-surface);
+    border: 1px solid var(--cj-border-card);
+    border-radius: var(--cj-radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .cj-section__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cj-text-faint);
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--cj-border);
+  }
+  .cj-field-row {
+    display: flex;
+    gap: 1rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--cj-border);
+  }
+  .cj-field-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .cj-field-key {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cj-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 120px;
+    padding-top: 0.1rem;
+    flex-shrink: 0;
+  }
+  .cj-field-val {
+    font-size: 0.9rem;
+    color: var(--cj-text);
+    flex: 1;
+    line-height: 1.65;
+  }
+
+  /* Node action links */
+  .cj-node__actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .cj-node__actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--cj-radius);
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    border: 1px solid var(--cj-border);
+    background: var(--cj-surface);
+    color: var(--cj-text-muted) !important;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  }
+  .cj-node__actions a:hover {
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg) !important;
+    border-color: var(--cj-primary);
+  }
+  .cj-node__actions a.delete:hover {
+    background: hsl(0, 65%, 45%);
+    border-color: hsl(0, 65%, 45%);
+    color: #fff !important;
+  }
+
+  /* ── FORMS ──────────────────────────────────────────────────────────────── */
+  .cj-form {
+    max-width: 680px;
+    margin: 0 auto;
+    padding-bottom: 5rem;
+  }
+
+  .cj-form h1,
+  .cj-form .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cj-text);
+    margin-bottom: 1.5rem;
+  }
+
+  .form-item,
+  .js-form-item {
+    margin-bottom: 1.2rem;
+  }
+
+  label,
+  .form-item label,
+  .js-form-item label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cj-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.4rem;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="url"],
+  textarea,
+  select {
+    width: 100%;
+    background: var(--cj-elevated) !important;
+    border: 1px solid var(--cj-border) !important;
+    border-radius: var(--cj-radius) !important;
+    color: var(--cj-text) !important;
+    padding: 0.6rem 0.875rem !important;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    -webkit-appearance: none;
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--cj-primary) !important;
+    box-shadow: 0 0 0 3px hsla(25, 85%, 42%, 0.2) !important;
+  }
+  select option {
+    background: var(--cj-elevated);
+    color: var(--cj-text);
+  }
+  textarea { resize: vertical; min-height: 100px; }
+
+  /* Submit button */
+  input[type="submit"],
+  button[type="submit"],
+  .button--primary,
+  .form-submit {
+    background: var(--cj-primary) !important;
+    color: var(--cj-primary-fg) !important;
+    border: none !important;
+    border-radius: var(--cj-radius) !important;
+    padding: 0.65rem 1.75rem !important;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background-color 0.18s ease, transform 0.18s ease !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none !important;
+  }
+  input[type="submit"]:hover,
+  button[type="submit"]:hover,
+  .button--primary:hover,
+  .form-submit:hover {
+    background: var(--cj-primary-hover) !important;
+    transform: translateY(-1px);
+  }
+
+  /* Secondary button (Cancel etc) */
+  .button:not(.button--primary):not(input):not([type="submit"]) {
+    background: var(--cj-muted) !important;
+    color: var(--cj-text-muted) !important;
+    border: 1px solid var(--cj-border) !important;
+    border-radius: var(--cj-radius) !important;
+    padding: 0.6rem 1.5rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: background-color 0.18s ease !important;
+  }
+  .button:not(.button--primary):not(input):not([type="submit"]):hover {
+    background: var(--cj-elevated) !important;
+  }
+
+  /* Delete confirm button — red */
+  .node-coffee-bean-delete-form .button--primary,
+  .button--danger {
+    background: hsl(0, 65%, 45%) !important;
+  }
+  .node-coffee-bean-delete-form .button--primary:hover { background: hsl(0, 65%, 38%) !important; }
+
+  /* Description text under fields */
+  .form-item__description,
+  .description {
+    font-size: 0.75rem;
+    color: var(--cj-text-faint);
+    margin-top: 0.3rem;
+  }
+
+  /* Text format filter wrapper — hide the text format selector, keep it clean */
+  .filter-wrapper,
+  .form-item--field-flavour-notes-0-format,
+  .form-item--field-notes-review-0-format {
+    display: none;
+  }
+
+  /* ── STATUS MESSAGES ────────────────────────────────────────────────────── */
+  .messages,
+  .messages-list__item {
+    border-radius: var(--cj-radius) !important;
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem !important;
+    margin-bottom: 0.75rem;
+    border-left-width: 4px !important;
+    border-left-style: solid !important;
+  }
+  .messages--status {
+    background: hsl(140, 30%, 11%) !important;
+    border-color: hsl(140, 50%, 38%) !important;
+    color: hsl(140, 50%, 75%) !important;
+  }
+  .messages--error {
+    background: hsl(0, 30%, 12%) !important;
+    border-color: hsl(0, 65%, 45%) !important;
+    color: hsl(0, 60%, 78%) !important;
+  }
+  .messages--warning {
+    background: hsl(38, 30%, 12%) !important;
+    border-color: hsl(38, 80%, 45%) !important;
+    color: hsl(38, 60%, 78%) !important;
+  }
+
+  /* ── PAGER ──────────────────────────────────────────────────────────────── */
+  .pager {
+    display: flex;
+    justify-content: center;
+    gap: 0.3rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+  .pager__item a,
+  .pager__item--current .pager__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 0.6rem;
+    border-radius: var(--cj-radius);
+    font-size: 0.82rem;
+    font-weight: 500;
+    border: 1px solid var(--cj-border);
+    background: var(--cj-surface);
+    color: var(--cj-text-muted) !important;
+    text-decoration: none !important;
+    transition: background-color 0.18s ease, color 0.18s ease;
+  }
+  .pager__item a:hover {
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg) !important;
+    border-color: var(--cj-primary);
+  }
+  .pager__item--current .pager__link {
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg) !important;
+    border-color: var(--cj-primary);
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────────────────────────────── */
+  @media (max-width: 639px) {
+    .cj-fab { bottom: 1.25rem; right: 1.25rem; width: 50px; height: 50px; font-size: 1.4rem; }
+    .cj-fab::after { display: none; }
+    .cj-node__heading h1 { font-size: 1.4rem; }
+    .cj-field-row { flex-direction: column; gap: 0.2rem; }
+    .cj-field-key { min-width: auto; }
+    #cj-topbar .menu--account a span.visually-hidden { display: none; }
+  }
+
+  /* ── DRUPAL ADMIN TOOLBAR COMPATIBILITY ─────────────────────────────────── */
+  /* When admin toolbar is visible, shift our sticky topbar down */
+  body.toolbar-fixed #cj-topbar {
+    top: 39px;
+  }
+  body.toolbar-fixed.toolbar-horizontal.toolbar-tray-open #cj-topbar {
+    top: 79px;
+  }
+
+  /* Contextual links — keep them visible but minimal */
+  .contextual-region { position: relative; }
+  .contextual button,
+  .contextual ul { z-index: 200; }
+
+  /* Hide Drupal's default page title block — node templates render their own <h1> */
+  .page-title { display: none; }
+
+  /* User login page — centre it */
+  body.path-user #cj-main .cj-page-inner {
+    max-width: 420px;
+  }
+}

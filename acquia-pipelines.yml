@@ -1,8 +1,8 @@
 version: 1.1.0
 
-# Acquia Pipelines build definition for Brewtal
+# Acquia Pipelines build definition for Brewtal / Coffee Journal
 # - PHP 8.3
-# - MySQL 5.7 (drupal/mysql57 module included via Composer)
+# - Node.js (for Tailwind CSS compilation — falls back to pre-compiled CSS)
 # - Builds from master branch, deploys artifact to pipelines-build-master
 
 variables:
@@ -21,21 +21,29 @@ events:
             - php --version
             - echo "==> Composer version"
             - php /usr/local/bin/composer --version
+            - echo "==> Node/npm (if available)"
+            - node --version 2>/dev/null || echo "Node.js not on this runner"
+            - npm --version 2>/dev/null || echo "npm not on this runner"
 
       - composer-install:
           type: script
           script:
             - export PATH="/usr/local/php8.3/bin:$PATH"
-            - echo "==> Running composer install (no dev, optimised autoloader)"
+            - echo "==> Running composer install"
             - php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      - tailwind-build:
+          type: script
+          script:
+            - echo "==> Building Tailwind CSS for coffee_journal theme"
+            - cd docroot/themes/custom/coffee_journal
+            - if command -v node >/dev/null 2>&1; then npm ci --prefer-offline && npm run build && echo "Tailwind built"; else echo "Node.js unavailable — using pre-compiled CSS from repo"; fi
+            - cd -
 
       - prepare-artifact:
           type: script
           script:
             - echo "==> Removing development-only files from artifact"
-            - rm -f phpcs.xml.dist
-            - rm -f phpstan.neon.dist
-            - rm -f phpunit.xml.dist
-            - mkdir -p docroot/sites/default/files
-            - mkdir -p docroot/sites/default/private
+            - rm -f phpcs.xml.dist phpstan.neon.dist phpunit.xml.dist
+            - mkdir -p docroot/sites/default/files docroot/sites/default/private
             - echo "==> Artifact prepared"

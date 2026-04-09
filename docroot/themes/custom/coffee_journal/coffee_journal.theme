@@ -2,59 +2,48 @@
 
 /**
  * @file
- * Coffee Journal theme functions.
+ * Coffee Journal theme — hook implementations.
  */
 
 /**
- * Implements hook_preprocess_field() for field_rating.
- * Extracts the integer value and passes it as a clean Twig variable.
+ * Implements hook_preprocess_html().
+ *
+ * Adds body classes for path-based styling and sets the page title.
  */
-function coffee_journal_preprocess_field(&$variables) {
-  $field_name = $variables['field_name'];
-  $bundle     = $variables['element']['#bundle'] ?? '';
+function coffee_journal_preprocess_html(&$variables) {
+  // Add a body class for the front page
+  $current_path = \Drupal::service('path.current')->getPath();
+  $alias = \Drupal::service('path_alias.manager')->getAliasByPath($current_path);
 
-  if ($bundle !== 'coffee_bean') {
-    return;
+  if (\Drupal::service('path.matcher')->isFrontPage()) {
+    $variables['attributes']['class'][] = 'path-front';
   }
 
-  // ── Star rating ──────────────────────────────────────────────────────────
-  if ($field_name === 'field_rating') {
-    $rating = 0;
-    foreach ($variables['items'] as $item) {
-      // The formatter renders an integer — it comes through as #markup.
-      $markup = '';
-      if (isset($item['content']['#markup'])) {
-        $markup = (string) $item['content']['#markup'];
-      } elseif (is_array($item['content'])) {
-        // Fallback: render and strip tags.
-        $renderer = \Drupal::service('renderer');
-        $markup = strip_tags((string) $renderer->renderPlain($item['content']));
-      }
-      $val = (int) trim($markup);
-      if ($val > 0) {
-        $rating = $val;
-        break;
-      }
-    }
-    $variables['rating_value'] = max(0, min(5, $rating));
+  // Add node type as body class when on a node page
+  $node = \Drupal::routeMatch()->getParameter('node');
+  if ($node instanceof \Drupal\node\NodeInterface) {
+    $variables['attributes']['class'][] = 'page-node-type--' . $node->bundle();
   }
+}
 
-  // ── Roast level ──────────────────────────────────────────────────────────
-  if ($field_name === 'field_roast_level') {
-    $label = '';
-    foreach ($variables['items'] as $item) {
-      if (isset($item['content']['#markup'])) {
-        $label = (string) $item['content']['#markup'];
-      } elseif (is_array($item['content'])) {
-        $renderer = \Drupal::service('renderer');
-        $label = strip_tags((string) $renderer->renderPlain($item['content']));
-      }
-      $label = trim($label);
-      if ($label !== '') {
-        break;
-      }
-    }
-    $variables['roast_label'] = $label;
-    $variables['roast_key']   = strtolower($label);
+/**
+ * Implements hook_preprocess_page().
+ *
+ * Passes the current user info to the page template.
+ */
+function coffee_journal_preprocess_page(&$variables) {
+  $variables['is_front'] = \Drupal::service('path.matcher')->isFrontPage();
+  $variables['logged_in'] = \Drupal::currentUser()->isAuthenticated();
+}
+
+/**
+ * Implements hook_preprocess_node() for coffee_bean nodes.
+ *
+ * Suppresses the default page title block output since our node
+ * templates render their own <h1>.
+ */
+function coffee_journal_preprocess_node(&$variables) {
+  if ($variables['node']->bundle() === 'coffee_bean') {
+    $variables['page'] = TRUE;
   }
 }

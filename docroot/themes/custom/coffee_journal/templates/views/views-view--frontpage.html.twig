@@ -1,13 +1,12 @@
 {#
-  Coffee Journal — Views wrapper for frontpage view
+  Coffee Journal — Frontpage view wrapper
   views-view--frontpage.html.twig
-  Applies coffee-grid to the frontpage too.
 #}
 {% if not view.is_attachment() %}
-  <div class="view view-frontpage{{ classes | join(' ') }}">
+  <div{{ attributes.addClass('view', 'view-frontpage') }}>
 
     {% if header %}
-      <div class="view-header">{{ header }}</div>
+      <div class="cj-view-header">{{ header }}</div>
     {% endif %}
 
     {% if exposed %}
@@ -19,13 +18,9 @@
     {% endif %}
 
     {% if rows %}
-      <div class="coffee-grid view-content">
-        {{ rows }}
-      </div>
+      <div class="cj-grid view-content">{{ rows }}</div>
     {% elseif empty %}
-      <div class="view-empty cj-empty-state">
-        {{ empty }}
-      </div>
+      <div class="cj-empty view-empty">{{ empty }}</div>
     {% endif %}
 
     {% if pager %}

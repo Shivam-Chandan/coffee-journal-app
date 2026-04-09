@@ -4,6 +4,8 @@ global:
     theme:
       css/coffee-theme.css: {}
   js:
-    js/coffee-theme.js: { preprocess: false }
+    js/app.js: { preprocess: false }
   dependencies:
     - core/drupal
+    - core/once
+    - core/drupal.announce

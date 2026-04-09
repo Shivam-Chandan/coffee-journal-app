@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html{{ html_attributes }}>
+  <head>
+    <head-placeholder token="{{ placeholder_token }}">
+    <title>{{ head_title|safe_join(' | ') }}</title>
+    <css-placeholder token="{{ placeholder_token }}">
+    <js-placeholder token="{{ placeholder_token }}">
+  </head>
+  <body{{ attributes }}>
+    {#
+      page_top and page_bottom are where Drupal injects the admin toolbar,
+      contextual links, and other administrative overlays.
+    #}
+    {{ page_top }}
+
+    <div id="cj-app">
+
+      {# ── TOP BAR ─────────────────────────────────────────────────────── #}
+      <header id="cj-topbar" role="banner">
+        <a href="{{ path('<front>') }}" class="cj-brand" aria-label="{{ 'Coffee Journal'|t }} - {{ 'Home'|t }}">
+          <span class="cj-brand-icon" aria-hidden="true">☕</span>
+          <span>{{ 'Coffee Journal'|t }}</span>
+        </a>
+
+        <div class="cj-topbar-right">
+          {# User account menu block is placed here via block layout #}
+          {{ page.topbar }}
+
+          {# Dark / light mode toggle — populated by JS #}
+          <button id="cj-theme-toggle"
+                  aria-label="{{ 'Toggle colour theme'|t }}"
+                  title="{{ 'Toggle colour theme'|t }}">
+            <span aria-hidden="true">🌙</span>
+          </button>
+        </div>
+      </header>
+
+      {# ── STATUS MESSAGES ─────────────────────────────────────────────── #}
+      {% if page.status_messages %}
+        <div id="cj-status-messages" role="alert" aria-live="polite">
+          {{ page.status_messages }}
+        </div>
+      {% endif %}
+
+      {# ── MAIN CONTENT ────────────────────────────────────────────────── #}
+      <main id="cj-main" role="main">
+        {# Skip to main content link for accessibility #}
+        <a id="main-content" tabindex="-1"></a>
+        <div class="cj-page-inner">
+          {{ page.content }}
+        </div>
+      </main>
+
+    </div>{# end #cj-app #}
+
+    {{ page_bottom }}
+    <js-bottom-placeholder token="{{ placeholder_token }}">
+  </body>
+</html>

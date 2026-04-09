@@ -1,123 +1,123 @@
 {#
-  Coffee Journal — Coffee Bean full node page
+  Coffee Journal — Coffee Bean full detail page
   node--coffee-bean.html.twig
 #}
 {% set node_id    = node.id() %}
-{% set edit_url   = '/node/' ~ node_id ~ '/edit' %}
-{% set delete_url = '/node/' ~ node_id ~ '/delete' %}
-{% set back_url   = '/my-coffee-journal' %}
+{% set edit_url   = path('entity.node.edit_form', {'node': node_id}) %}
+{% set delete_url = path('entity.node.delete_form', {'node': node_id}) %}
 
-{# Raw field values from entity for stars/badges #}
-{% set rating_val  = node.field_rating.value | default(0) | number_format(0) %}
-{% set roast_val   = node.field_roast_level.value | default('') | lower %}
-{% set roast_label = node.field_roast_level.value | default('') %}
-{% set roast_display = {
+{% set rating_val  = node.field_rating.value|default(0)|round %}
+{% set roast_val   = node.field_roast_level.value|default('')|lower|trim %}
+{% set brand_val   = node.field_brand_roaster.value|default('') %}
+{% set date_val    = node.field_purchase_date.value|default('') %}
+{% set flavour_val = node.field_flavour_notes.value|default('') %}
+{% set review_val  = node.field_notes_review.value|default('') %}
+
+{% set roast_labels = {
   'light':    'Light',
   'medium':   'Medium',
   'dark':     'Dark',
   'espresso': 'Espresso'
 } %}
 
-<article{{ attributes.addClass('node--type-coffee-bean', 'node--view-mode-full') }}>
+<article{{ attributes.addClass('cj-node') }}>
 
   {# ── Back link ── #}
-  <a class="cj-back-link" href="{{ back_url }}">My Coffee Journal</a>
+  <a class="cj-back" href="{{ path('view.coffee_journal.page_1') }}">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2.5"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+    {{ 'My Coffee Journal'|t }}
+  </a>
 
-  {# ── Node header ── #}
-  <div class="cj-node-header">
+  {# ── Heading + rating ── #}
+  <div class="cj-node__heading">
     <h1>{{ label }}</h1>
     {% if rating_val > 0 %}
-      <div class="cj-stars" aria-label="Rating: {{ rating_val }} out of 5">
+      <div class="cj-stars" aria-label="{{ 'Rating: %d out of 5'|format(rating_val)|t }}">
         {%- for i in 1..5 -%}
-          {%- if i <= rating_val -%}
-            <span class="star filled" aria-hidden="true">★</span>
-          {%- else -%}
-            <span class="star" aria-hidden="true">★</span>
-          {%- endif -%}
+          <span class="star{{ i <= rating_val ? ' filled' : '' }}" aria-hidden="true">★</span>
         {%- endfor -%}
-        <span class="cj-rating-badge">{{ rating_val }}/5</span>
+        <span class="cj-rating-num" style="font-size:0.9rem;">{{ rating_val }}/5</span>
       </div>
     {% endif %}
   </div>
 
   {# ── Details section ── #}
   <div class="cj-section">
-    <div class="cj-section__title">Details</div>
+    <div class="cj-section__label">{{ 'Details'|t }}</div>
 
-    {% if content.field_brand_roaster|render|striptags|trim is not empty %}
+    {% if brand_val %}
       <div class="cj-field-row">
-        <span class="cj-field-label">Brand / Roaster</span>
-        <span class="cj-field-value">{{ content.field_brand_roaster }}</span>
+        <span class="cj-field-key">{{ 'Brand'|t }}</span>
+        <span class="cj-field-val">{{ brand_val }}</span>
       </div>
     {% endif %}
 
     {% if roast_val %}
       <div class="cj-field-row">
-        <span class="cj-field-label">Roast</span>
-        <span class="cj-field-value">
-          <span class="roast-badge roast-badge--{{ roast_val }}">
-            {{- roast_display[roast_val] | default(roast_val | capitalize) -}}
+        <span class="cj-field-key">{{ 'Roast'|t }}</span>
+        <span class="cj-field-val">
+          <span class="cj-badge cj-badge--{{ roast_val }}">
+            {{- roast_labels[roast_val]|default(roast_val|capitalize) -}}
           </span>
         </span>
       </div>
     {% endif %}
 
-    {% if content.field_purchase_date|render|striptags|trim is not empty %}
+    {% if date_val %}
       <div class="cj-field-row">
-        <span class="cj-field-label">Purchase Date</span>
-        <span class="cj-field-value">{{ content.field_purchase_date }}</span>
+        <span class="cj-field-key">{{ 'Purchased'|t }}</span>
+        <span class="cj-field-val">{{ date_val|date('d F Y') }}</span>
       </div>
     {% endif %}
   </div>
 
   {# ── Tasting Notes section ── #}
-  {% if content.field_flavour_notes|render|striptags|trim is not empty
-     or content.field_notes_review|render|striptags|trim is not empty %}
+  {% if flavour_val or review_val %}
     <div class="cj-section">
-      <div class="cj-section__title">Tasting Notes</div>
+      <div class="cj-section__label">{{ 'Tasting Notes'|t }}</div>
 
-      {% if content.field_flavour_notes|render|striptags|trim is not empty %}
+      {% if flavour_val %}
         <div class="cj-field-row">
-          <span class="cj-field-label">Flavour Notes</span>
-          <span class="cj-field-value cj-notes-text">{{ content.field_flavour_notes }}</span>
+          <span class="cj-field-key">{{ 'Flavour'|t }}</span>
+          <span class="cj-field-val">{{ flavour_val }}</span>
         </div>
       {% endif %}
 
-      {% if content.field_notes_review|render|striptags|trim is not empty %}
+      {% if review_val %}
         <div class="cj-field-row">
-          <span class="cj-field-label">Review</span>
-          <span class="cj-field-value cj-notes-text">{{ content.field_notes_review }}</span>
+          <span class="cj-field-key">{{ 'Review'|t }}</span>
+          <span class="cj-field-val">{{ review_val }}</span>
         </div>
       {% endif %}
     </div>
   {% endif %}
 
   {# ── Action links ── #}
-  <ul class="links">
-    <li>
-      <a href="{{ edit_url }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-          <path d="m15 5 4 4"/>
-        </svg>
-        Edit
-      </a>
-    </li>
-    <li>
-      <a href="{{ delete_url }}" style="--cj-primary:hsl(0,65%,45%);--cj-primary-hover:hsl(0,65%,38%);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-          <path d="M10 11v6M14 11v6"/>
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-        </svg>
-        Delete
-      </a>
-    </li>
-  </ul>
+  <div class="cj-node__actions">
+    <a href="{{ edit_url }}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+        <path d="m15 5 4 4"/>
+      </svg>
+      {{ 'Edit'|t }}
+    </a>
+    <a href="{{ delete_url }}" class="delete">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+      {{ 'Delete'|t }}
+    </a>
+  </div>
 
 </article>
