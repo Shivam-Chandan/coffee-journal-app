@@ -41,9 +41,20 @@ function coffee_journal_preprocess_page(&$variables) {
  *
  * Suppresses the default page title block output since our node
  * templates render their own <h1>.
+ * Also pre-computes access flags so Twig doesn't need to call
+ * entity methods directly (blocked by Twig sandbox).
  */
 function coffee_journal_preprocess_node(&$variables) {
-  if ($variables['node']->bundle() === 'coffee_bean') {
+  /** @var \Drupal\node\NodeInterface $node */
+  $node = $variables['node'];
+
+  if ($node->bundle() === 'coffee_bean') {
     $variables['page'] = TRUE;
+
+    // Pre-compute edit/delete access for use in Twig.
+    // Twig sandbox does not allow calling entity methods like node.access().
+    $account = \Drupal::currentUser();
+    $variables['user_can_edit']   = $node->access('update', $account);
+    $variables['user_can_delete'] = $node->access('delete', $account);
   }
 }

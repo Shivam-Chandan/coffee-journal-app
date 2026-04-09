@@ -27,8 +27,8 @@
       <a href="{{ url }}" rel="bookmark">{{ label }}</a>
     </div>
 
-    {# Show edit/delete only to the node owner — backend also enforces this #}
-    {% if node.access('update') %}
+    {# Show edit/delete only to the node owner — pre-computed in coffee_journal_preprocess_node() #}
+    {% if user_can_edit %}
       <div class="cj-card__actions">
         <a href="{{ path('entity.node.edit_form', {'node': node_id}) }}"
            class="edit"
