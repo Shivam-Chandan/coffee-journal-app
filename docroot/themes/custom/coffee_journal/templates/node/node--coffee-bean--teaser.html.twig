@@ -1,34 +1,33 @@
 {#
   Coffee Journal — Coffee Bean card (teaser view mode)
   node--coffee-bean--teaser.html.twig
+
+  We read raw field values directly from the node entity (node.field_*.value)
+  so we can generate the stars and roast badge without going through the field
+  template / preprocess pipeline, which has proven unreliable in this env.
 #}
-{% set bean_title  = label %}
-{% set bean_url    = url %}
-{% set node_id     = node.id() %}
+{% set node_id    = node.id() %}
+{% set edit_url   = '/node/' ~ node_id ~ '/edit' %}
+{% set delete_url = '/node/' ~ node_id ~ '/delete' %}
 
-{# Gather field values #}
-{% set brand       = content.field_brand_roaster %}
-{% set roast       = content.field_roast_level %}
-{% set rating      = content.field_rating %}
-{% set date        = content.field_purchase_date %}
-
-{# Edit / delete paths #}
-{% set edit_url    = '/node/' ~ node_id ~ '/edit' %}
-{% set delete_url  = '/node/' ~ node_id ~ '/delete' %}
+{# Raw field values direct from entity #}
+{% set rating_val = node.field_rating.value | default(0) | number_format(0) %}
+{% set roast_val  = node.field_roast_level.value | default('') | lower %}
+{% set roast_label = node.field_roast_level.value | default('') %}
+{% set brand_val  = node.field_brand_roaster.value | default('') %}
 
 <article{{ attributes.addClass('coffee-card') }}>
 
   {# ── Card header: title + action buttons ── #}
   <div class="coffee-card__header">
     <div class="coffee-card__title">
-      <a href="{{ bean_url }}">{{ bean_title }}</a>
+      <a href="{{ url }}">{{ label }}</a>
     </div>
     <div class="coffee-card__actions">
       <a href="{{ edit_url }}"
          class="edit"
-         title="Edit {{ bean_title }}"
-         aria-label="Edit {{ bean_title }}">
-        {# Pencil SVG icon #}
+         title="Edit {{ label }}"
+         aria-label="Edit {{ label }}">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2.5"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -38,9 +37,8 @@
       </a>
       <a href="{{ delete_url }}"
          class="delete"
-         title="Delete {{ bean_title }}"
-         aria-label="Delete {{ bean_title }}">
-        {# Trash SVG icon #}
+         title="Delete {{ label }}"
+         aria-label="Delete {{ label }}">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2.5"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -54,9 +52,8 @@
   </div>
 
   {# ── Brand / Roaster ── #}
-  {% if content.field_brand_roaster|render|striptags|trim is not empty %}
+  {% if brand_val %}
     <div class="coffee-card__brand">
-      {# Bean icon #}
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
            stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;opacity:0.6" aria-hidden="true">
@@ -64,18 +61,29 @@
         <path d="M10.5 2.5c2.5 2.5 2.5 8 0 12.5"/>
         <path d="M10.5 2.5c-2.5 2.5-2.5 8 0 12.5"/>
       </svg>
-      {{ content.field_brand_roaster }}
+      {{ brand_val }}
     </div>
   {% endif %}
 
   {# ── Roast badge + date ── #}
   <div class="coffee-card__meta">
-    {% if content.field_roast_level|render|striptags|trim is not empty %}
-      {{ content.field_roast_level }}
+
+    {# Roast Level badge — built directly from raw entity value #}
+    {% if roast_val %}
+      {% set roast_display = {
+        'light':    'Light',
+        'medium':   'Medium',
+        'dark':     'Dark',
+        'espresso': 'Espresso'
+      } %}
+      <span class="roast-badge roast-badge--{{ roast_val }}">
+        {{- roast_display[roast_val] | default(roast_val | capitalize) -}}
+      </span>
     {% endif %}
+
+    {# Purchase date #}
     {% if content.field_purchase_date|render|striptags|trim is not empty %}
       <span class="coffee-card__date">
-        {# Calendar icon #}
         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
              stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px" aria-hidden="true">
@@ -87,13 +95,21 @@
         {{ content.field_purchase_date }}
       </span>
     {% endif %}
+
   </div>
 
-  {# ── Star rating ── #}
-  {% if content.field_rating|render|striptags|trim is not empty %}
-    <div class="coffee-card__footer">
-      {{ content.field_rating }}
+  {# ── Star Rating — built directly from raw integer value ── #}
+  <div class="coffee-card__footer">
+    <div class="cj-stars" aria-label="Rating: {{ rating_val }} out of 5">
+      {%- for i in 1..5 -%}
+        {%- if i <= rating_val -%}
+          <span class="star filled" aria-hidden="true">★</span>
+        {%- else -%}
+          <span class="star" aria-hidden="true">★</span>
+        {%- endif -%}
+      {%- endfor -%}
+      <span class="cj-rating-badge">{{ rating_val }}/5</span>
     </div>
-  {% endif %}
+  </div>
 
 </article>
