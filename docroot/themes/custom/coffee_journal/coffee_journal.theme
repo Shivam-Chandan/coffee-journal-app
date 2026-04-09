@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * @file
+ * Coffee Journal theme functions.
+ */
+
+/**
+ * Implements hook_preprocess_field() for field_rating.
+ * Extracts the integer value and passes it as a clean Twig variable.
+ */
+function coffee_journal_preprocess_field(&$variables) {
+  $field_name = $variables['field_name'];
+  $bundle     = $variables['element']['#bundle'] ?? '';
+
+  if ($bundle !== 'coffee_bean') {
+    return;
+  }
+
+  // ── Star rating ──────────────────────────────────────────────────────────
+  if ($field_name === 'field_rating') {
+    $rating = 0;
+    foreach ($variables['items'] as $item) {
+      // The formatter renders an integer — it comes through as #markup.
+      $markup = '';
+      if (isset($item['content']['#markup'])) {
+        $markup = (string) $item['content']['#markup'];
+      } elseif (is_array($item['content'])) {
+        // Fallback: render and strip tags.
+        $renderer = \Drupal::service('renderer');
+        $markup = strip_tags((string) $renderer->renderPlain($item['content']));
+      }
+      $val = (int) trim($markup);
+      if ($val > 0) {
+        $rating = $val;
+        break;
+      }
+    }
+    $variables['rating_value'] = max(0, min(5, $rating));
+  }
+
+  // ── Roast level ──────────────────────────────────────────────────────────
+  if ($field_name === 'field_roast_level') {
+    $label = '';
+    foreach ($variables['items'] as $item) {
+      if (isset($item['content']['#markup'])) {
+        $label = (string) $item['content']['#markup'];
+      } elseif (is_array($item['content'])) {
+        $renderer = \Drupal::service('renderer');
+        $label = strip_tags((string) $renderer->renderPlain($item['content']));
+      }
+      $label = trim($label);
+      if ($label !== '') {
+        break;
+      }
+    }
+    $variables['roast_label'] = $label;
+    $variables['roast_key']   = strtolower($label);
+  }
+}

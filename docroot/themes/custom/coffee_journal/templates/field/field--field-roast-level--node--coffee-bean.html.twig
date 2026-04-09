@@ -1,9 +1,7 @@
 {#
-  Coffee Journal — Roast Level field template
-  items[0].content['#markup'] contains the display label (e.g. "Light").
+  Coffee Journal — Roast Level badge template.
+  roast_label and roast_key are set by coffee_journal_preprocess_field().
 #}
-{%- set raw = (items[0].content['#markup'] ?? '') | trim -%}
-{%- set value = raw | lower -%}
-{%- if raw -%}
-  <span class="roast-badge roast-badge--{{ value }}">{{ raw }}</span>
+{%- if roast_label -%}
+  <span class="roast-badge roast-badge--{{ roast_key }}">{{ roast_label }}</span>
 {%- endif -%}

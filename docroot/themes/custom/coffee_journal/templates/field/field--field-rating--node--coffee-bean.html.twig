@@ -1,8 +1,7 @@
 {#
-  Coffee Journal — Star Rating field template
-  items[0].content['#markup'] contains the integer value (e.g. "5").
+  Coffee Journal — Star Rating field template.
+  rating_value is set by coffee_journal_preprocess_field() in coffee_journal.theme.
 #}
-{%- set rating_value = (items[0].content['#markup'] ?? '0') | trim | number_format(0) -%}
 <div class="cj-stars" aria-label="Rating: {{ rating_value }} out of 5">
   {%- for i in 1..5 -%}
     {%- if i <= rating_value -%}
