@@ -1,11 +1,9 @@
 {#
   Coffee Journal — Roast Level field template
-  field--field-roast-level--node--coffee-bean.html.twig
-  Renders roast level as a colour-coded pill badge.
-  items[0].content renders the list label (e.g. "Light").
+  items[0].content['#markup'] contains the display label (e.g. "Light").
 #}
-{% set raw = items|first ? (items|first).content|render|striptags|trim : '' %}
-{% set value = raw|lower|trim %}
-{% if raw %}
+{%- set raw = (items[0].content['#markup'] ?? '') | trim -%}
+{%- set value = raw | lower -%}
+{%- if raw -%}
   <span class="roast-badge roast-badge--{{ value }}">{{ raw }}</span>
-{% endif %}
+{%- endif -%}
