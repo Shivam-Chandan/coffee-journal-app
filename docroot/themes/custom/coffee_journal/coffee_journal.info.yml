@@ -6,13 +6,8 @@ core_version_requirement: ^10.1 || ^11
 base theme: false
 
 libraries:
+  - core/normalize
   - coffee_journal/global
-
-libraries-extend:
-  core/drupal.dialog:
-    - coffee_journal/global
-  core/drupal.ajax:
-    - coffee_journal/global
 
 regions:
   topbar:          'Top Bar'

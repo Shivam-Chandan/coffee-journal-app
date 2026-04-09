@@ -1,9 +1,17 @@
 {#
   Coffee Journal — My Coffee Journal view wrapper
   views-view--coffee-journal.html.twig
+
+  The FAB is rendered server-side here so it always appears regardless of JS,
+  and is visible for all authenticated users including non-admins.
 #}
 {% if not view.is_attachment() %}
   <div{{ attributes.addClass('view', 'view-coffee-journal') }}>
+
+    {# ── Page heading ── #}
+    <div class="cj-view-heading">
+      <h1>{{ 'My Coffee Journal'|t }}</h1>
+    </div>
 
     {% if header %}
       <div class="cj-view-header">{{ header }}</div>
@@ -36,6 +44,15 @@
     {% endif %}
 
   </div>
+
+  {# ── FAB — always rendered server-side for all authenticated users ── #}
+  <a href="{{ path('node.add', {'node_type': 'coffee_bean'}) }}"
+     class="cj-fab"
+     aria-label="{{ 'Add a Coffee Bean'|t }}"
+     title="{{ 'Add a Coffee Bean'|t }}">
+    <span aria-hidden="true">+</span>
+  </a>
+
 {% else %}
   {{ rows }}
 {% endif %}
