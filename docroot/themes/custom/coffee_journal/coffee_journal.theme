@@ -5,56 +5,128 @@
  * Coffee Journal theme — hook implementations.
  */
 
+use Drupal\node\NodeInterface;
+
 /**
  * Implements hook_preprocess_html().
  *
- * Adds body classes for path-based styling and sets the page title.
+ * Adds body classes for path-based styling.
  */
 function coffee_journal_preprocess_html(&$variables) {
-  // Add a body class for the front page
-  $current_path = \Drupal::service('path.current')->getPath();
-  $alias = \Drupal::service('path_alias.manager')->getAliasByPath($current_path);
-
   if (\Drupal::service('path.matcher')->isFrontPage()) {
     $variables['attributes']['class'][] = 'path-front';
   }
 
-  // Add node type as body class when on a node page
   $node = \Drupal::routeMatch()->getParameter('node');
-  if ($node instanceof \Drupal\node\NodeInterface) {
+  if ($node instanceof NodeInterface) {
     $variables['attributes']['class'][] = 'page-node-type--' . $node->bundle();
+  }
+
+  // Mark node-add / node-edit pages so CSS can style the form shell.
+  $route = \Drupal::routeMatch()->getRouteName();
+  if ($route === 'node.add') {
+    $variables['attributes']['class'][] = 'page-node-add';
+    $nodeType = \Drupal::routeMatch()->getRawParameter('node_type');
+    if ($nodeType) {
+      $variables['attributes']['class'][] = 'page-node-add--' . $nodeType;
+    }
+  }
+  if ($route === 'entity.node.edit_form') {
+    $variables['attributes']['class'][] = 'page-node-edit';
   }
 }
 
 /**
  * Implements hook_preprocess_page().
  *
- * Passes the current user info to the page template.
+ * Passes current user auth state to page templates.
  */
 function coffee_journal_preprocess_page(&$variables) {
-  $variables['is_front'] = \Drupal::service('path.matcher')->isFrontPage();
+  $variables['is_front']  = \Drupal::service('path.matcher')->isFrontPage();
   $variables['logged_in'] = \Drupal::currentUser()->isAuthenticated();
 }
 
 /**
  * Implements hook_preprocess_node() for coffee_bean nodes.
  *
- * Suppresses the default page title block output since our node
- * templates render their own <h1>.
- * Also pre-computes access flags so Twig doesn't need to call
- * entity methods directly (blocked by Twig sandbox).
+ * - Marks the node as a full page so Drupal suppresses the default title block
+ *   (the template renders its own <h1>).
+ * - Pre-computes edit/delete access flags (Twig sandbox blocks entity.access()).
+ * - Passes display-ready field values as Twig variables so templates stay
+ *   logic-free and the sandbox cannot be bypassed.
  */
 function coffee_journal_preprocess_node(&$variables) {
   /** @var \Drupal\node\NodeInterface $node */
   $node = $variables['node'];
 
-  if ($node->bundle() === 'coffee_bean') {
-    $variables['page'] = TRUE;
-
-    // Pre-compute edit/delete access for use in Twig.
-    // Twig sandbox does not allow calling entity methods like node.access().
-    $account = \Drupal::currentUser();
-    $variables['user_can_edit']   = $node->access('update', $account);
-    $variables['user_can_delete'] = $node->access('delete', $account);
+  if ($node->bundle() !== 'coffee_bean') {
+    return;
   }
+
+  $variables['page'] = TRUE;
+
+  $account = \Drupal::currentUser();
+  $variables['user_can_edit']   = $node->access('update', $account);
+  $variables['user_can_delete'] = $node->access('delete', $account);
+
+  // Pass roast_level label (resolved from allowed-values list) so the
+  // template does not need to call entity API methods.
+  $roastValue = $node->get('field_roast_level')->value;
+  $variables['roast_label'] = $roastValue ? _coffee_journal_roast_label($roastValue) : '';
+  $variables['roast_key']   = $roastValue ? str_replace('-', '_', strtolower($roastValue)) : '';
+
+  // Form factor label.
+  $ffValue = $node->get('field_form_factor')->value;
+  $variables['form_factor_label'] = $ffValue ? _coffee_journal_form_factor_label($ffValue) : '';
 }
+
+/**
+ * Implements hook_preprocess_form() for coffee_bean add/edit forms.
+ *
+ * Passes the Gemini scrape endpoint path as a drupalSetting so app.js
+ * can POST to it without hard-coding the URL.
+ */
+function coffee_journal_preprocess_form(&$variables) {
+  $formId = $variables['element']['#form_id'] ?? '';
+  if (!in_array($formId, ['node_coffee_bean_form', 'node_coffee_bean_edit_form'], TRUE)) {
+    return;
+  }
+
+  $variables['#attached']['drupalSettings']['coffeeJournal'] = [
+    'scrapeEndpoint'  => \Drupal\Core\Url::fromRoute('coffee_journal_api.scrape_coffee')->toString(),
+    'placesEndpoint'  => \Drupal\Core\Url::fromRoute('coffee_journal_api.places_search')->toString(),
+    'addCoffeePath'   => \Drupal\Core\Url::fromRoute('node.add', ['node_type' => 'coffee_bean'])->toString(),
+  ];
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Map a roast_level machine value to its human-readable label.
+ */
+function _coffee_journal_roast_label(string $value): string {
+  $labels = [
+    'light'        => 'Light',
+    'light_medium' => 'Light-Medium',
+    'medium'       => 'Medium',
+    'medium_dark'  => 'Medium-Dark',
+    'dark'         => 'Dark',
+    'espresso'     => 'Espresso',
+  ];
+  return $labels[$value] ?? ucfirst($value);
+}
+
+/**
+ * Map a form_factor machine value to its human-readable label.
+ */
+function _coffee_journal_form_factor_label(string $value): string {
+  $labels = [
+    'whole_bean' => 'Whole Bean',
+    'ground'     => 'Ground',
+    'pods'       => 'Pods',
+    'capsule'    => 'Capsule',
+    'other'      => 'Other',
+  ];
+  return $labels[$value] ?? ucfirst(str_replace('_', ' ', $value));
+}
+
