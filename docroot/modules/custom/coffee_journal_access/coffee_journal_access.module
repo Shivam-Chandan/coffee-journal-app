@@ -2,32 +2,35 @@
 
 /**
  * @file
- * Coffee Journal Access — node access control for coffee_bean nodes.
+ * Coffee Journal Access — node access control + URL alias generation.
  *
- * Rules:
+ * Access rules:
  *   - Authenticated users can VIEW, UPDATE, DELETE only their OWN coffee beans.
  *   - No user (except admin UID 1) may view, edit, or delete another user's bean.
  *   - Anonymous users are denied all access.
  *   - Admin (UID 1) retains full access to all nodes.
+ *
+ * URL aliases:
+ *   - coffee_bean nodes are given the alias /my-coffees/<slugified-title>
+ *     on insert and update (without requiring the pathauto module).
  */
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\node\NodeInterface;
+use Drupal\path_alias\Entity\PathAlias;
+
+// ── Access control ─────────────────────────────────────────────────────────
 
 /**
  * Implements hook_node_access().
- *
- * Called for every node access check. Returning FORBIDDEN wins over
- * any ALLOWED returned by other modules.
  */
 function coffee_journal_access_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  // Only apply to coffee_bean nodes.
   if ($node->bundle() !== 'coffee_bean') {
     return AccessResult::neutral();
   }
 
-  // Admin (UID 1) always has full access — don't restrict.
+  // Admin (UID 1) always has full access.
   if ($account->id() == 1) {
     return AccessResult::neutral()->cachePerUser();
   }
@@ -37,26 +40,84 @@ function coffee_journal_access_node_access(NodeInterface $node, $op, AccountInte
     return AccessResult::forbidden()->cachePerUser();
   }
 
-  // Authenticated users: only their own nodes.
   $is_owner = ((int) $node->getOwnerId() === (int) $account->id());
 
-  if ($is_owner) {
-    // Owner can view, update, and delete their own bean.
-    return AccessResult::allowed()
-      ->cachePerUser()
-      ->addCacheableDependency($node);
-  }
-  else {
-    // Non-owner is forbidden from ALL operations (view, update, delete).
-    return AccessResult::forbidden()
-      ->cachePerUser()
-      ->addCacheableDependency($node);
+  return $is_owner
+    ? AccessResult::allowed()->cachePerUser()->addCacheableDependency($node)
+    : AccessResult::forbidden()->cachePerUser()->addCacheableDependency($node);
+}
+
+// ── URL alias generation ────────────────────────────────────────────────────
+
+/**
+ * Implements hook_node_insert().
+ *
+ * Creates a path alias for new coffee_bean nodes.
+ */
+function coffee_journal_access_node_insert(NodeInterface $node): void {
+  if ($node->bundle() === 'coffee_bean') {
+    _coffee_journal_access_save_alias($node);
   }
 }
 
 /**
- * Implements hook_node_grants().
+ * Implements hook_node_update().
  *
- * Not needed for this module — we use hook_node_access() which is sufficient
- * for single-site, non-complex access scenarios.
+ * Updates the path alias when a coffee_bean node title changes.
  */
+function coffee_journal_access_node_update(NodeInterface $node): void {
+  if ($node->bundle() !== 'coffee_bean') {
+    return;
+  }
+
+  // Only regenerate if the title actually changed.
+  $original = $node->original ?? NULL;
+  if ($original && $original->getTitle() === $node->getTitle()) {
+    return;
+  }
+
+  _coffee_journal_access_save_alias($node);
+}
+
+/**
+ * Create or update the /my-coffees/<slug> alias for a coffee_bean node.
+ *
+ * Uses Drupal's core path_alias entity. Deletes any existing alias for the
+ * same system path before saving the new one to prevent duplicates.
+ */
+function _coffee_journal_access_save_alias(NodeInterface $node): void {
+  $system_path = '/node/' . $node->id();
+  $alias       = '/my-coffees/' . _coffee_journal_access_slugify($node->getTitle());
+
+  /** @var \Drupal\path_alias\AliasRepositoryInterface $repo */
+  $repo = \Drupal::service('path_alias.repository');
+
+  // Load and delete any existing aliases for this system path.
+  $existing = \Drupal::entityTypeManager()
+    ->getStorage('path_alias')
+    ->loadByProperties(['path' => $system_path]);
+
+  foreach ($existing as $old_alias) {
+    $old_alias->delete();
+  }
+
+  // Create the new alias.
+  PathAlias::create([
+    'path'     => $system_path,
+    'alias'    => $alias,
+    'langcode' => $node->language()->getId(),
+  ])->save();
+}
+
+/**
+ * Convert a string to a URL-safe slug.
+ *
+ * e.g. "Ethiopia Yirgacheffe Natural" → "ethiopia-yirgacheffe-natural"
+ */
+function _coffee_journal_access_slugify(string $text): string {
+  // Lowercase, replace non-alphanumeric chars with hyphens, trim.
+  $slug = strtolower($text);
+  $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
+  return trim($slug, '-');
+}
+

@@ -6,9 +6,9 @@ name: 'Coffee Journal'
 mail: admin@example.com
 slogan: ''
 page:
-  403: ''
+  403: /user/login
   404: ''
-  front: /node
+  front: /my-coffees
 admin_compact_mode: false
 weight_select_max: 100
 default_langcode: en
