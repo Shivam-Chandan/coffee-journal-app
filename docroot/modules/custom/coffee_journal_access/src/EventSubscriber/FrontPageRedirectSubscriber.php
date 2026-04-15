@@ -31,9 +31,10 @@ final class FrontPageRedirectSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public static function getSubscribedEvents(): array {
-    // Priority 30 — fires after routing but before controller resolution.
+    // Priority 100 — fires before page_cache (which runs at ~27) so the
+    // redirect response is set before the cache layer can serve a stale 403.
     return [
-      KernelEvents::REQUEST => ['onRequest', 30],
+      KernelEvents::REQUEST => ['onRequest', 100],
     ];
   }
 
