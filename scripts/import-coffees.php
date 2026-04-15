@@ -6,7 +6,7 @@
  * into Drupal as coffee_bean nodes.
  *
  * Run on the Acquia server with:
- *   drush php:script /tmp/import-coffees.php -- --file=/tmp/coffees-export.json
+ *   drush php:script import-coffees --script-path=/tmp -- --file=/tmp/coffees-export.json
  *
  * Options (passed after --):
  *   --file    Path to the export JSON file (required)
@@ -28,20 +28,25 @@
  *   ERROR      — unexpected error during node creation
  */
 
-// ── Parse CLI options passed after -- ──────────────────────────────────────
+// ── Output helper (compatible with Drush 10–13) ────────────────────────────
+// Drush 13 removed _p(). Use Drush::output() if available,
+// otherwise fall back to plain echo so the script also works via plain PHP.
 
-$opts     = [];
-$raw_args = drush_get_context('DRUSH_COMMAND_SPECIFIC');
-// Drush passes extra args as $extra; fall back to $argv for drush php:script
-$argv_extra = array_slice($_SERVER['argv'] ?? [], 1);
-foreach ($argv_extra as $arg) {
-  if (preg_match('/^--(\w+)(?:=(.*))?$/', $arg, $m)) {
-    $opts[$m[1]] = $m[2] ?? true;
+function _p(string $line): void {
+  if (class_exists('\Drush\Drush') && \Drush\Drush::hasContainer()) {
+    \Drush\Drush::output()->writeln($line);
+  } else {
+    echo $line . PHP_EOL;
   }
 }
 
-// Drush php:script passes extra args differently — also check $extra global
-if (!isset($opts['file']) && isset($extra) && is_array($extra)) {
+// ── Parse CLI options ──────────────────────────────────────────────────────
+// Drush php:script passes arguments after -- as the global $extra array.
+
+$opts = [];
+
+// Primary source: $extra global set by drush php:script (Drush 10-13)
+if (isset($extra) && is_array($extra)) {
   foreach ($extra as $arg) {
     if (preg_match('/^--(\w+)(?:=(.*))?$/', $arg, $m)) {
       $opts[$m[1]] = $m[2] ?? true;
@@ -49,9 +54,21 @@ if (!isset($opts['file']) && isset($extra) && is_array($extra)) {
   }
 }
 
+// Fallback: parse from $_SERVER['argv'] for environments where $extra isn't set
+if (empty($opts)) {
+  $argv_raw = $_SERVER['argv'] ?? [];
+  $after_sep = false;
+  foreach ($argv_raw as $arg) {
+    if ($arg === '--') { $after_sep = true; continue; }
+    if ($after_sep && preg_match('/^--(\w+)(?:=(.*))?$/', $arg, $m)) {
+      $opts[$m[1]] = $m[2] ?? true;
+    }
+  }
+}
+
 if (empty($opts['file'])) {
-  drush_print('ERROR: --file argument is required.');
-  drush_print('Usage: drush php:script /tmp/import-coffees.php -- --file=/tmp/coffees-export.json');
+  _p('ERROR: --file argument is required.');
+  _p('Usage: drush php:script /tmp/import-coffees.php -- --file=/tmp/coffees-export.json');
   exit(1);
 }
 
@@ -61,7 +78,7 @@ $limit     = isset($opts['limit']) ? (int) $opts['limit'] : PHP_INT_MAX;
 $only_user = $opts['user'] ?? null;
 
 if (!file_exists($file_path)) {
-  drush_print("ERROR: File not found: {$file_path}");
+  _p("ERROR: File not found: {$file_path}");
   exit(1);
 }
 
@@ -69,29 +86,29 @@ if (!file_exists($file_path)) {
 
 $json = json_decode(file_get_contents($file_path), TRUE);
 if (!$json || !isset($json['coffees'])) {
-  drush_print("ERROR: Invalid export file — expected JSON with 'coffees' array.");
+  _p("ERROR: Invalid export file — expected JSON with 'coffees' array.");
   exit(1);
 }
 
 $coffees = $json['coffees'];
 $total   = count($coffees);
 
-drush_print('');
-drush_print('=================================================');
-drush_print('  Coffee Journal — Firestore → Drupal Migration  ');
-drush_print('=================================================');
-drush_print("Export file:     {$file_path}");
-drush_print("Exported at:     " . ($json['exportedAt'] ?? 'unknown'));
-drush_print("Total records:   {$total}");
-if ($dry_run)   drush_print('Mode:            DRY RUN (no nodes will be created)');
-if ($limit < PHP_INT_MAX) drush_print("Limit:           first {$limit} records");
-if ($only_user) drush_print("Filter user:     {$only_user}");
-drush_print('');
+_p('');
+_p('=================================================');
+_p('  Coffee Journal — Firestore → Drupal Migration  ');
+_p('=================================================');
+_p("Export file:     {$file_path}");
+_p("Exported at:     " . ($json['exportedAt'] ?? 'unknown'));
+_p("Total records:   {$total}");
+if ($dry_run)   _p('Mode:            DRY RUN (no nodes will be created)');
+if ($limit < PHP_INT_MAX) _p("Limit:           first {$limit} records");
+if ($only_user) _p("Filter user:     {$only_user}");
+_p('');
 
 // ── Build Google sub → Drupal UID lookup cache ──────────────────────────────
 // Read all social_auth rows once to avoid N queries.
 
-drush_print('Building user identity map from social_auth table...');
+_p('Building user identity map from social_auth table...');
 $connection = \Drupal::database();
 $rows = $connection->select('social_auth', 'sa')
   ->fields('sa', ['user_id', 'provider_user_id'])
@@ -105,8 +122,8 @@ foreach ($rows as $row) {
 }
 
 $known_users = count($google_sub_to_uid);
-drush_print("Found {$known_users} Google account(s) linked in Drupal.");
-drush_print('');
+_p("Found {$known_users} Google account(s) linked in Drupal.");
+_p('');
 
 // ── Counters ────────────────────────────────────────────────────────────────
 
@@ -140,7 +157,7 @@ foreach ($coffees as $idx => $c) {
   if (empty($google_sub) || !isset($google_sub_to_uid[$google_sub])) {
     $counts['no_user']++;
     $skipped_subs[$google_sub] = ($skipped_subs[$google_sub] ?? 0) + 1;
-    drush_print("  NO_USER  [{$firestore_id}] \"{$coffee_name}\" — Google sub {$google_sub} has no Drupal account yet");
+    _p("  NO_USER  [{$firestore_id}] \"{$coffee_name}\" — Google sub {$google_sub} has no Drupal account yet");
     continue;
   }
 
@@ -152,14 +169,14 @@ foreach ($coffees as $idx => $c) {
   $exists = _migration_node_exists($drupal_uid, $coffee_name, $order_date);
   if ($exists) {
     $counts['duplicate']++;
-    drush_print("  DUPLICATE [{$firestore_id}] \"{$coffee_name}\" (uid={$drupal_uid}, date={$order_date}) — already imported");
+    _p("  DUPLICATE [{$firestore_id}] \"{$coffee_name}\" (uid={$drupal_uid}, date={$order_date}) — already imported");
     continue;
   }
 
   // ── 3. Create node ─────────────────────────────────────────────────────
 
   if ($dry_run) {
-    drush_print("  DRY_RUN  [{$firestore_id}] \"{$coffee_name}\" → would create for uid={$drupal_uid}");
+    _p("  DRY_RUN  [{$firestore_id}] \"{$coffee_name}\" → would create for uid={$drupal_uid}");
     $counts['imported']++;
     continue;
   }
@@ -167,49 +184,49 @@ foreach ($coffees as $idx => $c) {
   try {
     $nid = _migration_create_coffee_node($drupal_uid, $c);
     $counts['imported']++;
-    drush_print("  IMPORTED [{$firestore_id}] \"{$coffee_name}\" → nid={$nid} (uid={$drupal_uid})");
+    _p("  IMPORTED [{$firestore_id}] \"{$coffee_name}\" → nid={$nid} (uid={$drupal_uid})");
   }
   catch (\Throwable $e) {
     $counts['error']++;
     $msg = $e->getMessage();
     $error_log[] = "[{$firestore_id}] \"{$coffee_name}\": {$msg}";
-    drush_print("  ERROR    [{$firestore_id}] \"{$coffee_name}\": {$msg}");
+    _p("  ERROR    [{$firestore_id}] \"{$coffee_name}\": {$msg}");
   }
 }
 
 // ── Final report ─────────────────────────────────────────────────────────────
 
-drush_print('');
-drush_print('=== Migration Report ===');
-drush_print("Total processed:  {$processed}");
-drush_print("Imported:         " . $counts['imported'] . ($dry_run ? ' (dry run — not actually created)' : ''));
-drush_print("Duplicates:       " . $counts['duplicate']);
-drush_print("No Drupal user:   " . $counts['no_user']);
-drush_print("Errors:           " . $counts['error']);
+_p('');
+_p('=== Migration Report ===');
+_p("Total processed:  {$processed}");
+_p("Imported:         " . $counts['imported'] . ($dry_run ? ' (dry run — not actually created)' : ''));
+_p("Duplicates:       " . $counts['duplicate']);
+_p("No Drupal user:   " . $counts['no_user']);
+_p("Errors:           " . $counts['error']);
 
 if (!empty($skipped_subs)) {
-  drush_print('');
-  drush_print('Users not yet in Drupal (must log in via Google first, then re-run):');
+  _p('');
+  _p('Users not yet in Drupal (must log in via Google first, then re-run):');
   foreach ($skipped_subs as $sub => $n) {
-    drush_print("  Google sub: {$sub} ({$n} record" . ($n > 1 ? 's' : '') . ')');
+    _p("  Google sub: {$sub} ({$n} record" . ($n > 1 ? 's' : '') . ')');
   }
-  drush_print('');
-  drush_print('After those users log in, re-run the import. It is safe to run multiple times.');
+  _p('');
+  _p('After those users log in, re-run the import. It is safe to run multiple times.');
 }
 
 if (!empty($error_log)) {
-  drush_print('');
-  drush_print('Errors:');
-  foreach ($error_log as $e) drush_print("  {$e}");
+  _p('');
+  _p('Errors:');
+  foreach ($error_log as $e) _p("  {$e}");
 }
 
-drush_print('');
+_p('');
 if ($dry_run) {
-  drush_print('Dry run complete. Remove --dry to create nodes.');
+  _p('Dry run complete. Remove --dry to create nodes.');
 } elseif ($counts['error'] === 0) {
-  drush_print('✓ Migration complete.');
+  _p('✓ Migration complete.');
 } else {
-  drush_print('Migration complete with errors. Review the error list above.');
+  _p('Migration complete with errors. Review the error list above.');
 }
 
 // ── Helper: check if a coffee_bean node already exists ─────────────────────
