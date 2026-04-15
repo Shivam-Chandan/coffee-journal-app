@@ -9,6 +9,7 @@ module:
   breakpoint: 0
   ckeditor5: 0
   coffee_journal_access: 0
+  coffee_journal_api: 0
   comment: 0
   config: 0
   contact: 0

@@ -1,0 +1,17 @@
+services:
+
+  coffee_journal_api.gemini:
+    class: Drupal\coffee_journal_api\Service\GeminiService
+    arguments:
+      - '@http_client'
+      - '@logger.channel.coffee_journal_api'
+
+  coffee_journal_api.places:
+    class: Drupal\coffee_journal_api\Service\GooglePlacesService
+    arguments:
+      - '@http_client'
+      - '@logger.channel.coffee_journal_api'
+
+  logger.channel.coffee_journal_api:
+    parent: logger.channel_base
+    arguments: ['coffee_journal_api']

@@ -1,0 +1,17 @@
+coffee_journal_api.scrape_coffee:
+  path: '/api/scrape-coffee'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\GeminiController::scrape'
+    _title: 'Scrape Coffee'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+coffee_journal_api.places_search:
+  path: '/api/places/search'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\PlacesController::search'
+    _title: 'Search Places'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
