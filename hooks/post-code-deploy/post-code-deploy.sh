@@ -54,18 +54,30 @@ fi
 log "Docroot: ${DOCROOT}"
 log "Drush:   ${DRUSH}"
 
-# ── Step 1: Config import ────────────────────────────────────────────────────
+# ── Step 1: Clear shortcut entities if they conflict with config ─────────────
+# Shortcut entities block config:import when the DB has default shortcuts
+# that differ from the config YAMLs. Safely remove them first.
+log "Clearing conflicting shortcut entities..."
+"${DRUSH}" ev "
+\$shortcuts = \Drupal::entityTypeManager()->getStorage('shortcut')->loadMultiple();
+foreach (\$shortcuts as \$s) { \$s->delete(); }
+\$sets = \Drupal::entityTypeManager()->getStorage('shortcut_set')->loadMultiple();
+foreach (\$sets as \$s) { \$s->delete(); }
+echo count(\$shortcuts) . ' shortcuts and ' . count(\$sets) . ' sets deleted';
+" 2>&1 || log "Note: shortcut cleanup skipped (may not be needed)"
+
+# ── Step 2: Config import ────────────────────────────────────────────────────
 log "Running drush config:import..."
 cd "${DOCROOT}"
 "${DRUSH}" config:import --yes 2>&1 && log "config:import succeeded" \
   || log "WARNING: config:import had warnings (may be a no-op if config is already in sync)"
 
-# ── Step 2: Database updates ─────────────────────────────────────────────────
+# ── Step 3: Database updates ─────────────────────────────────────────────────
 log "Running drush updatedb..."
 "${DRUSH}" updatedb --yes 2>&1 && log "updatedb succeeded" \
   || log "WARNING: updatedb had warnings"
 
-# ── Step 3: Cache rebuild ────────────────────────────────────────────────────
+# ── Step 4: Cache rebuild ────────────────────────────────────────────────────
 log "Running drush cache:rebuild..."
 "${DRUSH}" cache:rebuild 2>&1 && log "cache:rebuild succeeded" \
   || { log "ERROR: cache:rebuild failed"; exit 1; }
