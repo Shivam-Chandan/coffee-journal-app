@@ -55,8 +55,6 @@ log "Docroot: ${DOCROOT}"
 log "Drush:   ${DRUSH}"
 
 # ── Step 1: Clear shortcut entities if they conflict with config ─────────────
-# Shortcut entities block config:import when the DB has default shortcuts
-# that differ from the config YAMLs. Safely remove them first.
 log "Clearing conflicting shortcut entities..."
 "${DRUSH}" ev "
 \$shortcuts = \Drupal::entityTypeManager()->getStorage('shortcut')->loadMultiple();
@@ -66,18 +64,38 @@ foreach (\$sets as \$s) { \$s->delete(); }
 echo count(\$shortcuts) . ' shortcuts and ' . count(\$sets) . ' sets deleted';
 " 2>&1 || log "Note: shortcut cleanup skipped (may not be needed)"
 
-# ── Step 2: Config import ────────────────────────────────────────────────────
+# ── Step 2: Write social_auth_google config from env vars ────────────────────
+# social_auth_google ships no config/install defaults, so the config object
+# must be written explicitly. The $config[] override in settings.php only works
+# when the object already exists. This step ensures it exists on every deploy.
+log "Writing social_auth_google config from environment variables..."
+if [[ -n "${GOOGLE_CLIENT_ID:-}" && -n "${GOOGLE_CLIENT_SECRET:-}" ]]; then
+  "${DRUSH}" ev "
+\Drupal::configFactory()->getEditable('social_auth_google.settings')
+  ->set('client_id',     getenv('GOOGLE_CLIENT_ID'))
+  ->set('client_secret', getenv('GOOGLE_CLIENT_SECRET'))
+  ->set('scopes',        'email profile')
+  ->set('endpoints',     'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid')
+  ->save();
+echo 'social_auth_google.settings written';
+" 2>&1 && log "social_auth_google config written" \
+    || log "WARNING: could not write social_auth_google config"
+else
+  log "WARNING: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set — social auth will not work"
+fi
+
+# ── Step 3: Config import ────────────────────────────────────────────────────
 log "Running drush config:import..."
 cd "${DOCROOT}"
 "${DRUSH}" config:import --yes 2>&1 && log "config:import succeeded" \
   || log "WARNING: config:import had warnings (may be a no-op if config is already in sync)"
 
-# ── Step 3: Database updates ─────────────────────────────────────────────────
+# ── Step 4: Database updates ─────────────────────────────────────────────────
 log "Running drush updatedb..."
 "${DRUSH}" updatedb --yes 2>&1 && log "updatedb succeeded" \
   || log "WARNING: updatedb had warnings"
 
-# ── Step 4: Cache rebuild ────────────────────────────────────────────────────
+# ── Step 5: Cache rebuild ────────────────────────────────────────────────────
 log "Running drush cache:rebuild..."
 "${DRUSH}" cache:rebuild 2>&1 && log "cache:rebuild succeeded" \
   || { log "ERROR: cache:rebuild failed"; exit 1; }
