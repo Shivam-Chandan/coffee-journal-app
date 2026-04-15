@@ -1,0 +1,8 @@
+# Never commit the Firebase service account key or export data
+serviceAccountKey.json
+*.json
+!package.json
+!package-lock.json
+
+# Never commit node_modules
+node_modules/
