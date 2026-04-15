@@ -1,49 +1,125 @@
 version: 1.1.0
 
-# Acquia Pipelines build definition for Brewtal / Coffee Journal
-# - PHP 8.3
-# - Node.js (for Tailwind CSS compilation — falls back to pre-compiled CSS)
-# - Builds from master branch, deploys artifact to pipelines-build-master
+# =============================================================================
+# Acquia Pipelines — Brewtal / Coffee Journal
+# =============================================================================
+#
+# Build flow:
+#   1. setup         — verify PHP 8.3, Composer, Node.js versions
+#   2. composer      — install PHP dependencies (no dev, optimised autoloader)
+#   3. tailwind      — compile Tailwind CSS for coffee_journal theme
+#   4. artifact-prep — strip dev files, protect private dirs, .gitignore cleanup
+#
+# Post-deploy (Acquia Cloud Hooks in hooks/):
+#   hooks/post-code-deploy — drush config:import + cache:rebuild on every env
+#   hooks/post-code-update — same, triggered on git pull to an env
+#
+# Environments:
+#   dev   eeschandan1dev.prod.acquia-sites.com
+#   test  eeschandan1test.prod.acquia-sites.com  (stage)
+#   prod  eeschandan1.prod.acquia-sites.com
+#
+# Required Acquia environment variables (set per-environment in Cloud UI):
+#   GOOGLE_CLIENT_ID        — Google OAuth client ID
+#   GOOGLE_CLIENT_SECRET    — Google OAuth client secret
+#   GEMINI_API_KEY          — Google Gemini AI API key
+#   GOOGLE_PLACES_API_KEY   — Google Places API key
+# =============================================================================
 
 variables:
   global:
     COMPOSER_MEMORY_LIMIT: "-1"
+    # Tells composer not to prompt for anything interactive
+    COMPOSER_NO_INTERACTION: "1"
 
 events:
   build:
     php: "8.3"
     steps:
+
+      # ── 1. SETUP ─────────────────────────────────────────────────────────
+      # Verify runtime versions and export the correct PHP 8.3 path.
+      # The Acquia pipelines runner defaults to PHP 7.4; we must prepend the
+      # 8.3 binary path so every subsequent step uses the right interpreter.
       - setup:
           type: script
           script:
             - export PATH="/usr/local/php8.3/bin:$PATH"
             - echo "==> PHP version"
-            - php --version
+            - php --version | head -1
             - echo "==> Composer version"
-            - php /usr/local/bin/composer --version
-            - echo "==> Node/npm (if available)"
-            - node --version 2>/dev/null || echo "Node.js not on this runner"
-            - npm --version 2>/dev/null || echo "npm not on this runner"
+            - php /usr/local/bin/composer --version | head -1
+            - echo "==> Node / npm versions"
+            - node --version 2>/dev/null && npm --version 2>/dev/null || echo "Node.js not available on this runner"
+            - echo "==> Git commit"
+            - git log --oneline -1 2>/dev/null || echo "no git"
 
+      # ── 2. COMPOSER INSTALL ───────────────────────────────────────────────
+      # --no-dev          strips phpunit, phpstan, codesniffer from artifact
+      # --optimize-autoloader  generates a classmap for faster autoloading
+      # --prefer-dist     uses zip downloads (faster than git clones)
+      # --no-scripts      skips potentially slow/unsafe post-install scripts
       - composer-install:
           type: script
           script:
             - export PATH="/usr/local/php8.3/bin:$PATH"
             - echo "==> Running composer install"
-            - php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+            - php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
+            - echo "==> Verifying key contrib modules present"
+            - test -d docroot/modules/contrib/social_auth_google && echo "social_auth_google OK" || echo "WARNING: social_auth_google missing"
+            - test -d docroot/modules/contrib/social_auth && echo "social_auth OK" || echo "WARNING: social_auth missing"
 
+      # ── 3. TAILWIND CSS BUILD ─────────────────────────────────────────────
+      # Compiles src/css/app.css → css/coffee-theme.css (minified).
+      # Falls back to the pre-compiled CSS already committed in the repo if
+      # Node.js is unavailable (so the artifact is never left without CSS).
       - tailwind-build:
           type: script
           script:
             - echo "==> Building Tailwind CSS for coffee_journal theme"
             - cd docroot/themes/custom/coffee_journal
-            - if command -v node >/dev/null 2>&1; then npm ci --prefer-offline && npm run build && echo "Tailwind built"; else echo "Node.js unavailable — using pre-compiled CSS from repo"; fi
+            - |
+              if command -v node >/dev/null 2>&1; then
+                echo "Node.js $(node --version) found — building"
+                npm ci --prefer-offline --no-fund --no-audit
+                NODE_ENV=production npx tailwindcss \
+                  -i ./src/css/app.css \
+                  -o ./css/coffee-theme.css \
+                  --minify
+                echo "Tailwind built ($(wc -c < css/coffee-theme.css) bytes)"
+              else
+                echo "Node.js unavailable — using pre-compiled css/coffee-theme.css from repo"
+                test -f css/coffee-theme.css && echo "Pre-compiled CSS present OK" \
+                  || echo "ERROR: no pre-compiled CSS found"
+              fi
             - cd -
 
-      - prepare-artifact:
+      # ── 4. ARTIFACT PREPARATION ───────────────────────────────────────────
+      # Strip dev-only files that should not reach any environment, ensure
+      # required writable dirs exist, and scrub node_modules from artifact.
+      - artifact-prep:
           type: script
           script:
-            - echo "==> Removing development-only files from artifact"
+            - echo "==> Preparing artifact"
+
+            # Remove dev-only files
             - rm -f phpcs.xml.dist phpstan.neon.dist phpunit.xml.dist
-            - mkdir -p docroot/sites/default/files docroot/sites/default/private
-            - echo "==> Artifact prepared"
+            - rm -f .travis.yml .env.example
+
+            # node_modules must never be in the artifact
+            - echo "==> Removing theme node_modules from artifact"
+            - rm -rf docroot/themes/custom/coffee_journal/node_modules
+
+            # Ensure required writable directories exist for Drupal
+            - mkdir -p docroot/sites/default/files
+            - mkdir -p docroot/sites/default/private
+
+            # Verify critical config and module files made it into the artifact
+            - echo "==> Verifying artifact integrity"
+            - test -f config/default/core.extension.yml && echo "config/default OK" || echo "ERROR: core.extension.yml missing"
+            - test -f docroot/modules/custom/coffee_journal_api/coffee_journal_api.info.yml && echo "coffee_journal_api module OK" || echo "ERROR: coffee_journal_api missing"
+            - test -f docroot/modules/custom/coffee_journal_access/src/EventSubscriber/FrontPageRedirectSubscriber.php && echo "FrontPageRedirectSubscriber OK" || echo "ERROR: FrontPageRedirectSubscriber missing"
+            - test -f docroot/themes/custom/coffee_journal/css/coffee-theme.css && echo "coffee-theme.css OK" || echo "ERROR: coffee-theme.css missing"
+            - test -f docroot/themes/custom/coffee_journal/js/app.js && echo "app.js OK" || echo "ERROR: app.js missing"
+
+            - echo "==> Artifact ready"
