@@ -101,4 +101,8 @@ log "Running drush cache:rebuild..."
 "${DRUSH}" cache:rebuild 2>&1 && log "cache:rebuild succeeded" \
   || { log "ERROR: cache:rebuild failed"; exit 1; }
 
+# Explicitly flush the page cache bin which cache:rebuild sometimes preserves
+"${DRUSH}" ev "\Drupal::cache('page')->deleteAll(); echo 'page cache flushed';" 2>&1 \
+  && log "page cache flushed" || log "Note: page cache flush skipped"
+
 log "Deploy hook completed successfully"
