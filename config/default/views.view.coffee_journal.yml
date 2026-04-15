@@ -6,6 +6,7 @@ dependencies:
     - core.entity_view_mode.node.teaser
     - node.type.coffee_bean
     - system.menu.main
+    - user.role.authenticated
   module:
     - node
     - user
@@ -59,7 +60,8 @@ display:
       access:
         type: role
         options:
-          perm: 'access content'
+          role:
+            authenticated: authenticated
       cache:
         type: tag
         options: {  }
@@ -209,7 +211,7 @@ display:
         - url.query_args
         - user
         - 'user.node_grants:view'
-        - user.permissions
+        - user.roles
       tags: {  }
   page_1:
     id: page_1
@@ -217,6 +219,11 @@ display:
     display_plugin: page
     position: 1
     display_options:
+      access:
+        type: role
+        options:
+          role:
+            authenticated: authenticated
       display_description: ''
       display_extenders: {  }
       path: my-coffees
@@ -237,5 +244,5 @@ display:
         - url.query_args
         - user
         - 'user.node_grants:view'
-        - user.permissions
+        - user.roles
       tags: {  }
