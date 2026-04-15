@@ -1,4 +1,4 @@
-uuid: 4b2e3d5e-0007-4000-b000-000000000007
+uuid: b2013e0a-883a-42e7-b389-55b00d82e985
 langcode: en
 status: true
 dependencies:
@@ -10,7 +10,7 @@ field_name: field_overall_taste_rating
 entity_type: node
 bundle: coffee_bean
 label: 'Overall Taste Rating'
-description: 'Overall taste rating from 1 (poor) to 5 (excellent).'
+description: ''
 required: true
 translatable: true
 default_value: {  }

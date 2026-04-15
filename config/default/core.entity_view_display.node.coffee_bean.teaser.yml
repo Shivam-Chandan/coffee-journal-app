@@ -4,12 +4,20 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.node.teaser
+    - field.field.node.coffee_bean.field_acidity_rating
+    - field.field.node.coffee_bean.field_bitterness_rating
     - field.field.node.coffee_bean.field_brand_roaster
+    - field.field.node.coffee_bean.field_estate
     - field.field.node.coffee_bean.field_flavour_notes
+    - field.field.node.coffee_bean.field_form_factor
     - field.field.node.coffee_bean.field_is_finished
+    - field.field.node.coffee_bean.field_note_clarity_rating
     - field.field.node.coffee_bean.field_overall_taste_rating
     - field.field.node.coffee_bean.field_purchase_date
+    - field.field.node.coffee_bean.field_quantity
+    - field.field.node.coffee_bean.field_quantity_unit
     - field.field.node.coffee_bean.field_roast_level
+    - field.field.node.coffee_bean.field_worth_reordering
     - node.type.coffee_bean
   module:
     - datetime
@@ -20,23 +28,6 @@ targetEntityType: node
 bundle: coffee_bean
 mode: teaser
 content:
-  # Key fields for the card/list view
-  field_overall_taste_rating:
-    type: number_integer
-    label: hidden
-    settings:
-      thousand_separator: ''
-      prefix_suffix: false
-    third_party_settings: {  }
-    weight: 1
-    region: content
-  field_roast_level:
-    type: list_default
-    label: hidden
-    settings: {  }
-    third_party_settings: {  }
-    weight: 2
-    region: content
   field_brand_roaster:
     type: string
     label: hidden
@@ -54,15 +45,21 @@ content:
     third_party_settings: {  }
     weight: 4
     region: content
-  field_is_finished:
-    type: boolean
+  field_rating:
+    type: number_integer
     label: hidden
     settings:
-      format: default
-      format_custom_false: ''
-      format_custom_true: ''
+      thousand_separator: ''
+      prefix_suffix: false
     third_party_settings: {  }
-    weight: 5
+    weight: 1
+    region: content
+  field_roast_level:
+    type: list_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
     region: content
   links:
     settings: {  }
@@ -75,7 +72,10 @@ hidden:
   field_estate: true
   field_flavour_notes: true
   field_form_factor: true
+  field_is_finished: true
   field_note_clarity_rating: true
+  field_notes_review: true
+  field_overall_taste_rating: true
   field_quantity: true
   field_quantity_unit: true
   field_worth_reordering: true

@@ -1,4 +1,4 @@
-uuid: 4b2e3d5e-0009-4000-b000-000000000009
+uuid: c423e393-eaa0-48e0-be52-e1b25e96ae92
 langcode: en
 status: true
 dependencies:
@@ -10,12 +10,14 @@ field_name: field_is_finished
 entity_type: node
 bundle: coffee_bean
 label: 'Bag Finished?'
-description: 'Mark when you have used up the entire bag.'
+description: ''
 required: false
 translatable: true
 default_value:
   -
     value: 0
 default_value_callback: ''
-settings: {  }
+settings:
+  on_label: 'On'
+  off_label: 'Off'
 field_type: boolean

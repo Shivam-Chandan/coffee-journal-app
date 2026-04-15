@@ -1,4 +1,4 @@
-uuid: 4b2e3d5e-0005-4000-b000-000000000005
+uuid: 01151db5-c175-4b13-b5a3-3d1b61f6aa7f
 langcode: en
 status: true
 dependencies:
@@ -10,7 +10,7 @@ field_name: field_acidity_rating
 entity_type: node
 bundle: coffee_bean
 label: 'Acidity Rating'
-description: 'Rate the acidity from 1 (least) to 10 (most).'
+description: ''
 required: true
 translatable: true
 default_value: {  }

@@ -1,4 +1,4 @@
-uuid: 4b2e3d5e-0004-4000-b000-000000000004
+uuid: 0410d7d2-9e80-45ac-96a4-1cfb0e9c194f
 langcode: en
 status: true
 dependencies:
@@ -10,7 +10,7 @@ field_name: field_bitterness_rating
 entity_type: node
 bundle: coffee_bean
 label: 'Bitterness Rating'
-description: 'Rate the bitterness from 1 (least) to 10 (most).'
+description: ''
 required: true
 translatable: true
 default_value: {  }

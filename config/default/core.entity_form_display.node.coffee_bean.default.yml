@@ -20,7 +20,6 @@ dependencies:
     - node.type.coffee_bean
   module:
     - datetime
-    - options
     - path
     - text
 id: node.coffee_bean.default
@@ -28,107 +27,71 @@ targetEntityType: node
 bundle: coffee_bean
 mode: default
 content:
-  title:
-    type: string_textfield
-    weight: -5
+  created:
+    type: datetime_timestamp
+    weight: 10
     region: content
-    settings:
-      size: 60
-      placeholder: 'e.g. Ethiopia Yirgacheffe Natural'
+    settings: {  }
     third_party_settings: {  }
   field_brand_roaster:
     type: string_textfield
-    weight: 1
-    region: content
-    settings:
-      size: 60
-      placeholder: 'e.g. Square Mile Coffee Roasters'
-    third_party_settings: {  }
-  field_estate:
-    type: string_textfield
-    weight: 2
-    region: content
-    settings:
-      size: 60
-      placeholder: 'e.g. Konga Cooperative (optional)'
-    third_party_settings: {  }
-  field_purchase_date:
-    type: datetime_default
     weight: 3
     region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_quantity:
-    type: number
-    weight: 4
-    region: content
     settings:
-      placeholder: 'e.g. 250'
-    third_party_settings: {  }
-  field_quantity_unit:
-    type: options_select
-    weight: 5
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_roast_level:
-    type: options_select
-    weight: 6
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_form_factor:
-    type: options_select
-    weight: 7
-    region: content
-    settings: {  }
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_flavour_notes:
     type: text_textarea
-    weight: 8
+    weight: 5
     region: content
     settings:
       rows: 5
-      placeholder: 'Describe the flavours, aromas and mouthfeel…'
+      placeholder: ''
     third_party_settings: {  }
-  field_bitterness_rating:
-    type: number
-    weight: 9
+  field_notes_review:
+    type: text_textarea
+    weight: 6
     region: content
     settings:
-      placeholder: '1–10'
+      rows: 5
+      placeholder: ''
     third_party_settings: {  }
-  field_acidity_rating:
+  field_purchase_date:
+    type: datetime_default
+    weight: 4
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_rating:
     type: number
-    weight: 10
+    weight: 1
     region: content
     settings:
-      placeholder: '1–10'
+      placeholder: ''
     third_party_settings: {  }
-  field_note_clarity_rating:
-    type: number
-    weight: 11
+  field_roast_level:
+    type: options_select
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  langcode:
+    type: language_select
+    weight: 2
     region: content
     settings:
-      placeholder: '1–10'
+      include_locked: true
     third_party_settings: {  }
-  field_overall_taste_rating:
-    type: number
-    weight: 12
+  path:
+    type: path
+    weight: 30
     region: content
-    settings:
-      placeholder: '1–5'
+    settings: {  }
     third_party_settings: {  }
-  field_worth_reordering:
+  promote:
     type: boolean_checkbox
-    weight: 13
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  field_is_finished:
-    type: boolean_checkbox
-    weight: 14
+    weight: 15
     region: content
     settings:
       display_label: true
@@ -140,9 +103,24 @@ content:
     settings:
       display_label: true
     third_party_settings: {  }
+  sticky:
+    type: boolean_checkbox
+    weight: 16
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    weight: -5
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 121
+    weight: 5
     region: content
     settings:
       match_operator: CONTAINS
@@ -150,37 +128,14 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  created:
-    type: datetime_timestamp
-    weight: 122
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  langcode:
-    type: language_select
-    weight: 123
-    region: content
-    settings:
-      include_locked: true
-    third_party_settings: {  }
-  path:
-    type: path
-    weight: 124
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  promote:
-    type: boolean_checkbox
-    weight: 125
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  sticky:
-    type: boolean_checkbox
-    weight: 126
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-hidden: {  }
+hidden:
+  field_acidity_rating: true
+  field_bitterness_rating: true
+  field_estate: true
+  field_form_factor: true
+  field_is_finished: true
+  field_note_clarity_rating: true
+  field_overall_taste_rating: true
+  field_quantity: true
+  field_quantity_unit: true
+  field_worth_reordering: true

@@ -1,4 +1,4 @@
-uuid: 4b2e3d5e-0010-4000-b000-000000000010
+uuid: c7300efc-615c-4bfb-8082-e36bf1128129
 langcode: en
 status: true
 dependencies:
@@ -10,7 +10,7 @@ field_name: field_estate
 entity_type: node
 bundle: coffee_bean
 label: Estate
-description: 'Farm or estate name where the coffee was grown (optional).'
+description: ''
 required: false
 translatable: true
 default_value: {  }

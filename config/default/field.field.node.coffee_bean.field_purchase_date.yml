@@ -12,7 +12,7 @@ field_name: field_purchase_date
 entity_type: node
 bundle: coffee_bean
 label: 'Order Date'
-description: 'Date you ordered or purchased this coffee.'
+description: ''
 required: true
 translatable: true
 default_value: {  }

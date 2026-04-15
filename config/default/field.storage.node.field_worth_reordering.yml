@@ -1,4 +1,4 @@
-uuid: 3a1f2c4d-0008-4000-a000-000000000008
+uuid: b4fee552-8a82-425a-b181-0bb5b5591e7a
 langcode: en
 status: true
 dependencies:
@@ -8,9 +8,7 @@ id: node.field_worth_reordering
 field_name: field_worth_reordering
 entity_type: node
 type: boolean
-settings:
-  on_label: 'Yes'
-  off_label: 'No'
+settings: {  }
 module: core
 locked: false
 cardinality: 1

@@ -1,4 +1,4 @@
-uuid: 4b2e3d5e-0006-4000-b000-000000000006
+uuid: bdf23233-9b03-48da-b140-6a21bd21ce02
 langcode: en
 status: true
 dependencies:
@@ -10,7 +10,7 @@ field_name: field_note_clarity_rating
 entity_type: node
 bundle: coffee_bean
 label: 'Note Clarity Rating'
-description: 'Rate how clearly defined the tasting notes are, from 1 (muddy) to 10 (crystal clear).'
+description: ''
 required: true
 translatable: true
 default_value: {  }

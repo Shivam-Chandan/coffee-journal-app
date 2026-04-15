@@ -1,4 +1,4 @@
-uuid: 3a1f2c4d-0009-4000-a000-000000000009
+uuid: 8b0639be-4693-4c9c-a749-ab8863506bf1
 langcode: en
 status: true
 dependencies:
@@ -8,9 +8,7 @@ id: node.field_is_finished
 field_name: field_is_finished
 entity_type: node
 type: boolean
-settings:
-  on_label: 'Yes'
-  off_label: 'No'
+settings: {  }
 module: core
 locked: false
 cardinality: 1
