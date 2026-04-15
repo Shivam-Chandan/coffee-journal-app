@@ -1,0 +1,19 @@
+uuid: c36597dd-74ad-4859-a39c-3016a594096e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_brand_roaster
+    - node.type.coffee_bean
+id: node.coffee_bean.field_brand_roaster
+field_name: field_brand_roaster
+entity_type: node
+bundle: coffee_bean
+label: 'Brand / Roaster'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

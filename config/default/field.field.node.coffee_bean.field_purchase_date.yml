@@ -1,0 +1,21 @@
+uuid: 55ae7b18-78b7-459a-a5e4-2c6a37c6df81
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_purchase_date
+    - node.type.coffee_bean
+  module:
+    - datetime
+id: node.coffee_bean.field_purchase_date
+field_name: field_purchase_date
+entity_type: node
+bundle: coffee_bean
+label: 'Order Date'
+description: 'Date you ordered or purchased this coffee.'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

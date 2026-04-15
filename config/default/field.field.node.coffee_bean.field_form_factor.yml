@@ -1,0 +1,21 @@
+uuid: 4b2e3d5e-0003-4000-b000-000000000003
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_form_factor
+    - node.type.coffee_bean
+  module:
+    - options
+id: node.coffee_bean.field_form_factor
+field_name: field_form_factor
+entity_type: node
+bundle: coffee_bean
+label: 'Form Factor'
+description: 'Physical form of the coffee (whole bean, ground, etc.).'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

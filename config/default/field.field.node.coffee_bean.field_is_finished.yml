@@ -1,0 +1,21 @@
+uuid: 4b2e3d5e-0009-4000-b000-000000000009
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_is_finished
+    - node.type.coffee_bean
+id: node.coffee_bean.field_is_finished
+field_name: field_is_finished
+entity_type: node
+bundle: coffee_bean
+label: 'Bag Finished?'
+description: 'Mark when you have used up the entire bag.'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings: {  }
+field_type: boolean

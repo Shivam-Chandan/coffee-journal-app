@@ -1,0 +1,82 @@
+uuid: 3e8f8e54-dfca-4788-acf5-3e159281871d
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.coffee_bean.field_brand_roaster
+    - field.field.node.coffee_bean.field_flavour_notes
+    - field.field.node.coffee_bean.field_is_finished
+    - field.field.node.coffee_bean.field_overall_taste_rating
+    - field.field.node.coffee_bean.field_purchase_date
+    - field.field.node.coffee_bean.field_roast_level
+    - node.type.coffee_bean
+  module:
+    - datetime
+    - options
+    - user
+id: node.coffee_bean.teaser
+targetEntityType: node
+bundle: coffee_bean
+mode: teaser
+content:
+  # Key fields for the card/list view
+  field_overall_taste_rating:
+    type: number_integer
+    label: hidden
+    settings:
+      thousand_separator: ''
+      prefix_suffix: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_roast_level:
+    type: list_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_brand_roaster:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_purchase_date:
+    type: datetime_default
+    label: hidden
+    settings:
+      timezone_override: ''
+      format_type: html_date
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_is_finished:
+    type: boolean
+    label: hidden
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  field_acidity_rating: true
+  field_bitterness_rating: true
+  field_estate: true
+  field_flavour_notes: true
+  field_form_factor: true
+  field_note_clarity_rating: true
+  field_quantity: true
+  field_quantity_unit: true
+  field_worth_reordering: true
+  langcode: true

@@ -1,0 +1,157 @@
+uuid: e07d738b-fd50-4f48-8403-6080e48632af
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.coffee_bean.field_acidity_rating
+    - field.field.node.coffee_bean.field_bitterness_rating
+    - field.field.node.coffee_bean.field_brand_roaster
+    - field.field.node.coffee_bean.field_estate
+    - field.field.node.coffee_bean.field_flavour_notes
+    - field.field.node.coffee_bean.field_form_factor
+    - field.field.node.coffee_bean.field_is_finished
+    - field.field.node.coffee_bean.field_note_clarity_rating
+    - field.field.node.coffee_bean.field_overall_taste_rating
+    - field.field.node.coffee_bean.field_purchase_date
+    - field.field.node.coffee_bean.field_quantity
+    - field.field.node.coffee_bean.field_quantity_unit
+    - field.field.node.coffee_bean.field_roast_level
+    - field.field.node.coffee_bean.field_worth_reordering
+    - node.type.coffee_bean
+  module:
+    - datetime
+    - options
+    - text
+    - user
+id: node.coffee_bean.default
+targetEntityType: node
+bundle: coffee_bean
+mode: default
+content:
+  field_roast_level:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_form_factor:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_brand_roaster:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_estate:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_purchase_date:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: html_date
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_quantity:
+    type: number_decimal
+    label: above
+    settings:
+      thousand_separator: ''
+      decimal_separator: .
+      scale: 0
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 6
+    region: content
+  field_quantity_unit:
+    type: list_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 7
+    region: content
+  field_flavour_notes:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 8
+    region: content
+  field_bitterness_rating:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 9
+    region: content
+  field_acidity_rating:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 10
+    region: content
+  field_note_clarity_rating:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 11
+    region: content
+  field_overall_taste_rating:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 12
+    region: content
+  field_worth_reordering:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 13
+    region: content
+  field_is_finished:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 14
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  langcode: true

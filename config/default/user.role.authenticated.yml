@@ -1,0 +1,36 @@
+uuid: 9369d3a5-6ec4-46bc-b7a3-006f2177d488
+langcode: en
+status: true
+dependencies:
+  config:
+    - filter.format.basic_html
+    - node.type.coffee_bean
+  module:
+    - comment
+    - contact
+    - file
+    - filter
+    - node
+    - search
+    - shortcut
+    - system
+_core:
+  default_config_hash: cFrlqjtkTfvY3RGccjJkPf1SGIfJ942IrxTLWAO4mgA
+id: authenticated
+label: 'Authenticated user'
+weight: 1
+is_admin: false
+permissions:
+  - 'access comments'
+  - 'access content'
+  - 'access shortcuts'
+  - 'access site-wide contact form'
+  - 'create coffee_bean content'
+  - 'delete own coffee_bean content'
+  - 'delete own files'
+  - 'edit own coffee_bean content'
+  - 'post comments'
+  - 'search content'
+  - 'skip comment approval'
+  - 'use text format basic_html'
+  - 'view own unpublished content'

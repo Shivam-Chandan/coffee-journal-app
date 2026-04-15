@@ -1,0 +1,23 @@
+uuid: 4b2e3d5e-0002-4000-b000-000000000002
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_quantity_unit
+    - node.type.coffee_bean
+  module:
+    - options
+id: node.coffee_bean.field_quantity_unit
+field_name: field_quantity_unit
+entity_type: node
+bundle: coffee_bean
+label: 'Quantity Unit'
+description: 'Unit of measurement for quantity (grams or kilograms).'
+required: true
+translatable: true
+default_value:
+  -
+    value: g
+default_value_callback: ''
+settings: {  }
+field_type: list_string

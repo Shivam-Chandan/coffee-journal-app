@@ -1,0 +1,21 @@
+uuid: 081b4d75-e4f4-4fac-a8bd-ee0443233ddd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_roast_level
+    - node.type.coffee_bean
+  module:
+    - options
+id: node.coffee_bean.field_roast_level
+field_name: field_roast_level
+entity_type: node
+bundle: coffee_bean
+label: 'Roast Level'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

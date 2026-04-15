@@ -1,0 +1,22 @@
+uuid: 9ee107c5-7aeb-4628-b7d5-5c4c5d876b47
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_flavour_notes
+    - node.type.coffee_bean
+  module:
+    - text
+id: node.coffee_bean.field_flavour_notes
+field_name: field_flavour_notes
+entity_type: node
+bundle: coffee_bean
+label: 'Tasting Notes'
+description: 'Describe the flavours, aromas and overall taste experience.'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

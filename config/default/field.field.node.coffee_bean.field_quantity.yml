@@ -1,0 +1,23 @@
+uuid: 4b2e3d5e-0001-4000-b000-000000000001
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_quantity
+    - node.type.coffee_bean
+id: node.coffee_bean.field_quantity
+field_name: field_quantity
+entity_type: node
+bundle: coffee_bean
+label: Quantity
+description: 'Amount of coffee purchased.'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0
+  max: ''
+  prefix: ''
+  suffix: ''
+field_type: decimal

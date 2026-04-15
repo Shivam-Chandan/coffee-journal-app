@@ -1,0 +1,36 @@
+uuid: 20c6446f-d329-43f5-b8ad-53826d9c99ec
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_roast_level
+field_name: field_roast_level
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: light
+      label: Light
+    -
+      value: light_medium
+      label: Light-Medium
+    -
+      value: medium
+      label: Medium
+    -
+      value: medium_dark
+      label: Medium-Dark
+    -
+      value: dark
+      label: Dark
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

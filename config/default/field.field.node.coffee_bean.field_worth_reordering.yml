@@ -1,0 +1,21 @@
+uuid: 4b2e3d5e-0008-4000-b000-000000000008
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_worth_reordering
+    - node.type.coffee_bean
+id: node.coffee_bean.field_worth_reordering
+field_name: field_worth_reordering
+entity_type: node
+bundle: coffee_bean
+label: 'Worth Reordering?'
+description: 'Would you buy this coffee again?'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings: {  }
+field_type: boolean

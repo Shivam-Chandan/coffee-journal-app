@@ -1,0 +1,11 @@
+uuid: e1af3279-e687-4fb5-a6b5-dfdab3d28712
+langcode: en
+status: true
+dependencies: {  }
+name: 'Coffee Bean'
+type: coffee_bean
+description: 'A coffee bean entry in the journal.'
+help: null
+new_revision: false
+preview_mode: 1
+display_submitted: false

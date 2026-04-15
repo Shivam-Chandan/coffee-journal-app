@@ -1,0 +1,23 @@
+uuid: 4b2e3d5e-0005-4000-b000-000000000005
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_acidity_rating
+    - node.type.coffee_bean
+id: node.coffee_bean.field_acidity_rating
+field_name: field_acidity_rating
+entity_type: node
+bundle: coffee_bean
+label: 'Acidity Rating'
+description: 'Rate the acidity from 1 (least) to 10 (most).'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 1
+  max: 10
+  prefix: ''
+  suffix: ''
+field_type: integer

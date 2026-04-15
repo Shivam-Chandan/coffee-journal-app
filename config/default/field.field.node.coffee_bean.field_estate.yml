@@ -1,0 +1,19 @@
+uuid: 4b2e3d5e-0010-4000-b000-000000000010
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_estate
+    - node.type.coffee_bean
+id: node.coffee_bean.field_estate
+field_name: field_estate
+entity_type: node
+bundle: coffee_bean
+label: Estate
+description: 'Farm or estate name where the coffee was grown (optional).'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

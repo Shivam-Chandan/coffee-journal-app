@@ -1,0 +1,23 @@
+uuid: 4b2e3d5e-0004-4000-b000-000000000004
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_bitterness_rating
+    - node.type.coffee_bean
+id: node.coffee_bean.field_bitterness_rating
+field_name: field_bitterness_rating
+entity_type: node
+bundle: coffee_bean
+label: 'Bitterness Rating'
+description: 'Rate the bitterness from 1 (least) to 10 (most).'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 1
+  max: 10
+  prefix: ''
+  suffix: ''
+field_type: integer
