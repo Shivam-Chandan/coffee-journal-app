@@ -72,10 +72,11 @@ log "Writing social_auth_google config from environment variables..."
 if [[ -n "${GOOGLE_CLIENT_ID:-}" && -n "${GOOGLE_CLIENT_SECRET:-}" ]]; then
   "${DRUSH}" ev "
 \Drupal::configFactory()->getEditable('social_auth_google.settings')
-  ->set('client_id',     getenv('GOOGLE_CLIENT_ID'))
-  ->set('client_secret', getenv('GOOGLE_CLIENT_SECRET'))
-  ->set('scopes',        'email profile')
-  ->set('endpoints',     'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid')
+  ->set('client_id',         getenv('GOOGLE_CLIENT_ID'))
+  ->set('client_secret',     getenv('GOOGLE_CLIENT_SECRET'))
+  ->set('scopes',            '')
+  ->set('endpoints',         '')
+  ->set('restricted_domain', '')
   ->save();
 echo 'social_auth_google.settings written';
 " 2>&1 && log "social_auth_google config written" \

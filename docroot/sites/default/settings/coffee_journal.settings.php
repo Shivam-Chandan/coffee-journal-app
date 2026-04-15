@@ -19,11 +19,12 @@
 // social_auth_google ships NO config/install defaults, so the config object
 // may not exist in the DB after a fresh module enable.
 //
-// Strategy (two-layer):
-//   1. $config[] override  — works when the config object already exists in DB.
-//      Drupal merges these values at bootstrap before any module reads config.
-//   2. Bootstrap hook below writes the config directly if the object is absent.
-//      This ensures it is present on first enable and after any DB wipe.
+// IMPORTANT — scopes and endpoints field semantics:
+//   scopes    = ADDITIONAL scopes beyond the built-in 'email' and 'profile'.
+//               Leave empty for basic login — the module adds email+profile itself.
+//   endpoints = Google API paths to call POST-login in "path|name" format
+//               (e.g. /youtube/v3/playlists?...|playlists). Leave empty for
+//               basic login — the userinfo endpoint is handled automatically.
 //
 if (getenv('GOOGLE_CLIENT_ID')) {
   $config['social_auth_google.settings']['client_id'] = getenv('GOOGLE_CLIENT_ID');
@@ -31,9 +32,10 @@ if (getenv('GOOGLE_CLIENT_ID')) {
 if (getenv('GOOGLE_CLIENT_SECRET')) {
   $config['social_auth_google.settings']['client_secret'] = getenv('GOOGLE_CLIENT_SECRET');
 }
-// Always ensure scopes and endpoints are set (social_auth_google requires them).
-$config['social_auth_google.settings']['scopes']    = 'email profile';
-$config['social_auth_google.settings']['endpoints'] = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid';
+// Keep scopes and endpoints empty — module provides email+profile by default.
+$config['social_auth_google.settings']['scopes']           = '';
+$config['social_auth_google.settings']['endpoints']        = '';
+$config['social_auth_google.settings']['restricted_domain'] = '';
 
 // ── Bootstrap hook: write config to DB if missing ──────────────────────────
 // Runs only when Drupal is fully bootstrapped (i.e. not during CLI install).
@@ -53,10 +55,11 @@ if (defined('DRUPAL_ROOT') && getenv('GOOGLE_CLIENT_ID')) {
       if (empty($existing)) {
         \Drupal::configFactory()
           ->getEditable('social_auth_google.settings')
-          ->set('client_id',     getenv('GOOGLE_CLIENT_ID') ?: '')
-          ->set('client_secret', getenv('GOOGLE_CLIENT_SECRET') ?: '')
-          ->set('scopes',        'email profile')
-          ->set('endpoints',     'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid')
+          ->set('client_id',          getenv('GOOGLE_CLIENT_ID') ?: '')
+          ->set('client_secret',      getenv('GOOGLE_CLIENT_SECRET') ?: '')
+          ->set('scopes',             '')
+          ->set('endpoints',          '')
+          ->set('restricted_domain',  '')
           ->save();
       }
     }
