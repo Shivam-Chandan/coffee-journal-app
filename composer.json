@@ -110,7 +110,11 @@
         "patchLevel": {
             "drupal/core": "-p2"
         },
-        "patches": {}
+        "patches": {
+            "drupal/social_api": {
+                "PHP 8.4: Fix implicit nullable Request parameter in OAuth2Manager constructor": "patches/social_api-php84-nullable-request.patch"
+            }
+        }
     },
     "repositories": {
         "drupal": {
