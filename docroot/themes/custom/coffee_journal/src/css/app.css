@@ -889,4 +889,124 @@
   body.path-user #cj-main .cj-page-inner {
     max-width: 420px;
   }
+
+  /* ── LOGIN PAGE ─────────────────────────────────────────────────────────── */
+  /* Full-page centred layout for page--user--login.html.twig */
+  .cj-login-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--cj-bg);
+    padding: 2rem 1rem;
+  }
+  .cj-login-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--cj-surface);
+    border: 1px solid var(--cj-border-card);
+    border-radius: var(--cj-radius-lg);
+    padding: 2.5rem 2rem;
+    text-align: center;
+  }
+  .cj-login-brand {
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+  .cj-login-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--cj-text);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+  .cj-login-tagline {
+    font-size: 0.9rem;
+    color: var(--cj-text-muted);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+  /* Google Sign-In button — follows Google Branding Guidelines */
+  .cj-btn-google {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    background: #fff;
+    color: #3c4043 !important;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    padding: 0.7rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    font-family: 'Google Sans', Inter, sans-serif;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: background-color 0.18s ease, box-shadow 0.18s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .cj-btn-google:hover {
+    background: #f8f8f8 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
+    color: #3c4043 !important;
+  }
+  .cj-google-icon { flex-shrink: 0; }
+  /* Admin login fallback — hidden by default, revealed via <details> */
+  .cj-admin-login {
+    margin-top: 1.5rem;
+    text-align: left;
+  }
+  .cj-admin-login summary {
+    font-size: 0.72rem;
+    color: var(--cj-text-faint);
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.04em;
+    list-style: none;
+    margin-bottom: 0.75rem;
+  }
+  .cj-admin-login summary::-webkit-details-marker { display: none; }
+  .cj-admin-login[open] summary { color: var(--cj-text-muted); }
+
+  /* Rating bars for node detail page */
+  .cj-rating-bar-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .cj-rating-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--cj-muted);
+    border-radius: 999px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cj-rating-bar::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: var(--pct, 0%);
+    background: var(--cj-primary);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+  .cj-rating-row .cj-field-val {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Finished / reorder badges */
+  .cj-badge--finished  { color: #6dbf7e; background: #0f2b15; }
+  .cj-badge--reorder   { color: #82b4e8; background: #0f1e2b; }
+  .cj-node__badges     { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+
+  /* New roast badge tokens for light-medium and medium-dark */
+  .cj-badge--light_medium { color: #d4b85a; background: #302810; }
+  .cj-badge--medium_dark  { color: #c47d45; background: #2e1e0d; }
 }

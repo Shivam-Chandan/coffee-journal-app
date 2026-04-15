@@ -22,6 +22,7 @@
         "drupal/core-recommended": "^11",
         "drupal/geofield": "^10.3",
         "drupal/mysql57": "^1.0",
+        "drupal/social_auth_google": "^4.0",
         "drush/drush": "^13",
         "oomphinc/composer-installers-extender": "^2"
     },

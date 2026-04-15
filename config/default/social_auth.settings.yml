@@ -1,0 +1,6 @@
+auth: []
+post_login: /my-coffees
+redirect_user_form: FALSE
+disable_admin_login: FALSE
+disabled_roles: []
+user_allowed: 'register'
