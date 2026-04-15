@@ -15,20 +15,17 @@ settings:
       value: light
       label: Light
     -
-      value: medium
-      label: Medium
-    -
-      value: dark
-      label: Dark
-    -
-      value: espresso
-      label: Espresso
-    -
       value: light_medium
       label: Light-Medium
     -
+      value: medium
+      label: Medium
+    -
       value: medium_dark
       label: Medium-Dark
+    -
+      value: dark
+      label: Dark
   allowed_values_function: ''
 module: options
 locked: false
