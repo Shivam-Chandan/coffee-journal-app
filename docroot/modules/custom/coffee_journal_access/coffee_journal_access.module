@@ -45,60 +45,55 @@ function coffee_journal_access_node_access(NodeInterface $node, $op, AccountInte
  * Alters the coffee_bean node add form to match CoffeeForm.tsx:
  *   - Renames "Title" label to "Coffee Name"
  *   - Injects "Taste Profile" section heading before bitterness slider
- *   - Hides revision/author/date admin meta
+ *   - Sets source-app-matching default values
  */
 function coffee_journal_access_form_node_coffee_bean_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
-  _coffee_journal_access_alter_coffee_form($form);
+  _coffee_journal_access_alter_coffee_form($form, TRUE);
 }
 
 /**
  * Implements hook_form_node_coffee_bean_edit_form_alter().
  */
 function coffee_journal_access_form_node_coffee_bean_edit_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
-  _coffee_journal_access_alter_coffee_form($form);
+  _coffee_journal_access_alter_coffee_form($form, FALSE);
 }
 
 /**
  * Shared form alterations for add and edit forms.
+ *
+ * @param array  $form    The form array (by reference).
+ * @param bool   $is_add  TRUE on the add form, FALSE on the edit form.
  */
-function _coffee_journal_access_alter_coffee_form(array &$form): void {
+function _coffee_journal_access_alter_coffee_form(array &$form, bool $is_add): void {
   // ── 1. Rename "Title" → "Coffee Name" ─────────────────────────────────
   if (isset($form['title']['widget'][0]['value'])) {
     $form['title']['widget'][0]['value']['#title']       = t('Coffee Name');
     $form['title']['widget'][0]['value']['#placeholder'] = t('e.g. Vienna Roast');
   }
-  // Also rename the field group label if present.
   if (isset($form['title']['#title'])) {
     $form['title']['#title'] = t('Coffee Name');
   }
 
-  // ── 2. Rename "Field Brand Roaster" label ─────────────────────────────
+  // ── 2. Brand Name placeholder ─────────────────────────────────────────
   if (isset($form['field_brand_roaster']['widget'][0]['value'])) {
     $form['field_brand_roaster']['widget'][0]['value']['#placeholder'] = t('e.g. Blue Tokai');
   }
 
   // ── 3. Inject "Taste Profile" heading before bitterness rating ─────────
-  // Uses #weight to slot it between field_estate (weight 8) and
-  // field_bitterness_rating (weight 10). We set weight 9.
+  // Slots between field_estate (weight 8) and field_bitterness_rating (10).
   $form['cj_taste_profile_heading'] = [
-    '#type'   => 'markup',
-    '#markup' => '<span class="cj-taste-profile-label">' . t('Taste Profile') . '</span>',
-    '#weight' => 9,
+    '#type'         => 'markup',
+    '#markup'       => '<span class="cj-taste-profile-label">' . t('Taste Profile') . '</span>',
+    '#weight'       => 9,
     '#allowed_tags' => ['span'],
   ];
 
-  // ── 4. Hide revision log message (not relevant for end users) ──────────
+  // ── 4. Hide revision log (not relevant for end users) ─────────────────
   if (isset($form['revision_log'])) {
     $form['revision_log']['#access'] = FALSE;
   }
 
-  // ── 5. Set default values that match source app defaults ───────────────
-  // Source app defaults: quantity=250, quantityUnit=g, roast=Medium,
-  // formFactor=Whole Bean, bitternessRating=5, acidityRating=5, clarity=5.
-  // These are only applied on the add form (edit form has existing values).
-  $node = \Drupal::routeMatch()->getParameter('node');
-  $is_add = ($node === NULL);
-
+  // ── 5. Default values on add form (match source app defaults) ─────────
   if ($is_add) {
     if (isset($form['field_quantity']['widget'][0]['value'])) {
       $form['field_quantity']['widget'][0]['value']['#default_value'] = 250;
@@ -172,105 +167,3 @@ function _coffee_journal_access_slugify(string $text): string {
   $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
   return trim($slug, '-');
 }
-
-// ── Access control ─────────────────────────────────────────────────────────
-
-/**
- * Implements hook_node_access().
- */
-function coffee_journal_access_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  if ($node->bundle() !== 'coffee_bean') {
-    return AccessResult::neutral();
-  }
-
-  // Admin (UID 1) always has full access.
-  if ($account->id() == 1) {
-    return AccessResult::neutral()->cachePerUser();
-  }
-
-  // Anonymous users are denied everything.
-  if ($account->isAnonymous()) {
-    return AccessResult::forbidden()->cachePerUser();
-  }
-
-  $is_owner = ((int) $node->getOwnerId() === (int) $account->id());
-
-  return $is_owner
-    ? AccessResult::allowed()->cachePerUser()->addCacheableDependency($node)
-    : AccessResult::forbidden()->cachePerUser()->addCacheableDependency($node);
-}
-
-// ── URL alias generation ────────────────────────────────────────────────────
-
-/**
- * Implements hook_node_insert().
- *
- * Creates a path alias for new coffee_bean nodes.
- */
-function coffee_journal_access_node_insert(NodeInterface $node): void {
-  if ($node->bundle() === 'coffee_bean') {
-    _coffee_journal_access_save_alias($node);
-  }
-}
-
-/**
- * Implements hook_node_update().
- *
- * Updates the path alias when a coffee_bean node title changes.
- */
-function coffee_journal_access_node_update(NodeInterface $node): void {
-  if ($node->bundle() !== 'coffee_bean') {
-    return;
-  }
-
-  // Only regenerate if the title actually changed.
-  $original = $node->original ?? NULL;
-  if ($original && $original->getTitle() === $node->getTitle()) {
-    return;
-  }
-
-  _coffee_journal_access_save_alias($node);
-}
-
-/**
- * Create or update the /my-coffees/<slug> alias for a coffee_bean node.
- *
- * Uses Drupal's core path_alias entity. Deletes any existing alias for the
- * same system path before saving the new one to prevent duplicates.
- */
-function _coffee_journal_access_save_alias(NodeInterface $node): void {
-  $system_path = '/node/' . $node->id();
-  $alias       = '/my-coffees/' . _coffee_journal_access_slugify($node->getTitle());
-
-  /** @var \Drupal\path_alias\AliasRepositoryInterface $repo */
-  $repo = \Drupal::service('path_alias.repository');
-
-  // Load and delete any existing aliases for this system path.
-  $existing = \Drupal::entityTypeManager()
-    ->getStorage('path_alias')
-    ->loadByProperties(['path' => $system_path]);
-
-  foreach ($existing as $old_alias) {
-    $old_alias->delete();
-  }
-
-  // Create the new alias.
-  PathAlias::create([
-    'path'     => $system_path,
-    'alias'    => $alias,
-    'langcode' => $node->language()->getId(),
-  ])->save();
-}
-
-/**
- * Convert a string to a URL-safe slug.
- *
- * e.g. "Ethiopia Yirgacheffe Natural" → "ethiopia-yirgacheffe-natural"
- */
-function _coffee_journal_access_slugify(string $text): string {
-  // Lowercase, replace non-alphanumeric chars with hyphens, trim.
-  $slug = strtolower($text);
-  $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
-  return trim($slug, '-');
-}
-
