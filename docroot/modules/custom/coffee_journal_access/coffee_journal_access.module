@@ -65,7 +65,47 @@ function coffee_journal_access_form_node_coffee_bean_edit_form_alter(array &$for
  * @param bool   $is_add  TRUE on the add form, FALSE on the edit form.
  */
 function _coffee_journal_access_alter_coffee_form(array &$form, bool $is_add): void {
-  // ── 1. Rename "Title" → "Coffee Name" ─────────────────────────────────
+  // ── 1. Inline URL scraper widget (Fix 4) ───────────────────────────────
+  // Injected as a form element instead of a template so it is guaranteed to
+  // appear regardless of Drupal's template-discovery for node forms.
+  // The cjFormScraper JS behaviour handles the fetch + field-fill logic.
+  $form['cj_inline_scraper'] = [
+    '#type'         => 'markup',
+    '#weight'       => -10,
+    '#allowed_tags' => ['div', 'input', 'button', 'span', 'svg', 'path', 'circle'],
+    '#markup'       => '
+<div class="cj-form-scraper-inline" id="cj-inline-scraper">
+  <div class="cj-scraper-inline__header">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2.5"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+    </svg>
+    <span>' . t('Auto-fill details from URL') . '</span>
+  </div>
+  <div class="cj-scraper-inline__row">
+    <input type="url"
+           id="cj-inline-scraper-url"
+           class="cj-scraper-inline__input"
+           placeholder="' . t('Paste product page URL…') . '"
+           autocomplete="off"
+           aria-label="' . t('Product page URL') . '">
+    <button type="button"
+            id="cj-inline-scraper-btn"
+            class="cj-scraper-inline__btn">
+      <span class="cj-inline-btn-label">' . t('Auto-fill') . '</span>
+      <span class="cj-inline-spinner" aria-hidden="true" hidden></span>
+    </button>
+  </div>
+  <div id="cj-inline-scraper-status"
+       class="cj-scraper-inline__status"
+       role="status"
+       aria-live="polite"></div>
+</div>',
+  ];
+
+  // ── 2. Rename "Title" → "Coffee Name" ─────────────────────────────────
   if (isset($form['title']['widget'][0]['value'])) {
     $form['title']['widget'][0]['value']['#title']       = t('Coffee Name');
     $form['title']['widget'][0]['value']['#placeholder'] = t('e.g. Vienna Roast');
@@ -74,13 +114,12 @@ function _coffee_journal_access_alter_coffee_form(array &$form, bool $is_add): v
     $form['title']['#title'] = t('Coffee Name');
   }
 
-  // ── 2. Brand Name placeholder ─────────────────────────────────────────
+  // ── 3. Brand Name placeholder ─────────────────────────────────────────
   if (isset($form['field_brand_roaster']['widget'][0]['value'])) {
     $form['field_brand_roaster']['widget'][0]['value']['#placeholder'] = t('e.g. Blue Tokai');
   }
 
-  // ── 3. Inject "Taste Profile" heading before bitterness rating ─────────
-  // Slots between field_estate (weight 8) and field_bitterness_rating (10).
+  // ── 4. Inject "Taste Profile" heading ─────────────────────────────────
   $form['cj_taste_profile_heading'] = [
     '#type'         => 'markup',
     '#markup'       => '<span class="cj-taste-profile-label">' . t('Taste Profile') . '</span>',
@@ -88,12 +127,23 @@ function _coffee_journal_access_alter_coffee_form(array &$form, bool $is_add): v
     '#allowed_tags' => ['span'],
   ];
 
-  // ── 4. Hide revision log (not relevant for end users) ─────────────────
+  // ── 5. Tasting notes — lock to plain_text, hide format toolbar (Fix 3) ─
+  // field_flavour_notes is text_long which can show a CKEditor toolbar.
+  // Setting allowed_formats to plain_text only prevents CKEditor from loading.
+  if (isset($form['field_flavour_notes']['widget'][0])) {
+    $form['field_flavour_notes']['widget'][0]['#allowed_formats'] = ['plain_text'];
+    // Hide the text-format selector entirely — plain textarea only.
+    if (isset($form['field_flavour_notes']['widget'][0]['format'])) {
+      $form['field_flavour_notes']['widget'][0]['format']['#access'] = FALSE;
+    }
+  }
+
+  // ── 6. Hide revision log ───────────────────────────────────────────────
   if (isset($form['revision_log'])) {
     $form['revision_log']['#access'] = FALSE;
   }
 
-  // ── 5. Default values on add form (match source app defaults) ─────────
+  // ── 7. Default values on add form (match source app defaults) ─────────
   if ($is_add) {
     if (isset($form['field_quantity']['widget'][0]['value'])) {
       $form['field_quantity']['widget'][0]['value']['#default_value'] = 250;

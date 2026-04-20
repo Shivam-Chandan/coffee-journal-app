@@ -30,8 +30,10 @@
     {# Show edit/delete only to the node owner — pre-computed in coffee_journal_preprocess_node() #}
     {% if user_can_edit %}
       <div class="cj-card__actions">
+        {# edit — JS intercepts this and opens the drawer instead of navigating #}
         <a href="{{ path('entity.node.edit_form', {'node': node_id}) }}"
            class="edit"
+           data-drawer-edit="true"
            title="{{ 'Edit'|t }} {{ label }}"
            aria-label="{{ 'Edit'|t }} {{ label }}">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
