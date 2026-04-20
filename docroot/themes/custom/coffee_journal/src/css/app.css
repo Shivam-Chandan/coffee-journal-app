@@ -1255,19 +1255,93 @@
   /* ── NODE ADD / EDIT FORM SHELL ─────────────────────────────────────────── */
   .page-node-add--coffee-bean #cj-main .cj-page-inner,
   .page-node-edit           #cj-main .cj-page-inner {
-    max-width: 700px;
+    max-width: 680px;
   }
-  .page-node-add--coffee-bean .cj-page-inner > h1,
-  .page-node-add--coffee-bean .cj-page-inner > .page-title,
-  .page-node-edit             .cj-page-inner > h1,
-  .page-node-edit             .cj-page-inner > .page-title {
-    display: block;
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 1.25rem;
-    color: var(--cj-text);
+
+  /* ── INLINE URL SCRAPER (top of add/edit form) ──────────────────────────── */
+  /* Matches source app's "Auto-fill details from URL" section */
+  .cj-form-scraper-inline {
+    background: var(--cj-elevated);
+    border: 1px solid var(--cj-border);
+    border-radius: var(--cj-radius);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
   }
-  /* Quantity + unit side by side */
+  .cj-scraper-inline__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--cj-text-muted);
+    margin-bottom: 0.6rem;
+  }
+  .cj-scraper-inline__row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .cj-scraper-inline__input {
+    flex: 1;
+    background: var(--cj-surface) !important;
+    border: 1px solid var(--cj-border) !important;
+    border-radius: var(--cj-radius) !important;
+    color: var(--cj-text) !important;
+    padding: 0.55rem 0.875rem !important;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.18s ease;
+  }
+  .cj-scraper-inline__input:focus {
+    border-color: var(--cj-primary) !important;
+    box-shadow: 0 0 0 3px rgba(198,92,16,0.2) !important;
+  }
+  .cj-scraper-inline__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--cj-radius);
+    border: none;
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.18s ease;
+  }
+  .cj-scraper-inline__btn:hover:not(:disabled) { background: var(--cj-primary-hover); }
+  .cj-scraper-inline__btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .cj-inline-spinner {
+    width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: cj-spin 0.7s linear infinite;
+  }
+  .cj-scraper-inline__status {
+    font-size: 0.78rem;
+    margin-top: 0.45rem;
+    min-height: 1.1em;
+  }
+  .cj-scraper-inline__status--error   { color: #e9a5a5; }
+  .cj-scraper-inline__status--success { color: #7dcf8c; }
+  .cj-scraper-inline__status--info    { color: var(--cj-text-faint); }
+
+  /* ── ROAST + FORM FACTOR SIDE BY SIDE ───────────────────────────────────── */
+  /* Matches source app's flex gap-2 layout for Roast + Type dropdowns */
+  .form-item--field-roast-level,
+  .form-item--field-form-factor {
+    display: inline-block;
+    width: calc(50% - 0.5rem);
+    margin-right: 0.75rem;
+    vertical-align: top;
+    box-sizing: border-box;
+  }
+  .form-item--field-form-factor { margin-right: 0; }
+
+  /* ── QUANTITY + UNIT SIDE BY SIDE ───────────────────────────────────────── */
   .form-item--field-quantity-0-value,
   .form-item--field-quantity-unit {
     display: inline-block;
@@ -1278,7 +1352,73 @@
   .form-item--field-quantity-0-value input { width: 120px !important; }
   .form-item--field-quantity-unit select  { width: 90px  !important; }
 
-  /* Pre-fill notice banner */
+  /* ── TASTE PROFILE SECTION HEADING ─────────────────────────────────────── */
+  /* Injected before bitterness field by hook_form_alter */
+  .cj-taste-profile-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cj-text-faint);
+    margin: 1.5rem 0 0.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--cj-border);
+  }
+
+  /* ── RANGE SLIDER (1-10 ratings: bitterness, acidity, note clarity) ─────── */
+  /* Matches IonRange in source app */
+  .cj-range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+  }
+  .cj-range-input {
+    flex: 1;
+    height: 6px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--cj-muted);
+    border-radius: 999px;
+    outline: none;
+    accent-color: var(--cj-primary);
+    cursor: pointer;
+  }
+  .cj-range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--cj-primary);
+    border: 2px solid var(--cj-primary-fg);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    cursor: grab;
+    transition: transform 0.1s ease;
+  }
+  .cj-range-input::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.15); }
+  .cj-range-input::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--cj-primary);
+    border: 2px solid var(--cj-primary-fg);
+    cursor: grab;
+  }
+  .cj-range-input:focus {
+    box-shadow: 0 0 0 3px rgba(198,92,16,0.25);
+    border-radius: 4px;
+  }
+  .cj-range-val {
+    min-width: 3rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cj-text-muted);
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── PRE-FILL BANNER ────────────────────────────────────────────────────── */
   .cj-prefill-banner {
     margin-bottom: 1.25rem;
     animation: cj-fadein 0.3s ease;

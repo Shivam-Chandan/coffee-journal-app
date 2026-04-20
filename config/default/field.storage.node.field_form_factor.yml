@@ -17,15 +17,6 @@ settings:
     -
       value: ground
       label: Ground
-    -
-      value: pods
-      label: Pods
-    -
-      value: capsule
-      label: Capsule
-    -
-      value: other
-      label: Other
   allowed_values_function: ''
 module: options
 locked: false
