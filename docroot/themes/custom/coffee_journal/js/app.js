@@ -485,12 +485,14 @@
   //     This mirrors the source app's client-side override.
   //
   // On change:
-  //   - Navigates to the same page with ?sort_by=<field>&sort_order=DESC,
-  //     which Drupal Views exposed sorts will honour.
+  //   - Navigates to ?sort_by=<field_identifier>&sort_order=DESC,
+  //     which Drupal Views exposed sorts pick up natively.
   //
-  // Sort key mapping (our value → Drupal Views sort_by param):
-  //   orderDate          → created
-  //   overallTasteRating → field_overall_taste_rating_value
+  // Sort key mapping (our select value → Drupal Views field_identifier):
+  //   orderDate          → orderDate          (field_identifier on created sort)
+  //   overallTasteRating → overallTasteRating (field_identifier on rating sort)
+  //
+  // Drupal Views exposed sorts use field_identifier as the sort_by URL param value.
 
   Drupal.behaviors.cjSort = {
     attach: function (context) {
@@ -498,27 +500,20 @@
       var COUNT_ID    = 'cj-coffee-count';
       var GRID_ID     = 'cj-grid';
 
-      // Map our human-readable sort keys to Drupal Views field identifiers
-      var SORT_MAP = {
-        orderDate:          'created',
-        overallTasteRating: 'field_overall_taste_rating_value'
-      };
+      // Valid sort_by values — must match field_identifier in views.view.coffee_journal.yml
+      var VALID_SORTS = { orderDate: true, overallTasteRating: true };
+      var DEFAULT_SORT = 'orderDate';
 
       // ── Read current sort from URL ──────────────────────────────────────
       function getCurrentSort() {
-        var params  = new URLSearchParams(window.location.search);
-        var sortBy  = params.get('sort_by') || 'created';
-        // Reverse-lookup: Drupal field id → our key
-        var keys = Object.keys(SORT_MAP);
-        for (var i = 0; i < keys.length; i++) {
-          if (SORT_MAP[keys[i]] === sortBy) return keys[i];
-        }
-        return 'orderDate'; // default
+        var params = new URLSearchParams(window.location.search);
+        var sortBy = params.get('sort_by') || DEFAULT_SORT;
+        return VALID_SORTS[sortBy] ? sortBy : DEFAULT_SORT;
       }
 
       // ── Navigate with new sort ──────────────────────────────────────────
       function applySort(key) {
-        var field  = SORT_MAP[key] || SORT_MAP.orderDate;
+        var field  = VALID_SORTS[key] ? key : DEFAULT_SORT;
         var params = new URLSearchParams(window.location.search);
         params.set('sort_by',    field);
         params.set('sort_order', 'DESC');
