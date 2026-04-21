@@ -89,9 +89,23 @@ display:
           plugin_id: date
           order: DESC
           expose:
-            label: ''
-          exposed: false
+            label: 'Order Date'
+            field_identifier: orderDate
+          exposed: true
           granularity: second
+        field_overall_taste_rating_value:
+          id: field_overall_taste_rating_value
+          table: node__field_overall_taste_rating
+          field: field_overall_taste_rating_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: standard
+          order: DESC
+          expose:
+            label: 'Rating'
+            field_identifier: overallTasteRating
+          exposed: true
       arguments:
         uid:
           id: uid

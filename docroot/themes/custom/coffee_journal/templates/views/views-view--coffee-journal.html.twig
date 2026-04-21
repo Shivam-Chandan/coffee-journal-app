@@ -3,11 +3,13 @@
   views-view--coffee-journal.html.twig
 
   Renders the journal grid plus:
+    - Sort dropdown (Order Date / Rating)
     - FAB button (opens add-coffee drawer)
     - "Import from URL" button (opens add-coffee drawer, scraper auto-focused)
     - #cj-drawer: the slide-up sheet that loads the add/edit form via fetch
 
   The cjAddDrawer JS behaviour handles all drawer open/close/submit logic.
+  The cjSort JS behaviour handles the sort dropdown.
 #}
 {% if not view.is_attachment() %}
   <div{{ attributes.addClass('view', 'view-coffee-journal') }}>
@@ -30,12 +32,25 @@
       </button>
     </div>
 
+    {# ── Controls row: count + sort dropdown ── #}
+    <div class="cj-controls-row">
+      <span class="cj-count" id="cj-coffee-count"></span>
+      <div class="cj-sort-wrap">
+        <label for="cj-sort-select" class="cj-sort-label">{{ 'Sort by'|t }}</label>
+        <select id="cj-sort-select" class="cj-sort-select" aria-label="{{ 'Sort coffees by'|t }}">
+          <option value="orderDate">{{ 'Order Date'|t }}</option>
+          <option value="overallTasteRating">{{ 'Rating'|t }}</option>
+        </select>
+      </div>
+    </div>
+
     {% if header %}
       <div class="cj-view-header">{{ header }}</div>
     {% endif %}
 
+    {# Drupal exposed form hidden — sort is driven by cjSort JS via URL params #}
     {% if exposed %}
-      <div class="view-filters">{{ exposed }}</div>
+      <div class="view-filters visually-hidden" aria-hidden="true">{{ exposed }}</div>
     {% endif %}
 
     {% if attachment_before %}
@@ -43,7 +58,7 @@
     {% endif %}
 
     {% if rows %}
-      <div class="cj-grid view-content">{{ rows }}</div>
+      <div class="cj-grid view-content" id="cj-grid">{{ rows }}</div>
     {% elseif empty %}
       <div class="cj-empty view-empty">
         <span class="cj-empty-icon" aria-hidden="true">☕</span>

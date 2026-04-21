@@ -10,7 +10,10 @@
  *   3. cjFormAutofill      — reads sessionStorage['cj_prefill'] on form load
  *   4. cjFormScraper       — inline scraper inside the drawer form
  *                            POST /api/scrape-coffee → fills form fields directly
- *   5. cjRatingInputs      — 1-10 range sliders + 1-5 star widget
+ *   5. cjSort              — sort dropdown (Order Date / Rating)
+ *                            navigates with ?sort_by= param; applies finished-last
+ *                            secondary sort client-side after page load
+ *   6. cjRatingInputs      — 1-10 range sliders + 1-5 star widget
  */
 (function (Drupal, drupalSettings, once) {
   'use strict';
@@ -470,17 +473,113 @@
     }
   };
 
-  // ── 5. RATING INPUT ENHANCEMENT ─────────────────────────────────────────
+  // ── 5. SORT DROPDOWN ─────────────────────────────────────────────────────
   //
-  // 5a. Range sliders for 1-10 fields (Bitterness, Acidity, Clarity)
-  //     Matches IonRange from source app.
-  // 5b. Star widget for Overall Taste (1-5)
-  //     Matches StarRating component from source app.
+  // Drives the "Sort by" select in the journal view.
+  //
+  // On load:
+  //   - Reads ?sort_by= from the URL to pre-select the correct option.
+  //   - Updates the count label from the number of rendered cards.
+  //   - Applies the finished-last secondary sort: moves cards with the
+  //     "Finished" badge (.cj-badge--finished) to the end of the grid.
+  //     This mirrors the source app's client-side override.
+  //
+  // On change:
+  //   - Navigates to the same page with ?sort_by=<field>&sort_order=DESC,
+  //     which Drupal Views exposed sorts will honour.
+  //
+  // Sort key mapping (our value → Drupal Views sort_by param):
+  //   orderDate          → created
+  //   overallTasteRating → field_overall_taste_rating_value
+
+  Drupal.behaviors.cjSort = {
+    attach: function (context) {
+      var SELECT_ID   = 'cj-sort-select';
+      var COUNT_ID    = 'cj-coffee-count';
+      var GRID_ID     = 'cj-grid';
+
+      // Map our human-readable sort keys to Drupal Views field identifiers
+      var SORT_MAP = {
+        orderDate:          'created',
+        overallTasteRating: 'field_overall_taste_rating_value'
+      };
+
+      // ── Read current sort from URL ──────────────────────────────────────
+      function getCurrentSort() {
+        var params  = new URLSearchParams(window.location.search);
+        var sortBy  = params.get('sort_by') || 'created';
+        // Reverse-lookup: Drupal field id → our key
+        var keys = Object.keys(SORT_MAP);
+        for (var i = 0; i < keys.length; i++) {
+          if (SORT_MAP[keys[i]] === sortBy) return keys[i];
+        }
+        return 'orderDate'; // default
+      }
+
+      // ── Navigate with new sort ──────────────────────────────────────────
+      function applySort(key) {
+        var field  = SORT_MAP[key] || SORT_MAP.orderDate;
+        var params = new URLSearchParams(window.location.search);
+        params.set('sort_by',    field);
+        params.set('sort_order', 'DESC');
+        // Reset to page 1 when sort changes
+        params.delete('page');
+        window.location.href = window.location.pathname + '?' + params.toString();
+      }
+
+      // ── Finished-last secondary sort (client-side) ──────────────────────
+      // Mirrors coffee-journal.tsx: isFinished cards float to the bottom
+      // regardless of the primary server sort.
+      function applyFinishedLast() {
+        var grid = document.getElementById(GRID_ID);
+        if (!grid) return;
+
+        var cards = Array.prototype.slice.call(grid.children);
+        if (!cards.length) return;
+
+        var active   = cards.filter(function (c) { return !c.querySelector('.cj-badge--finished'); });
+        var finished = cards.filter(function (c) { return  c.querySelector('.cj-badge--finished'); });
+
+        // Add visual dimming to finished cards
+        finished.forEach(function (c) { c.classList.add('cj-card--finished'); });
+
+        // Re-append in order: active first, finished last
+        active.concat(finished).forEach(function (c) { grid.appendChild(c); });
+      }
+
+      // ── Update count label ──────────────────────────────────────────────
+      function updateCount() {
+        var countEl = document.getElementById(COUNT_ID);
+        if (!countEl) return;
+        var grid  = document.getElementById(GRID_ID);
+        var count = grid ? grid.querySelectorAll('.cj-card').length : 0;
+        countEl.textContent = count + ' ' + (count === 1 ? Drupal.t('coffee') : Drupal.t('coffees'));
+      }
+
+      // ── Wire up the select ──────────────────────────────────────────────
+      once('cj-sort', '#' + SELECT_ID, context).forEach(function (sel) {
+        // Pre-select current sort
+        sel.value = getCurrentSort();
+
+        sel.addEventListener('change', function () {
+          applySort(this.value);
+        });
+      });
+
+      // Run secondary sort + count on every page load
+      once('cj-sort-init', 'body', context).forEach(function () {
+        applyFinishedLast();
+        updateCount();
+      });
+    }
+  };
+
+  // ── 6. RATING INPUT ENHANCEMENT ─────────────────────────────────────────
 
   Drupal.behaviors.cjRatingInputs = {
     attach: function (context) {
 
-      // 5a — Range sliders (1-10)
+      // 6a — Range sliders (1-10)
       var sliderFields = [
         { id: 'edit-field-bitterness-rating-0-value',   label: 'Bitterness' },
         { id: 'edit-field-acidity-rating-0-value',      label: 'Acidity'    },
@@ -531,7 +630,7 @@
         });
       });
 
-      // 5b — Star widget (1-5 overall taste)
+      // 6b — Star widget (1-5 overall taste)
       once('cj-stars-overall', '#edit-field-overall-taste-rating-0-value', context).forEach(function (input) {
         var current = parseInt(input.value, 10) || 0;
 

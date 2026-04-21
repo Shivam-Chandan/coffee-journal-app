@@ -1037,6 +1037,56 @@
     border-color: var(--cj-primary);
   }
 
+  /* ── CONTROLS ROW (count + sort) ───────────────────────────────────────── */
+  .cj-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+  }
+  .cj-count {
+    font-size: 0.82rem;
+    color: var(--cj-text-muted);
+    min-width: 0;
+  }
+  .cj-sort-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+  .cj-sort-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--cj-text-muted);
+    white-space: nowrap;
+    /* override the generic label block/uppercase style */
+    display: inline !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    margin-bottom: 0 !important;
+  }
+  .cj-sort-select {
+    width: auto !important;
+    background: var(--cj-elevated) !important;
+    border: 1px solid var(--cj-border) !important;
+    border-radius: var(--cj-radius) !important;
+    color: var(--cj-text) !important;
+    padding: 0.35rem 0.7rem !important;
+    font-size: 0.82rem !important;
+    cursor: pointer;
+  }
+  .cj-sort-select:focus {
+    border-color: var(--cj-primary) !important;
+    box-shadow: 0 0 0 3px hsla(25, 85%, 42%, 0.2) !important;
+  }
+
+  /* Finished cards visually dimmed when floated to the bottom */
+  .cj-card--finished {
+    opacity: 0.6;
+  }
+
   /* ── MODAL OVERLAY ─────────────────────────────────────────────────────── */
   .cj-modal {
     position: fixed;
