@@ -37,13 +37,13 @@
 
   </div>
 
-  {# ── FAB — server-side rendered for all authenticated users ── #}
-  <a href="{{ path('node.add', {'node_type': 'coffee_bean'}) }}"
-     class="cj-fab"
-     aria-label="{{ 'Add a Coffee Bean'|t }}"
-     title="{{ 'Add a Coffee Bean'|t }}">
+  {# ── FAB — button (not link) — opens the add-coffee drawer ── #}
+  <button type="button"
+          class="cj-fab"
+          aria-label="{{ 'Add a Coffee Bean'|t }}"
+          title="{{ 'Add a Coffee Bean'|t }}">
     <span aria-hidden="true">+</span>
-  </a>
+  </button>
 
 {% else %}
   {{ rows }}

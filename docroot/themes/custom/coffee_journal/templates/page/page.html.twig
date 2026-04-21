@@ -53,6 +53,39 @@
 
     </div>{# end #cj-app #}
 
+    {# ── Add / Edit Coffee Drawer — global, available on every page ────────── #}
+    <div id="cj-drawer"
+         class="cj-drawer"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="cj-drawer-title"
+         aria-hidden="true"
+         inert>
+
+      <div class="cj-drawer__backdrop" id="cj-drawer-backdrop"></div>
+
+      <div class="cj-drawer__sheet">
+
+        <div class="cj-drawer__header">
+          <h2 class="cj-drawer__title" id="cj-drawer-title">{{ 'Add Coffee'|t }}</h2>
+          <button type="button"
+                  class="cj-drawer__close"
+                  id="cj-drawer-close"
+                  aria-label="{{ 'Close'|t }}">
+            {{ 'Close'|t }}
+          </button>
+        </div>
+
+        <div id="cj-drawer-spinner" class="cj-drawer__spinner">
+          <span class="cj-drawer__spinner-ring" aria-hidden="true"></span>
+          <span class="visually-hidden">{{ 'Loading form…'|t }}</span>
+        </div>
+
+        <div id="cj-drawer-body" class="cj-drawer__body"></div>
+
+      </div>
+    </div>
+
     {{ page_bottom }}
     <js-bottom-placeholder token="{{ placeholder_token }}">
   </body>
