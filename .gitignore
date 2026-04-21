@@ -86,8 +86,15 @@ nbproject/*
 # DevDesktop
 *.dd
 
-# NPM
+# NPM / Node (root-level Playwright and other dev tooling)
 npm-debug.log
+/node_modules/
+/package.json
+/package-lock.json
+
+# Playwright test output
+/test-screenshots/
+/test-sorting*.js
 
 # Drush 9 Checksums
 drush/sites/.checksums
