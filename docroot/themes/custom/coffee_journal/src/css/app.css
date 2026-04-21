@@ -504,6 +504,7 @@
 
   /* ── VIEW HEADER / ADD BUTTON ───────────────────────────────────────────── */
   .cj-view-header {
+    margin-top: 1rem;
     margin-bottom: 1.25rem;
   }
   .cj-view-header a,
@@ -1050,11 +1051,42 @@
     color: var(--cj-text-muted);
     min-width: 0;
   }
+
+  /* cj-sort-wrap wraps the Drupal Views exposed form.
+     Strip all form/fieldset chrome so it looks like a plain inline control. */
   .cj-sort-wrap {
     display: flex;
     align-items: center;
     gap: 0.4rem;
     flex-shrink: 0;
+  }
+  /* The Views exposed form itself — no extra spacing */
+  .cj-sort-wrap form.views-exposed-form {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+  }
+  /* Hide sort_order and submit wrappers via CSS as well as JS */
+  .cj-sort-wrap .form-item-sort-order,
+  .cj-sort-wrap .js-form-item-sort-order,
+  .cj-sort-wrap .form-actions {
+    display: none !important;
+  }
+  /* Strip Drupal form-item wrapper spacing on the sort_by item */
+  .cj-sort-wrap .form-item-sort-by,
+  .cj-sort-wrap .js-form-item-sort-by {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  /* Hide the Drupal-generated "Sort by" label — we inject our own */
+  .cj-sort-wrap .form-item-sort-by > label,
+  .cj-sort-wrap .js-form-item-sort-by > label {
+    display: none !important;
   }
   .cj-sort-label {
     font-size: 0.78rem;

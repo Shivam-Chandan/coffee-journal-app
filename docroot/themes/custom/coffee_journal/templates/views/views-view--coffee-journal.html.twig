@@ -3,13 +3,14 @@
   views-view--coffee-journal.html.twig
 
   Renders the journal grid plus:
-    - Sort dropdown (Order Date / Rating)
+    - Controls row: count label + sort using the Drupal Views exposed form
     - FAB button (opens add-coffee drawer)
     - "Import from URL" button (opens add-coffee drawer, scraper auto-focused)
     - #cj-drawer: the slide-up sheet that loads the add/edit form via fetch
 
   The cjAddDrawer JS behaviour handles all drawer open/close/submit logic.
-  The cjSort JS behaviour handles the sort dropdown.
+  The cjSort JS behaviour auto-submits the Views exposed form on select change,
+  hiding the submit button and sort-order select (always kept DESC).
 #}
 {% if not view.is_attachment() %}
   <div{{ attributes.addClass('view', 'view-coffee-journal') }}>
@@ -32,25 +33,23 @@
       </button>
     </div>
 
-    {# ── Controls row: count + sort dropdown ── #}
+    {# ── Controls row: count label + Drupal Views exposed sort form ── #}
+    {#
+      The exposed form is rendered here as-is. cjSort JS:
+        1. Hides the sort_order select (locked to DESC) and the submit button
+        2. Adds a "Sort by" label before the sort_by select
+        3. Auto-submits the form when sort_by changes
+      This means actual sorting goes through Drupal Views correctly.
+    #}
     <div class="cj-controls-row">
       <span class="cj-count" id="cj-coffee-count"></span>
-      <div class="cj-sort-wrap">
-        <label for="cj-sort-select" class="cj-sort-label">{{ 'Sort by'|t }}</label>
-        <select id="cj-sort-select" class="cj-sort-select" aria-label="{{ 'Sort coffees by'|t }}">
-          <option value="orderDate">{{ 'Order Date'|t }}</option>
-          <option value="overallTasteRating">{{ 'Rating'|t }}</option>
-        </select>
-      </div>
+      {% if exposed %}
+        <div class="cj-sort-wrap" id="cj-sort-wrap">{{ exposed }}</div>
+      {% endif %}
     </div>
 
     {% if header %}
       <div class="cj-view-header">{{ header }}</div>
-    {% endif %}
-
-    {# Drupal exposed form hidden — sort is driven by cjSort JS via URL params #}
-    {% if exposed %}
-      <div class="view-filters visually-hidden" aria-hidden="true">{{ exposed }}</div>
     {% endif %}
 
     {% if attachment_before %}
@@ -92,11 +91,6 @@
   </button>
 
   {# ── Add / Edit Coffee Drawer ─────────────────────────────────────────── #}
-  {#
-    Slide-up sheet matching source app's IonModal.
-    The drawer body is populated by cjAddDrawer JS via fetch — no form markup here.
-    The close button matches the source app's IonButton in the IonToolbar header.
-  #}
   <div id="cj-drawer"
        class="cj-drawer"
        role="dialog"
@@ -109,7 +103,6 @@
 
     <div class="cj-drawer__sheet">
 
-      {# ── Drawer header — matches IonHeader + IonToolbar + IonTitle ── #}
       <div class="cj-drawer__header">
         <h2 class="cj-drawer__title" id="cj-drawer-title">{{ 'Add Coffee'|t }}</h2>
         <button type="button"
@@ -120,13 +113,11 @@
         </button>
       </div>
 
-      {# ── Loading spinner (shown while form HTML is being fetched) ── #}
       <div id="cj-drawer-spinner" class="cj-drawer__spinner">
         <span class="cj-drawer__spinner-ring" aria-hidden="true"></span>
         <span class="visually-hidden">{{ 'Loading form…'|t }}</span>
       </div>
 
-      {# ── Drawer body — form HTML injected here by JS ── #}
       <div id="cj-drawer-body" class="cj-drawer__body"></div>
 
     </div>

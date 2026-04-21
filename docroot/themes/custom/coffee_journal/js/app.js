@@ -475,70 +475,70 @@
 
   // ── 5. SORT DROPDOWN ─────────────────────────────────────────────────────
   //
-  // Drives the "Sort by" select in the journal view.
+  // Drives the "Sort by" control in the journal view.
   //
-  // On load:
-  //   - Reads ?sort_by= from the URL to pre-select the correct option.
-  //   - Updates the count label from the number of rendered cards.
-  //   - Applies the finished-last secondary sort: moves cards with the
-  //     "Finished" badge (.cj-badge--finished) to the end of the grid.
-  //     This mirrors the source app's client-side override.
-  //
-  // On change:
-  //   - Navigates to ?sort_by=<field_identifier>&sort_order=DESC,
-  //     which Drupal Views exposed sorts pick up natively.
-  //
-  // Sort key mapping (our select value → Drupal Views field_identifier):
-  //   orderDate          → orderDate          (field_identifier on created sort)
-  //   overallTasteRating → overallTasteRating (field_identifier on rating sort)
-  //
-  // Drupal Views exposed sorts use field_identifier as the sort_by URL param value.
+  // The Drupal Views exposed form (#edit-sort-by) is rendered inside
+  // #cj-sort-wrap. This behaviour:
+  //   1. Hides the sort_order select (locked DESC) and the submit button
+  //   2. Inserts a "Sort by" label before the sort_by select
+  //   3. Applies cj-sort-select styling to the Drupal select
+  //   4. Auto-submits the form when sort_by changes (no button click needed)
+  //   5. Applies finished-last secondary sort on every page load
+  //   6. Updates the count label
 
   Drupal.behaviors.cjSort = {
     attach: function (context) {
-      var SELECT_ID   = 'cj-sort-select';
-      var COUNT_ID    = 'cj-coffee-count';
-      var GRID_ID     = 'cj-grid';
+      var COUNT_ID = 'cj-coffee-count';
+      var GRID_ID  = 'cj-grid';
 
-      // Valid sort_by values — must match field_identifier in views.view.coffee_journal.yml
-      var VALID_SORTS = { orderDate: true, overallTasteRating: true };
-      var DEFAULT_SORT = 'orderDate';
+      // ── Tidy up the Drupal Views exposed form ──────────────────────────
+      once('cj-sort-form', '#cj-sort-wrap', context).forEach(function (wrap) {
+        // Hide sort_order select (we always want DESC) and submit button
+        var orderSel  = wrap.querySelector('#edit-sort-order');
+        var submitBtn = wrap.querySelector('[data-drupal-selector="edit-submit-coffee-journal"], input[type="submit"], button[type="submit"]');
+        var orderWrap = wrap.querySelector('.form-item-sort-order, .js-form-item-sort-order');
+        var submitWrap= wrap.querySelector('.form-actions');
 
-      // ── Read current sort from URL ──────────────────────────────────────
-      function getCurrentSort() {
-        var params = new URLSearchParams(window.location.search);
-        var sortBy = params.get('sort_by') || DEFAULT_SORT;
-        return VALID_SORTS[sortBy] ? sortBy : DEFAULT_SORT;
-      }
+        if (orderSel)   orderSel.value = 'DESC';
+        if (orderWrap)  orderWrap.style.display = 'none';
+        if (orderSel && !orderWrap) orderSel.style.display = 'none';
+        if (submitWrap) submitWrap.style.display = 'none';
+        if (submitBtn && !submitWrap) submitBtn.style.display = 'none';
 
-      // ── Navigate with new sort ──────────────────────────────────────────
-      function applySort(key) {
-        var field  = VALID_SORTS[key] ? key : DEFAULT_SORT;
-        var params = new URLSearchParams(window.location.search);
-        params.set('sort_by',    field);
-        params.set('sort_order', 'DESC');
-        // Reset to page 1 when sort changes
-        params.delete('page');
-        window.location.href = window.location.pathname + '?' + params.toString();
-      }
+        // Style the sort_by select to match our theme
+        var sortBySel = wrap.querySelector('#edit-sort-by');
+        if (sortBySel) {
+          sortBySel.classList.add('cj-sort-select');
+
+          // Remove any existing Drupal label — inject our own styled one
+          var existingLabel = wrap.querySelector('label[for="edit-sort-by"]');
+          if (existingLabel) existingLabel.style.display = 'none';
+
+          var label = document.createElement('label');
+          label.setAttribute('for', 'edit-sort-by');
+          label.className   = 'cj-sort-label';
+          label.textContent = Drupal.t('Sort by');
+          wrap.insertBefore(label, wrap.firstChild);
+
+          // Auto-submit the form on change — no button click required
+          sortBySel.addEventListener('change', function () {
+            // Ensure sort_order is DESC before submitting
+            if (orderSel) orderSel.value = 'DESC';
+            var form = wrap.querySelector('form');
+            if (form) form.submit();
+          });
+        }
+      });
 
       // ── Finished-last secondary sort (client-side) ──────────────────────
-      // Mirrors coffee-journal.tsx: isFinished cards float to the bottom
-      // regardless of the primary server sort.
+      // Finished cards always float to the bottom, mirroring the source app.
       function applyFinishedLast() {
         var grid = document.getElementById(GRID_ID);
         if (!grid) return;
-
-        var cards = Array.prototype.slice.call(grid.children);
-        if (!cards.length) return;
-
+        var cards    = Array.prototype.slice.call(grid.children);
         var active   = cards.filter(function (c) { return !c.querySelector('.cj-badge--finished'); });
         var finished = cards.filter(function (c) { return  c.querySelector('.cj-badge--finished'); });
-
-        // Add visual dimming to finished cards
         finished.forEach(function (c) { c.classList.add('cj-card--finished'); });
-
-        // Re-append in order: active first, finished last
         active.concat(finished).forEach(function (c) { grid.appendChild(c); });
       }
 
@@ -551,17 +551,7 @@
         countEl.textContent = count + ' ' + (count === 1 ? Drupal.t('coffee') : Drupal.t('coffees'));
       }
 
-      // ── Wire up the select ──────────────────────────────────────────────
-      once('cj-sort', '#' + SELECT_ID, context).forEach(function (sel) {
-        // Pre-select current sort
-        sel.value = getCurrentSort();
-
-        sel.addEventListener('change', function () {
-          applySort(this.value);
-        });
-      });
-
-      // Run secondary sort + count on every page load
+      // Run on every page load
       once('cj-sort-init', 'body', context).forEach(function () {
         applyFinishedLast();
         updateCount();
