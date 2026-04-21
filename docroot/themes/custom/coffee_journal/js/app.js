@@ -173,7 +173,12 @@
 
               // Wire up form submit interception
               var form = drawerBody.querySelector('form.node-coffee-bean-form, form.node-coffee-bean-edit-form');
-              if (form) _wireFormSubmit(form);
+              if (form) {
+                // Remove the Preview button — not needed in the drawer UX
+                var previewBtn = form.querySelector('[data-drupal-selector="edit-preview"], input[value="Preview"], button[value="Preview"]');
+                if (previewBtn) previewBtn.remove();
+                _wireFormSubmit(form);
+              }
 
               // Auto-focus scraper URL input when opened via "Import from URL"
               if (_focusScraper) {
@@ -267,7 +272,12 @@
                     drawerBody.innerHTML = content;
                     Drupal.attachBehaviors(drawerBody, drupalSettings);
                     var newForm = drawerBody.querySelector('form.node-coffee-bean-form, form.node-coffee-bean-edit-form');
-                    if (newForm) _wireFormSubmit(newForm);
+                    if (newForm) {
+                      // Remove the Preview button on re-render after validation errors
+                      var previewBtn = newForm.querySelector('[data-drupal-selector="edit-preview"], input[value="Preview"], button[value="Preview"]');
+                      if (previewBtn) previewBtn.remove();
+                      _wireFormSubmit(newForm);
+                    }
                     // Scroll to first error
                     var firstError = drawerBody.querySelector('.form-item--error, .messages--error');
                     if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'start' });

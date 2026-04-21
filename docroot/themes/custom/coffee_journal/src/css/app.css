@@ -789,11 +789,16 @@
     margin-top: 0.3rem;
   }
 
-  /* Text format filter wrapper — hide the text format selector, keep it clean */
+  /* Text format filter wrapper — hide the text format selector and all help text, keep it clean */
   .filter-wrapper,
+  .js-text-format-wrapper .filter-wrapper,
+  .js-filter-wrapper,
+  .js-filter-guidelines,
+  .filter-guidelines,
+  .js-text-format-wrapper > div:not(.js-form-item--body):not(.form-item):last-child,
   .form-item--field-flavour-notes-0-format,
   .form-item--field-notes-review-0-format {
-    display: none;
+    display: none !important;
   }
 
   /* ── STATUS MESSAGES ────────────────────────────────────────────────────── */
@@ -1570,6 +1575,15 @@
   /* Submit button full-width inside drawer, like the source app */
   .cj-drawer__body .form-actions {
     margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  /* Hide the Preview button — not needed in the drawer UX */
+  .cj-drawer__body .form-actions [data-drupal-selector="edit-preview"],
+  .cj-drawer__body .form-actions input[value="Preview"],
+  .cj-drawer__body .form-actions button[name="op"][value="Preview"] {
+    display: none !important;
   }
   .cj-drawer__body .form-actions .form-submit,
   .cj-drawer__body .form-actions button[type="submit"],
