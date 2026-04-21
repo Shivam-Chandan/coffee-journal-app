@@ -77,7 +77,7 @@ display:
           plugin_id: text_custom
           label: ''
           empty: true
-          content: '<div class="cj-empty"><span class="cj-empty-icon">☕</span><p>No coffees yet — start tracking your espresso journey.</p><a href="/node/add/coffee_bean" class="button">+ Add Your First Bean</a></div>'
+          content: '<div class="cj-empty"><span class="cj-empty-icon">☕</span><p>No coffees yet — start tracking your espresso journey.</p><a href="/node/add/coffee_bean" class="button" data-cj-add-coffee>+ Add Your First Bean</a></div>'
           tokenize: false
       sorts:
         sticky:
@@ -213,7 +213,7 @@ display:
           plugin_id: text_custom
           label: ''
           empty: false
-          content: '<a href="/node/add/coffee_bean" class="button button--primary">+ Add a Coffee Bean</a>'
+          content: '<a href="/node/add/coffee_bean" class="button button--primary" data-cj-add-coffee>+ Add a Coffee Bean</a>'
           tokenize: false
       footer: {  }
       display_extenders: {  }

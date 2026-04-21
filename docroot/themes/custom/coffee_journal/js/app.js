@@ -352,6 +352,16 @@
           });
         });
       });
+
+      // ── Any [data-cj-add-coffee] link (View headers, etc.) ───────────────
+      context.querySelectorAll && context.querySelectorAll('a[data-cj-add-coffee]').forEach(function (link) {
+        once('cj-add-coffee-link', link).forEach(function (a) {
+          a.addEventListener('click', function (e) {
+            e.preventDefault();
+            openDrawer('/node/add/coffee_bean', Drupal.t('Add Coffee'), false);
+          });
+        });
+      });
     }
   };
 
