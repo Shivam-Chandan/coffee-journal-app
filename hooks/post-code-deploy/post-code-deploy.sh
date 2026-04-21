@@ -30,8 +30,14 @@ BRANCH="$3"
 OLD_BRANCH="$4"
 DEPLOY_TYPE="$5"
 
-# Acquia docroot path pattern: /mnt/www/html/<site><env>/docroot
-DOCROOT="/mnt/www/html/${SITE}${ENV}/docroot"
+# Acquia docroot path pattern:
+#   dev / test:  /mnt/www/html/<site><env>/docroot  (e.g. eeschandan1dev, eeschandan1test)
+#   prod:        /mnt/www/html/<site>/docroot        (e.g. eeschandan1 — no env suffix)
+if [[ "${ENV}" == "prod" ]]; then
+  DOCROOT="/mnt/www/html/${SITE}/docroot"
+else
+  DOCROOT="/mnt/www/html/${SITE}${ENV}/docroot"
+fi
 DRUSH="${DOCROOT}/../vendor/bin/drush"
 
 log() {
