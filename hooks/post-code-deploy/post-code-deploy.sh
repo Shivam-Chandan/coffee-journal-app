@@ -111,4 +111,33 @@ log "Running drush cache:rebuild..."
 "${DRUSH}" ev "\Drupal::cache('page')->deleteAll(); echo 'page cache flushed';" 2>&1 \
   && log "page cache flushed" || log "Note: page cache flush skipped"
 
+# ── Step 6: Ensure CSS/JS aggregate directories exist ───────────────────────
+# Drupal uses CssCollectionOptimizerLazy — it writes CSS aggregates to
+# public://css/ on the FIRST request for each file after a cache rebuild.
+# If that directory doesn't exist, the write silently fails and the page
+# renders unstyled. The fast_404 module also blocks missing .css/.js files
+# unless /files/css/ and /files/js/ are excluded in its exclude_paths config.
+log "Ensuring CSS/JS aggregate directories exist..."
+PUBLIC_FILES="${DOCROOT}/sites/default/files"
+if [[ -L "${PUBLIC_FILES}" ]]; then
+  PUBLIC_FILES="$(readlink -f "${PUBLIC_FILES}")"
+fi
+mkdir -p "${PUBLIC_FILES}/css" "${PUBLIC_FILES}/js"
+chmod 2775 "${PUBLIC_FILES}/css" "${PUBLIC_FILES}/js" 2>/dev/null || true
+log "CSS dir: ${PUBLIC_FILES}/css"
+log "JS dir:  ${PUBLIC_FILES}/js"
+
+# ── Step 7: Warm CSS/JS aggregates via an internal HTTP request ──────────────
+# Makes one GET to the login page (anonymous, no side effects) so that Drupal
+# renders a full page and triggers the lazy CSS/JS optimizer to write the
+# aggregate files to disk before the first real user hits the site.
+log "Warming CSS/JS aggregates with internal request..."
+SITE_URL="https://${SITE}${ENV}.prod.acquia-sites.com"
+if [[ "${ENV}" == "prod" ]]; then
+  SITE_URL="https://${SITE}.prod.acquia-sites.com"
+fi
+curl -sSL -o /dev/null --max-time 30 "${SITE_URL}/user/login" \
+  && log "CSS/JS warm-up request succeeded (${SITE_URL}/user/login)" \
+  || log "Note: CSS/JS warm-up request failed — CSS will be generated on first real user request"
+
 log "Deploy hook completed successfully"
