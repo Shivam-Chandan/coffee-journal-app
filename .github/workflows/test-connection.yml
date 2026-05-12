@@ -38,6 +38,14 @@ jobs:
           chmod 600 ~/.ssh/known_hosts
           echo "Host key added for svn-15816.prod.hosting.acquia.com"
 
+      - name: Show loaded public key (compare with Acquia Cloud UI)
+        run: |
+          echo "==> Public key loaded into ssh-agent:"
+          ssh-add -L
+          echo ""
+          echo "Compare the above with the key registered at:"
+          echo "https://cloud.acquia.com/a/profile/ssh-keys"
+
       - name: Test SSH + git connection to Acquia
         run: |
           echo "==> Testing git ls-remote against Acquia git..."
