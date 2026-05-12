@@ -55,6 +55,8 @@ on:
         required: true
       ACQUIA_SSH_PRIVATE_KEY:
         required: true
+      ACQUIA_SSH_PASSPHRASE:
+        required: false
 
 jobs:
   deploy:
@@ -77,6 +79,7 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+          ssh-passphrase: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
 
       - name: Trust Acquia git host
         run: |
