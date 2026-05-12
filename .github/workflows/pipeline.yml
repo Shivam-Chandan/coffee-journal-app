@@ -1,0 +1,153 @@
+---
+# =============================================================================
+# Pipeline — Main CI/CD Orchestrator
+# =============================================================================
+#
+# Full flow on push to master:
+#
+#   ┌─────────┐    ┌───────┐    ┌────────────┐    ┌────────────┐    ┌──────────────┐
+#   │   CI    │───▶│ Build │───▶│ Deploy Dev │───▶│ Deploy Test│───▶│ Deploy Prod  │
+#   │(phpcs,  │    │(comp- │    │(auto on    │    │(requires   │    │(requires     │
+#   │ phpstan)│    │ oser+ │    │ every push)│    │ approval)  │    │ approval)    │
+#   └─────────┘    │tailwnd│    └────────────┘    └────────────┘    └──────────────┘
+#                  └───────┘
+#
+# On pull_request to master:
+#   Only CI runs — no build or deploy.
+#
+# Manual deploys:
+#   Use workflow_dispatch to deploy any branch to any environment on demand.
+#
+# Environment protection rules (configure in GitHub → Settings → Environments):
+#   acquia-dev   — no restrictions (auto-deploys)
+#   acquia-test  — required reviewer(s) must approve
+#   acquia-prod  — required reviewer(s) must approve
+# =============================================================================
+
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - 'scripts/**'
+      - 'tests/**'
+
+  pull_request:
+    branches:
+      - master
+      - main
+
+  # Manual trigger — useful for hotfixes or deploying a specific branch
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Acquia environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      source_branch:
+        description: 'Branch to build and deploy'
+        required: false
+        default: 'master'
+        type: string
+
+concurrency:
+  # One pipeline per branch at a time. Cancels in-progress runs on new push
+  # (except prod deploys which should never be cancelled mid-flight).
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: ${{ !contains(github.ref, 'prod') }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Stage 1: CI — code quality checks
+  # ---------------------------------------------------------------------------
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    # Run CI on both push and PR events
+    secrets: inherit
+
+  # ---------------------------------------------------------------------------
+  # Stage 2: Build — only on push (not PRs)
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build
+    needs: ci
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/build.yml
+    with:
+      ref: ${{ github.sha }}
+    secrets: inherit
+
+  # ---------------------------------------------------------------------------
+  # Stage 3a: Deploy to Dev — automatic on every master/main push
+  # ---------------------------------------------------------------------------
+  deploy-dev:
+    name: Deploy › Dev
+    needs: build
+    if: |
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      (github.event.inputs.target_env == '' || github.event.inputs.target_env == 'dev' ||
+       github.event.inputs.target_env == 'test' || github.event.inputs.target_env == 'prod')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: dev
+      artifact-name: ${{ needs.build.outputs.artifact-name }}
+      source-branch: ${{ github.event.inputs.source_branch || github.ref_name }}
+    secrets:
+      ACQUIA_CLI_KEY: ${{ secrets.ACQUIA_CLI_KEY }}
+      ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
+      ACQUIA_GIT_URL: ${{ secrets.ACQUIA_GIT_URL }}
+      ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+
+  # ---------------------------------------------------------------------------
+  # Stage 3b: Deploy to Test — requires manual approval (via GitHub Environment)
+  # ---------------------------------------------------------------------------
+  deploy-test:
+    name: Deploy › Test
+    needs: [build, deploy-dev]
+    # Only run on push to master/main, or when explicitly targeting test/prod
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')) ||
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.target_env == 'test' || github.event.inputs.target_env == 'prod'))
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: test
+      artifact-name: ${{ needs.build.outputs.artifact-name }}
+      source-branch: ${{ github.event.inputs.source_branch || github.ref_name }}
+    secrets:
+      ACQUIA_CLI_KEY: ${{ secrets.ACQUIA_CLI_KEY }}
+      ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
+      ACQUIA_GIT_URL: ${{ secrets.ACQUIA_GIT_URL }}
+      ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+
+  # ---------------------------------------------------------------------------
+  # Stage 3c: Deploy to Prod — requires manual approval (via GitHub Environment)
+  # ---------------------------------------------------------------------------
+  deploy-prod:
+    name: Deploy › Prod
+    needs: [build, deploy-test]
+    # Only run on push to master/main, or when explicitly targeting prod
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target_env == 'prod')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+      artifact-name: ${{ needs.build.outputs.artifact-name }}
+      source-branch: ${{ github.event.inputs.source_branch || github.ref_name }}
+    secrets:
+      ACQUIA_CLI_KEY: ${{ secrets.ACQUIA_CLI_KEY }}
+      ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
+      ACQUIA_GIT_URL: ${{ secrets.ACQUIA_GIT_URL }}
+      ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}

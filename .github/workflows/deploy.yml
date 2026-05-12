@@ -1,0 +1,207 @@
+---
+# =============================================================================
+# Deploy — Reusable Acquia Deployer
+# =============================================================================
+# Called by the main pipeline (pipeline.yml) for each target environment.
+#
+# Strategy:
+#   1. Download the build artifact produced by the build job
+#   2. Push it as a new commit onto the Acquia git remote's deploy branch
+#      (e.g. pipelines-build-master mirrors the Acquia pipelines branch name
+#       convention, keeping Acquia Cloud Hooks compatible)
+#   3. Use the Acquia Cloud API (acli) to switch the target environment to
+#      that branch, which fires the post-code-deploy hook on the server
+#
+# Acquia deploy branch naming convention (matches existing pipelines branches):
+#   master source → pipelines-build-master
+#   main   source → pipelines-build-main
+#
+# Required secrets (set in GitHub repo → Settings → Secrets):
+#   ACQUIA_CLI_KEY         — Acquia Cloud API key  (from cloud.acquia.com/a/profile/tokens)
+#   ACQUIA_CLI_SECRET      — Acquia Cloud API secret
+#   ACQUIA_GIT_URL         — Acquia git remote URL (eeschandan1@svn-15816.prod.hosting.acquia.com:eeschandan1.git)
+#   ACQUIA_SSH_PRIVATE_KEY — Private SSH key whose public key is added in Acquia Cloud UI
+#
+# Inputs:
+#   environment    — Acquia environment name: dev | test | prod
+#   artifact-name  — Name of the GitHub Actions artifact to deploy
+#   source-branch  — Source branch that was built (e.g. master)
+# =============================================================================
+
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Acquia environment to deploy to (dev | test | prod)'
+        required: true
+        type: string
+      artifact-name:
+        description: 'GitHub Actions artifact name to deploy'
+        required: true
+        type: string
+      source-branch:
+        description: 'The source branch that was built'
+        required: false
+        type: string
+        default: 'master'
+    secrets:
+      ACQUIA_CLI_KEY:
+        required: true
+      ACQUIA_CLI_SECRET:
+        required: true
+      ACQUIA_GIT_URL:
+        required: true
+      ACQUIA_SSH_PRIVATE_KEY:
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-24.04
+    environment:
+      # Maps to a GitHub Environment (Settings → Environments) so you can
+      # configure required reviewers for test/prod gates.
+      name: acquia-${{ inputs.environment }}
+      url: >-
+        ${{
+          inputs.environment == 'prod'
+          && 'https://eeschandan1.prod.acquia-sites.com'
+          || format('https://eeschandan1{0}.prod.acquia-sites.com', inputs.environment)
+        }}
+
+    steps:
+      # ── Set up SSH for Acquia git ─────────────────────────────────────────
+      - name: Configure SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+
+      - name: Trust Acquia git host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H svn-15816.prod.hosting.acquia.com >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 600 ~/.ssh/known_hosts
+
+      # ── Download the artifact built by the build job ──────────────────────
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: artifact
+
+      # ── Compute the Acquia deploy branch name ─────────────────────────────
+      - name: Compute deploy branch name
+        id: branch
+        run: |
+          # Mirror the Acquia Pipelines naming: pipelines-build-<source>
+          DEPLOY_BRANCH="pipelines-build-${{ inputs.source-branch }}"
+          echo "deploy_branch=${DEPLOY_BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "Deploying to Acquia branch: ${DEPLOY_BRANCH}"
+
+      # ── Push artifact to Acquia git ───────────────────────────────────────
+      - name: Configure git identity
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Push artifact to Acquia git
+        working-directory: artifact
+        run: |
+          DEPLOY_BRANCH="${{ steps.branch.outputs.deploy_branch }}"
+          ACQUIA_GIT_URL="${{ secrets.ACQUIA_GIT_URL }}"
+
+          echo "==> Initialising git in artifact directory"
+          git init
+          git remote add acquia "${ACQUIA_GIT_URL}"
+
+          echo "==> Fetching existing deploy branch (to preserve history if it exists)"
+          git fetch acquia "${DEPLOY_BRANCH}" 2>/dev/null \
+            && git checkout -b "${DEPLOY_BRANCH}" "acquia/${DEPLOY_BRANCH}" \
+            || git checkout -b "${DEPLOY_BRANCH}"
+
+          echo "==> Staging all artifact files"
+          git add -A
+
+          # Only commit if there are changes (idempotent on re-runs)
+          if git diff --cached --quiet; then
+            echo "==> No changes in artifact — skipping commit"
+          else
+            COMMIT_MSG="deploy: GitHub Actions run ${{ github.run_id }} from ${{ inputs.source-branch }} @ ${{ github.sha }}"
+            git commit -m "${COMMIT_MSG}"
+            echo "==> Committed: ${COMMIT_MSG}"
+          fi
+
+          echo "==> Pushing to Acquia git remote"
+          git push acquia "${DEPLOY_BRANCH}:${DEPLOY_BRANCH}" --force-with-lease 2>&1 \
+            || git push acquia "${DEPLOY_BRANCH}:${DEPLOY_BRANCH}" --force
+          echo "==> Push complete"
+
+      # ── Switch Acquia environment to the new branch via Cloud API ─────────
+      - name: Install Acquia CLI
+        run: |
+          curl -sSL \
+            https://github.com/acquia/cli/releases/latest/download/acli.phar \
+            -o /usr/local/bin/acli
+          chmod +x /usr/local/bin/acli
+          acli --version
+
+      - name: Authenticate with Acquia Cloud API
+        run: |
+          acli auth:login \
+            --key="${{ secrets.ACQUIA_CLI_KEY }}" \
+            --secret="${{ secrets.ACQUIA_CLI_SECRET }}" \
+            --no-interaction
+        env:
+          ACQUIA_CLI_KEY: ${{ secrets.ACQUIA_CLI_KEY }}
+          ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
+
+      - name: Switch environment to deploy branch
+        run: |
+          APP_UUID="04f18e5e-3e19-4698-ac58-c162df025345"
+          ENV="${{ inputs.environment }}"
+          DEPLOY_BRANCH="${{ steps.branch.outputs.deploy_branch }}"
+
+          echo "==> Fetching environment ID for: ${ENV}"
+          ENV_ID=$(acli api:environments:list "${APP_UUID}" \
+            --no-interaction 2>/dev/null \
+            | python3 -c "
+          import json, sys
+          envs = json.load(sys.stdin)
+          for e in envs:
+              if e.get('name') == '${ENV}':
+                  print(e['id'])
+                  break
+          " 2>/dev/null || echo "")
+
+          if [[ -z "${ENV_ID}" ]]; then
+            echo "ERROR: Could not find environment ID for '${ENV}'"
+            exit 1
+          fi
+          echo "==> Environment ID: ${ENV_ID}"
+
+          echo "==> Switching ${ENV} to branch: ${DEPLOY_BRANCH}"
+          acli api:environments:code-switch "${ENV_ID}" \
+            --branch="${DEPLOY_BRANCH}" \
+            --no-interaction
+          echo "==> Branch switch initiated. Acquia post-code-deploy hook will run on the server."
+
+      # ── Summary ───────────────────────────────────────────────────────────
+      - name: Deployment summary
+        run: |
+          echo "### Deployment Complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Environment | \`${{ inputs.environment }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Acquia branch | \`${{ steps.branch.outputs.deploy_branch }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| GitHub SHA | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Run | [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> "$GITHUB_STEP_SUMMARY"
+          ENV="${{ inputs.environment }}"
+          if [[ "${ENV}" == "prod" ]]; then
+            URL="https://eeschandan1.prod.acquia-sites.com"
+          else
+            URL="https://eeschandan1${ENV}.prod.acquia-sites.com"
+          fi
+          echo "| URL | ${URL} |" >> "$GITHUB_STEP_SUMMARY"
