@@ -1,0 +1,74 @@
+---
+# =============================================================================
+# Connection Test — Verify Acquia secrets are working
+# =============================================================================
+# Run this manually from GitHub Actions → Actions tab → "Connection Test"
+# → Run workflow.
+#
+# Checks:
+#   1. SSH key loads correctly
+#   2. Can connect to Acquia git remote (git ls-remote)
+#   3. Acquia CLI authenticates with the API key/secret
+#   4. Cloud API returns the expected application
+#
+# Safe to run at any time — read-only, no deployments triggered.
+# Delete this file once you've confirmed everything works.
+# =============================================================================
+
+name: Connection Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-connection:
+    name: Test Acquia Secrets
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Load SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+
+      - name: Trust Acquia git host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H svn-15816.prod.hosting.acquia.com >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 600 ~/.ssh/known_hosts
+          echo "Host key added for svn-15816.prod.hosting.acquia.com"
+
+      - name: Test SSH + git connection to Acquia
+        run: |
+          echo "==> Testing git ls-remote against Acquia git..."
+          git ls-remote "${{ secrets.ACQUIA_GIT_URL }}" HEAD
+          echo "==> Git connection OK"
+
+      - name: Install Acquia CLI
+        run: |
+          curl -sSL \
+            https://github.com/acquia/cli/releases/latest/download/acli.phar \
+            -o /usr/local/bin/acli
+          chmod +x /usr/local/bin/acli
+          acli --version
+
+      - name: Test Acquia Cloud API auth
+        run: |
+          acli auth:login \
+            --key="${{ secrets.ACQUIA_CLI_KEY }}" \
+            --secret="${{ secrets.ACQUIA_CLI_SECRET }}" \
+            --no-interaction
+          echo "==> Auth OK"
+
+      - name: Verify application is accessible via API
+        run: |
+          echo "==> Fetching application details..."
+          acli api:applications:find 04f18e5e-3e19-4698-ac58-c162df025345 \
+            --no-interaction \
+            | python3 -c "
+          import json, sys
+          app = json.load(sys.stdin)
+          print(f\"App name : {app['name']}\")
+          print(f\"App UUID : {app['uuid']}\")
+          print(f\"Status   : {app['status']}\")
+          "
+          echo "==> Cloud API OK"
