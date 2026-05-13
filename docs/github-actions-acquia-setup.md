@@ -14,6 +14,7 @@ This document describes how GitHub Actions was connected to Acquia Cloud Platfor
 - Every workflow file created, what it does, and its full template
 - The one-time setup steps (SSH keys, secrets, environments)
 - How to use the pipeline day-to-day
+- Known gotchas and fixes discovered during implementation
 
 ---
 
@@ -40,10 +41,20 @@ After pushing code to Acquia git, the Acquia Cloud API is called via `acli` (Acq
 ```
 GitHub Actions runner
   └── authenticates to Acquia Cloud API with ACQUIA_CLI_KEY + ACQUIA_CLI_SECRET
-        └── calls: acli api:environments:code-switch <env-id> --branch=<branch>
+        └── calls: acli api:environments:code-switch <env-id> <branch>
               └── Acquia switches environment
                     └── post-code-deploy hook runs: config:import, updatedb, cache:rebuild
 ```
+
+> **Important:** `acli api:environments:code-switch` takes the branch as a **positional argument**, not a `--branch=` flag. Using `--branch=` causes the command to fail with "The --branch option does not exist."
+>
+> ```bash
+> # Correct
+> acli api:environments:code-switch "${ENV_ID}" "${DEPLOY_BRANCH}" --no-interaction
+>
+> # Wrong — will fail
+> acli api:environments:code-switch "${ENV_ID}" --branch="${DEPLOY_BRANCH}"
+> ```
 
 ### Deploy branch naming convention
 
@@ -53,6 +64,8 @@ To stay compatible with the existing Acquia Pipelines branch history, the deploy
 |---|---|
 | `master` | `pipelines-build-master` |
 | `main` | `pipelines-build-main` |
+
+> **Important:** The prefix is `pipelines-build-` (plural). Using `pipeline-build-` (without the `s`) creates a different branch that won't match what Acquia Pipelines previously used, and the `post-code-deploy` hook may not fire as expected.
 
 ---
 
@@ -75,13 +88,15 @@ Push to master
 │  Stage 2: Build             │  Runs on push only (not PRs)
 │  - composer install --no-dev│
 │  - Tailwind CSS compile     │
+│  - restore scaffold files   │  ← .htaccess, index.php (see gotchas)
 │  - artifact prep & verify   │
-│  - upload GitHub artifact   │
+│  - upload GitHub artifact   │  ← with include-hidden-files: true
 └──────────────┬──────────────┘
                │
                ▼
 ┌─────────────────────────────┐
 │  Stage 3a: Deploy Dev       │  Automatic — no approval needed
+│  - remove all .gitignore    │  ← so vendor/ and .htaccess are committed
 │  - push artifact → Acquia   │
 │  - switch dev env to branch │
 └──────────────┬──────────────┘
@@ -238,14 +253,48 @@ jobs:
 A `workflow_call` reusable workflow. Called by `pipeline.yml`. Mirrors the existing `acquia-pipelines.yml` build steps exactly.
 
 **Steps:**
-1. `composer install --no-dev --optimize-autoloader` — production dependencies only
-2. `npm ci` + `npx tailwindcss --minify` — compiles Tailwind CSS for the `coffee_journal` theme
-3. Strips dev-only files (`phpcs.xml.dist`, `phpstan.neon.dist`, `phpunit.xml.dist`)
-4. Removes `node_modules` from the artifact
-5. Verifies critical files exist before uploading
-6. Uploads the entire workspace as a named GitHub Actions artifact (`acquia-artifact-<run_id>`)
+1. `composer install --no-dev --optimize-autoloader --no-scripts` — production dependencies only. `--no-scripts` skips Composer scaffold (scaffold files are restored manually in the next step)
+2. Restores Drupal core scaffold files excluded by `docroot/.gitignore` — see gotcha below
+3. `npm ci` + `npx tailwindcss --minify` — compiles Tailwind CSS for the `coffee_journal` theme
+4. Strips dev-only files (`phpcs.xml.dist`, `phpstan.neon.dist`, `phpunit.xml.dist`)
+5. Removes `node_modules` from the artifact
+6. Verifies critical files exist before uploading
+7. Uploads the entire workspace as a named GitHub Actions artifact (`acquia-artifact-<run_id>`) with `include-hidden-files: true`
 
 **Outputs:** `artifact-name` — passed to the deploy workflow.
+
+> **Gotcha — Drupal scaffold files missing from artifact:**
+>
+> `docroot/.gitignore` (managed by `composer/drupal-scaffold` with `gitignore: true`) explicitly excludes `.htaccess`, `index.php`, `robots.txt`, and `autoload.php` from git tracking. These files are essential for Drupal to run — without `.htaccess` the web server cannot route requests to Drupal's `index.php` and every URL except `/` returns a 404.
+>
+> Since `composer install --no-scripts` skips scaffold, these files must be restored manually after the composer step:
+>
+> ```bash
+> SCAFFOLD_SRC="docroot/core/assets/scaffold/files"
+> cp "${SCAFFOLD_SRC}/htaccess"   docroot/.htaccess
+> cp "${SCAFFOLD_SRC}/index.php"  docroot/index.php
+> cp "${SCAFFOLD_SRC}/robots.txt" docroot/robots.txt
+> # Write the correct Drupal autoload.php shim — do NOT copy vendor/autoload.php
+> printf '<?php\nreturn require __DIR__ . '"'"'/../vendor/autoload.php'"'"';\n' > docroot/autoload.php
+> ```
+>
+> Note: `docroot/autoload.php` must be a shim pointing to `../vendor/autoload.php`, **not** a copy of `vendor/autoload.php` itself. Copying `vendor/autoload.php` directly causes a fatal error (`Failed opening required .../composer/autoload_real.php`) because Composer's autoloader uses relative paths that only work from the `vendor/` directory.
+
+> **Gotcha — `actions/upload-artifact` drops dotfiles by default:**
+>
+> `actions/upload-artifact@v4` does not include dotfiles (files starting with `.`) unless explicitly told to. Since `docroot/.htaccess` is a dotfile, it will be silently dropped from the artifact zip unless you add `include-hidden-files: true`:
+>
+> ```yaml
+> - uses: actions/upload-artifact@v4
+>   with:
+>     name: acquia-artifact-${{ github.run_id }}
+>     path: |
+>       .
+>       !.git
+>     include-hidden-files: true   # ← required for .htaccess
+>     retention-days: 7
+>     if-no-files-found: error
+> ```
 
 ```yaml
 ---
@@ -299,6 +348,20 @@ jobs:
           COMPOSER_NO_INTERACTION: '1'
           COMPOSER_MEMORY_LIMIT: '-1'
 
+      # Restore Drupal core scaffold files that are excluded by docroot/.gitignore.
+      # These files are critical for Drupal to run on Acquia Cloud.
+      # --no-scripts above skips scaffold, so we restore them manually here.
+      - name: Restore Drupal core docroot files
+        run: |
+          SCAFFOLD_SRC="docroot/core/assets/scaffold/files"
+          cp "${SCAFFOLD_SRC}/htaccess"   docroot/.htaccess
+          cp "${SCAFFOLD_SRC}/index.php"  docroot/index.php
+          cp "${SCAFFOLD_SRC}/robots.txt" docroot/robots.txt
+          # Write correct autoload.php shim — NOT a copy of vendor/autoload.php
+          printf '<?php\nreturn require __DIR__ . '"'"'/../vendor/autoload.php'"'"';\n' \
+            > docroot/autoload.php
+          ls -la docroot/.htaccess docroot/index.php
+
       - name: Build Tailwind CSS
         working-directory: docroot/themes/custom/coffee_journal
         run: |
@@ -313,6 +376,8 @@ jobs:
           rm -f phpcs.xml.dist phpstan.neon.dist phpunit.xml.dist .travis.yml .env.example
           rm -rf docroot/themes/custom/coffee_journal/node_modules
           mkdir -p docroot/sites/default/files docroot/sites/default/private
+          test -f docroot/.htaccess            || (echo "ERROR: .htaccess missing" && exit 1)
+          test -f docroot/index.php            || (echo "ERROR: index.php missing" && exit 1)
           test -f config/default/core.extension.yml
           test -f docroot/modules/custom/coffee_journal_api/coffee_journal_api.info.yml
           test -f docroot/themes/custom/coffee_journal/css/coffee-theme.css
@@ -328,6 +393,7 @@ jobs:
           path: |
             .
             !.git
+          include-hidden-files: true   # Required — preserves .htaccess and other dotfiles
           retention-days: 7
           if-no-files-found: error
 ```
@@ -342,15 +408,43 @@ A `workflow_call` reusable workflow. Called three times by `pipeline.yml` — on
 1. Loads SSH private key via `webfactory/ssh-agent` (supports passphrase)
 2. Adds Acquia's git server to `known_hosts`
 3. Downloads the artifact from GitHub artifact storage
-4. Pushes the artifact as a new commit to Acquia git on the deploy branch (`pipelines-build-<source>`)
-5. Installs `acli` (Acquia CLI)
-6. Authenticates to Acquia Cloud API
-7. Calls `acli api:environments:code-switch` to switch the target environment to the deploy branch — this fires the existing `post-code-deploy` hook on the server
-8. Writes a deployment summary to the GitHub Actions job summary
+4. Removes all `.gitignore` files from the artifact directory — see gotcha below
+5. Pushes the artifact as a new commit to Acquia git on the deploy branch (`pipelines-build-<source>`)
+6. Installs `acli` (Acquia CLI)
+7. Authenticates to Acquia Cloud API
+8. Calls `acli api:environments:code-switch <env-id> <branch>` to switch the target environment — this fires the existing `post-code-deploy` hook on the server
+9. Writes a deployment summary to the GitHub Actions job summary
 
 **Inputs:** `environment`, `artifact-name`, `source-branch`
 
 **Secrets consumed:** `ACQUIA_CLI_KEY`, `ACQUIA_CLI_SECRET`, `ACQUIA_GIT_URL`, `ACQUIA_SSH_PRIVATE_KEY`, `ACQUIA_SSH_PASSPHRASE`
+
+> **Gotcha — `.gitignore` files prevent `vendor/` and `.htaccess` from reaching Acquia:**
+>
+> The source repository's `.gitignore` files correctly exclude `vendor/`, `docroot/.htaccess` etc. from source control. However, the deploy step initialises a **new** git repo in the artifact directory and commits everything for pushing to Acquia. If any `.gitignore` files are present in the artifact, git will still respect them and silently exclude the same files — meaning `vendor/` (which Drupal needs to bootstrap) never reaches the server.
+>
+> The fix is to delete all `.gitignore` files from the artifact directory before `git add`:
+>
+> ```bash
+> find . -name ".gitignore" -not -path "./.git/*" -delete
+> git add -A
+> ```
+
+> **Gotcha — `acli api:environments:code-switch` syntax:**
+>
+> The branch must be passed as a **positional argument**, not a `--branch` flag:
+>
+> ```bash
+> # Correct
+> acli api:environments:code-switch "${ENV_ID}" "${DEPLOY_BRANCH}" --no-interaction
+>
+> # Wrong — fails with "The --branch option does not exist"
+> acli api:environments:code-switch "${ENV_ID}" --branch="${DEPLOY_BRANCH}"
+> ```
+
+> **Note on `ACQUIA_DEV_ENV_UUID` secret:**
+>
+> To avoid an API call to look up the dev environment ID on every deploy, you can add an optional `ACQUIA_DEV_ENV_UUID` repository secret containing the dev environment's compound ID (e.g. `146125-04f18e5e-3e19-4698-ac58-c162df025345`). The deploy workflow uses this as a shortcut when deploying to dev. It is optional — the workflow falls back to an API lookup if not set.
 
 ```yaml
 ---
@@ -378,6 +472,10 @@ on:
         required: true
       ACQUIA_SSH_PRIVATE_KEY:
         required: true
+      ACQUIA_APP_UUID:
+        required: true
+      ACQUIA_DEV_ENV_UUID:
+        required: false
       ACQUIA_SSH_PASSPHRASE:
         required: false
 
@@ -397,7 +495,6 @@ jobs:
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
-          ssh-passphrase: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
 
       - name: Trust Acquia git host
         run: |
@@ -413,6 +510,7 @@ jobs:
       - name: Compute deploy branch
         id: branch
         run: |
+          # Must use the 'pipelines-build-' prefix (with the 's') to match Acquia conventions
           echo "deploy_branch=pipelines-build-${{ inputs.source-branch }}" >> "$GITHUB_OUTPUT"
 
       - name: Configure git identity
@@ -424,11 +522,18 @@ jobs:
         working-directory: artifact
         run: |
           DEPLOY_BRANCH="${{ steps.branch.outputs.deploy_branch }}"
+
           git init
           git remote add acquia "${{ secrets.ACQUIA_GIT_URL }}"
           git fetch acquia "${DEPLOY_BRANCH}" 2>/dev/null \
             && git checkout -b "${DEPLOY_BRANCH}" "acquia/${DEPLOY_BRANCH}" \
             || git checkout -b "${DEPLOY_BRANCH}"
+
+          # Remove all .gitignore files so vendor/, .htaccess etc. are all committed.
+          # The source repo's .gitignore files correctly exclude these from source control,
+          # but this is a deploy artifact — we need everything on Acquia.
+          find . -name ".gitignore" -not -path "./.git/*" -delete
+
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m "deploy: GitHub Actions run ${{ github.run_id }} @ ${{ github.sha }}"
@@ -451,16 +556,30 @@ jobs:
 
       - name: Switch environment to deploy branch
         run: |
-          APP_UUID="04f18e5e-3e19-4698-ac58-c162df025345"
-          ENV_ID=$(acli api:environments:list "${APP_UUID}" --no-interaction \
-            | python3 -c "
+          APP_UUID="${{ secrets.ACQUIA_APP_UUID }}"
+          ENV="${{ inputs.environment }}"
+          DEPLOY_BRANCH="${{ steps.branch.outputs.deploy_branch }}"
+
+          # Use cached dev env UUID if available to avoid an API call
+          DEV_ENV_UUID="${{ secrets.ACQUIA_DEV_ENV_UUID }}"
+          if [[ "${ENV}" == 'dev' && -n "${DEV_ENV_UUID}" ]]; then
+            ENV_ID="${DEV_ENV_UUID}"
+          else
+            ENV_ID=$(acli api:environments:list "${APP_UUID}" --no-interaction \
+              | python3 -c "
           import json,sys
           for e in json.load(sys.stdin):
-              if e.get('name')=='${{ inputs.environment }}': print(e['id']); break
+              if e.get('name')=='${ENV}': print(e['id']); break
           ")
-          acli api:environments:code-switch "${ENV_ID}" \
-            --branch="${{ steps.branch.outputs.deploy_branch }}" \
-            --no-interaction
+          fi
+
+          if [[ -z "${ENV_ID}" ]]; then
+            echo "ERROR: Could not find environment ID for '${ENV}'"
+            exit 1
+          fi
+
+          # Branch is a positional argument — NOT --branch= flag
+          acli api:environments:code-switch "${ENV_ID}" "${DEPLOY_BRANCH}" --no-interaction
 ```
 
 ---
@@ -507,12 +626,7 @@ concurrency:
   cancel-in-progress: ${{ !contains(github.ref, 'prod') }}
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-    secrets: inherit
-
   build:
-    needs: ci
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/build.yml
     with:
@@ -521,6 +635,10 @@ jobs:
 
   deploy-dev:
     needs: build
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.target_env || 'dev') == 'dev')
     uses: ./.github/workflows/deploy.yml
     with:
       environment: dev
@@ -531,10 +649,17 @@ jobs:
       ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
       ACQUIA_GIT_URL: ${{ secrets.ACQUIA_GIT_URL }}
       ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+      ACQUIA_APP_UUID: ${{ secrets.ACQUIA_APP_UUID }}
+      ACQUIA_DEV_ENV_UUID: ${{ secrets.ACQUIA_DEV_ENV_UUID }}
       ACQUIA_SSH_PASSPHRASE: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
 
   deploy-test:
     needs: [build, deploy-dev]
+    if: >-
+      (github.event_name == 'push' &&
+       (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')) ||
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.target_env == 'test' || github.event.inputs.target_env == 'prod'))
     uses: ./.github/workflows/deploy.yml
     with:
       environment: test
@@ -545,10 +670,17 @@ jobs:
       ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
       ACQUIA_GIT_URL: ${{ secrets.ACQUIA_GIT_URL }}
       ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+      ACQUIA_APP_UUID: ${{ secrets.ACQUIA_APP_UUID }}
+      ACQUIA_DEV_ENV_UUID: ${{ secrets.ACQUIA_DEV_ENV_UUID }}
       ACQUIA_SSH_PASSPHRASE: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
 
   deploy-prod:
     needs: [build, deploy-test]
+    if: >-
+      (github.event_name == 'push' &&
+       (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')) ||
+      (github.event_name == 'workflow_dispatch' &&
+       github.event.inputs.target_env == 'prod')
     uses: ./.github/workflows/deploy.yml
     with:
       environment: prod
@@ -559,6 +691,8 @@ jobs:
       ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
       ACQUIA_GIT_URL: ${{ secrets.ACQUIA_GIT_URL }}
       ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+      ACQUIA_APP_UUID: ${{ secrets.ACQUIA_APP_UUID }}
+      ACQUIA_DEV_ENV_UUID: ${{ secrets.ACQUIA_DEV_ENV_UUID }}
       ACQUIA_SSH_PASSPHRASE: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
 ```
 
@@ -619,7 +753,7 @@ jobs:
 
       - name: Verify application accessible
         run: |
-          acli api:applications:find 04f18e5e-3e19-4698-ac58-c162df025345 \
+          acli api:applications:find ${{ secrets.ACQUIA_APP_UUID }} \
             --no-interaction \
             | python3 -c "
           import json,sys
@@ -661,10 +795,21 @@ Go to **GitHub repo → Settings → Secrets and variables → Actions → New r
 | `ACQUIA_CLI_KEY` | Acquia Cloud API key — generate at cloud.acquia.com/a/profile/tokens |
 | `ACQUIA_CLI_SECRET` | Acquia Cloud API secret — from the same token page |
 | `ACQUIA_GIT_URL` | `eeschandan1@svn-15816.prod.hosting.acquia.com:eeschandan1.git` |
+| `ACQUIA_APP_UUID` | The application UUID — find it in `acli api:applications:list` or Acquia Cloud UI |
 | `ACQUIA_SSH_PRIVATE_KEY` | Full contents of `~/.ssh/acquia_github_actions` (the private key file) |
 | `ACQUIA_SSH_PASSPHRASE` | The passphrase used when generating the key (omit this secret entirely if no passphrase was set) |
+| `ACQUIA_DEV_ENV_UUID` | *(Optional)* The dev environment compound ID — avoids an API lookup on every deploy |
 
-**All five secrets are repository-level secrets — not environment-level secrets.** The same Acquia git remote and API credentials are used regardless of which environment (dev/test/prod) is being deployed to.
+**All secrets are repository-level secrets — not environment-level secrets.** The same Acquia git remote and API credentials are used regardless of which environment (dev/test/prod) is being deployed to.
+
+To find `ACQUIA_DEV_ENV_UUID`:
+```bash
+acli api:applications:environment-list <app-uuid> | python3 -c "
+import json,sys
+for e in json.load(sys.stdin):
+    if e['name']=='dev': print(e['id']); break
+"
+```
 
 ### Step 4 — Create GitHub Environments
 
@@ -695,10 +840,10 @@ The environment names must match exactly — the `deploy.yml` workflow construct
 ### Normal development push
 
 ```bash
-git push github master
+git push origin master
 ```
 
-This automatically triggers the full pipeline: CI → Build → Deploy Dev. Test and Prod then wait for manual approval in the GitHub Actions UI.
+This automatically triggers the full pipeline: Build → Deploy Dev. Test and Prod then wait for manual approval in the GitHub Actions UI.
 
 ### Approving a deployment to test or prod
 
@@ -732,13 +877,15 @@ Once the deploy workflow pushes to Acquia git and switches the environment branc
 
 ## Secret Reference Summary
 
-| Secret | Scope | Description |
+| Secret | Required | Description |
 |---|---|---|
-| `ACQUIA_CLI_KEY` | Repository | Acquia Cloud API key (account-level) |
-| `ACQUIA_CLI_SECRET` | Repository | Acquia Cloud API secret (account-level) |
-| `ACQUIA_GIT_URL` | Repository | Acquia git remote URL for the application |
-| `ACQUIA_SSH_PRIVATE_KEY` | Repository | RSA private key for SSH auth to Acquia git |
-| `ACQUIA_SSH_PASSPHRASE` | Repository | Passphrase for the SSH private key (if set) |
+| `ACQUIA_CLI_KEY` | Yes | Acquia Cloud API key (account-level) |
+| `ACQUIA_CLI_SECRET` | Yes | Acquia Cloud API secret (account-level) |
+| `ACQUIA_GIT_URL` | Yes | Acquia git remote URL for the application |
+| `ACQUIA_APP_UUID` | Yes | Acquia application UUID |
+| `ACQUIA_SSH_PRIVATE_KEY` | Yes | RSA private key for SSH auth to Acquia git |
+| `ACQUIA_SSH_PASSPHRASE` | No | Passphrase for the SSH private key (if set) |
+| `ACQUIA_DEV_ENV_UUID` | No | Dev environment compound ID — speeds up dev deploys |
 
 ---
 
@@ -749,6 +896,25 @@ Once the deploy workflow pushes to Acquia git and switches the environment branc
 | `Permission denied (publickey)` on git push | Wrong key uploaded to Acquia, or key not propagated yet | Verify public key in Acquia Cloud UI matches `ssh-add -L` output in Actions log. Wait 5 min for propagation. |
 | SSH agent prompts for passphrase | `ACQUIA_SSH_PASSPHRASE` secret missing or wrong | Add/correct the `ACQUIA_SSH_PASSPHRASE` secret in GitHub |
 | `acli auth:login` fails | Wrong `ACQUIA_CLI_KEY` or `ACQUIA_CLI_SECRET` | Regenerate token at cloud.acquia.com/a/profile/tokens |
-| `Could not find environment ID` | API key doesn't have access to the application | Ensure the Acquia token belongs to a user with access to the Brewtal application |
+| `Could not find environment ID` | API key doesn't have access to the application | Ensure the Acquia token belongs to a user with access to the application |
+| `The --branch option does not exist` | Old workflow using `--branch=` flag with `acli code-switch` | Pass the branch as a positional arg: `acli api:environments:code-switch "${ENV_ID}" "${BRANCH}"` |
+| Site returns 404 on all paths except `/` | `.htaccess` missing from deployed artifact | Ensure the build step restores `.htaccess` from `docroot/core/assets/scaffold/files/htaccess` and that `include-hidden-files: true` is set on `upload-artifact` |
+| Site returns 500 after deploy | `vendor/` directory missing on server | Ensure the deploy step deletes all `.gitignore` files before `git add -A` so `vendor/` is committed to the Acquia git branch |
+| `Failed opening required .../composer/autoload_real.php` | `vendor/autoload.php` was copied to `docroot/autoload.php` | The correct `docroot/autoload.php` is a shim: `<?php return require __DIR__ . '/../vendor/autoload.php';` — not a copy of `vendor/autoload.php` |
 | Build fails on Tailwind step | `package-lock.json` out of date | Run `npm install` in `docroot/themes/custom/coffee_journal` and commit the updated lock file |
 | `phpcs` fails | Coding standards violation in custom code | Run `vendor/bin/phpcs docroot/modules/custom` locally and fix reported issues |
+
+---
+
+## Key Differences from Acquia Pipelines
+
+If you previously used Acquia Pipelines (`acquia-pipelines.yml`), here are the main differences:
+
+| | Acquia Pipelines | GitHub Actions |
+|---|---|---|
+| **Trigger** | Push to Acquia git remote | Push to GitHub remote |
+| **Scaffold files** | Auto-injected by Acquia | Must be restored manually in build step |
+| **`vendor/`** | Auto-included | Must remove `.gitignore` files before committing |
+| **Deploy branch** | Created automatically | Pushed explicitly by the workflow |
+| **Approval gates** | Not supported | GitHub Environments with required reviewers |
+| **Build logs** | Acquia Cloud UI | GitHub Actions UI |
