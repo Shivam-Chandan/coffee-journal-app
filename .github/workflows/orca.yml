@@ -5,6 +5,7 @@ on:
     # Prevent duplicate jobs on Dependabot PRs that interfere with automerge.
     branches-ignore:
       - 'dependabot/**'
+      - 'github-action-test'
   pull_request:
   schedule:
     - cron: "0 0 * * *"
