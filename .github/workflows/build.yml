@@ -110,9 +110,24 @@ jobs:
       - name: Restore Drupal core docroot files
         run: |
           echo "==> Running composer drupal:scaffold to restore .htaccess, index.php etc."
-          composer drupal:scaffold --no-interaction
-          echo "==> Scaffold complete"
-          ls -la docroot/.htaccess docroot/index.php
+          # The scaffold respects docroot/.gitignore (gitignore: true in composer.json)
+          # so we must temporarily remove the .gitignore ignore entries before scaffolding.
+          # We'll restore .gitignore content afterwards (it doesn't matter for CI).
+          # The simplest approach: copy directly from drupal/core scaffold source files.
+
+          SCAFFOLD_SRC="docroot/core/assets/scaffold/files"
+
+          echo "==> Copying .htaccess from Drupal core scaffold source"
+          cp "${SCAFFOLD_SRC}/htaccess" docroot/.htaccess
+          echo "==> Copying index.php from Drupal core scaffold source"
+          cp "${SCAFFOLD_SRC}/index.php" docroot/index.php
+          echo "==> Copying robots.txt from Drupal core scaffold source"
+          cp "${SCAFFOLD_SRC}/robots.txt" docroot/robots.txt
+          echo "==> Copying autoload.php from vendor"
+          cp vendor/autoload.php docroot/autoload.php
+
+          echo "==> Scaffold files restored:"
+          ls -la docroot/.htaccess docroot/index.php docroot/robots.txt docroot/autoload.php
         env:
           COMPOSER_NO_INTERACTION: '1'
           COMPOSER_MEMORY_LIMIT: '-1'
