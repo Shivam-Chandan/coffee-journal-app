@@ -195,8 +195,7 @@ jobs:
           echo "==> Environment ID: ${ENV_ID}"
 
           echo "==> Switching ${ENV} to branch: ${DEPLOY_BRANCH}"
-          acli api:environments:code-switch "${ENV_ID}" \
-            --branch="${DEPLOY_BRANCH}" \
+          acli api:environments:code-switch "${ENV_ID}" "${DEPLOY_BRANCH}" \
             --no-interaction
           echo "==> Branch switch initiated. Acquia post-code-deploy hook will run on the server."
 
