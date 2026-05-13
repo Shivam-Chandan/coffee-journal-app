@@ -181,8 +181,10 @@ jobs:
         with:
           name: acquia-artifact-${{ github.run_id }}
           # Upload the entire workspace (minus .git to keep size down)
+          # include-hidden-files ensures dotfiles like .htaccess are included
           path: |
             .
             !.git
+          include-hidden-files: true
           retention-days: 7
           if-no-files-found: error
