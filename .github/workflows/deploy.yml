@@ -127,11 +127,11 @@ jobs:
             && git checkout -b "${DEPLOY_BRANCH}" "acquia/${DEPLOY_BRANCH}" \
             || git checkout -b "${DEPLOY_BRANCH}"
 
-          echo "==> Removing docroot/.gitignore so scaffold files (.htaccess etc.) are tracked"
-          # docroot/.gitignore excludes .htaccess, index.php, robots.txt etc. via
-          # Composer scaffold's 'gitignore: true'. Since this is a deploy artifact
-          # (not a source repo), we don't want any files excluded from the git commit.
-          rm -f docroot/.gitignore
+          echo "==> Removing all .gitignore files so all artifact files (vendor/, .htaccess etc.) are committed"
+          # The source repo has .gitignore files that exclude vendor/, docroot/.htaccess etc.
+          # These are correct for source control but wrong for a deploy artifact — we need
+          # every file in the artifact to reach Acquia Cloud.
+          find . -name ".gitignore" -not -path "./.git/*" -delete
 
           echo "==> Staging all artifact files"
           git add -A
