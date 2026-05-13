@@ -127,8 +127,11 @@ jobs:
             && git checkout -b "${DEPLOY_BRANCH}" "acquia/${DEPLOY_BRANCH}" \
             || git checkout -b "${DEPLOY_BRANCH}"
 
-          echo "==> Staging all artifact files"
+          echo "==> Staging all artifact files (including gitignored scaffold files)"
+          # docroot/.gitignore excludes .htaccess, index.php etc. via 'gitignore: true'
+          # in composer scaffold config. We must force-add them so they reach Acquia.
           git add -A
+          git add -f docroot/.htaccess docroot/index.php docroot/robots.txt docroot/autoload.php 2>/dev/null || true
 
           # Only commit if there are changes (idempotent on re-runs)
           if git diff --cached --quiet; then
