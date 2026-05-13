@@ -103,7 +103,48 @@ jobs:
 
           echo "==> CSS size: $(wc -c < css/coffee-theme.css) bytes"
 
-      # ── Step 3: Artifact preparation ─────────────────────────────────────
+      # ── Step 3: Restore Drupal core files excluded by docroot/.gitignore ──
+      # docroot/.gitignore excludes .htaccess, index.php, robots.txt etc.
+      # These are Drupal core files installed by Composer into docroot/ but
+      # excluded from git to avoid committing vendor-managed files. They must
+      # be present in the artifact for the site to function on Acquia Cloud.
+      - name: Restore Drupal core docroot files
+        run: |
+          echo "==> Restoring Drupal core files excluded by docroot/.gitignore"
+          DRUPAL_CORE="vendor/drupal/core"
+
+          # Copy .htaccess from drupal/core
+          if [ -f "${DRUPAL_CORE}/.htaccess" ]; then
+            cp "${DRUPAL_CORE}/.htaccess" docroot/.htaccess
+            echo "Restored: docroot/.htaccess"
+          else
+            echo "ERROR: ${DRUPAL_CORE}/.htaccess not found" && exit 1
+          fi
+
+          # Copy index.php
+          if [ -f "${DRUPAL_CORE}/index.php" ]; then
+            cp "${DRUPAL_CORE}/index.php" docroot/index.php
+            echo "Restored: docroot/index.php"
+          else
+            echo "ERROR: ${DRUPAL_CORE}/index.php not found" && exit 1
+          fi
+
+          # Copy robots.txt
+          if [ -f "${DRUPAL_CORE}/robots.txt" ]; then
+            cp "${DRUPAL_CORE}/robots.txt" docroot/robots.txt
+            echo "Restored: docroot/robots.txt"
+          fi
+
+          # Copy autoload.php
+          if [ -f "vendor/autoload.php" ]; then
+            cp vendor/autoload.php docroot/autoload.php
+            echo "Restored: docroot/autoload.php"
+          fi
+
+          echo "==> Drupal core files restored"
+          ls -la docroot/.htaccess docroot/index.php
+
+      # ── Step 4: Artifact preparation ─────────────────────────────────────
       - name: Prepare artifact
         run: |
           echo "==> Removing dev-only files"
@@ -118,6 +159,12 @@ jobs:
           mkdir -p docroot/sites/default/private
 
           echo "==> Verifying artifact integrity"
+          test -f docroot/.htaccess \
+            && echo "docroot/.htaccess OK" \
+            || (echo "ERROR: docroot/.htaccess missing" && exit 1)
+          test -f docroot/index.php \
+            && echo "docroot/index.php OK" \
+            || (echo "ERROR: docroot/index.php missing" && exit 1)
           test -f config/default/core.extension.yml \
             && echo "config/default OK" \
             || (echo "ERROR: core.extension.yml missing" && exit 1)
