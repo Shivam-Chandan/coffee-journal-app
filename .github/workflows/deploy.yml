@@ -21,6 +21,8 @@
 #   ACQUIA_CLI_SECRET      — Acquia Cloud API secret
 #   ACQUIA_GIT_URL         — Acquia git remote URL (eeschandan1@svn-15816.prod.hosting.acquia.com:eeschandan1.git)
 #   ACQUIA_SSH_PRIVATE_KEY — Private SSH key whose public key is added in Acquia Cloud UI
+#   ACQUIA_APP_UUID         — Your Acquia application UUID
+#   ACQUIA_DEV_ENV_UUID     — Optional Acquia Dev environment UUID
 #
 # Inputs:
 #   environment    — Acquia environment name: dev | test | prod
@@ -55,6 +57,10 @@ on:
         required: true
       ACQUIA_SSH_PRIVATE_KEY:
         required: true
+      ACQUIA_APP_UUID:
+        required: true
+      ACQUIA_DEV_ENV_UUID:
+        required: false
       ACQUIA_SSH_PASSPHRASE:
         required: false
 
@@ -98,7 +104,7 @@ jobs:
         id: branch
         run: |
           # Mirror the Acquia Pipelines naming: pipelines-build-<source>
-          DEPLOY_BRANCH="pipelines-build-${{ inputs.source-branch }}"
+          DEPLOY_BRANCH="pipeline-build-${{ inputs.source-branch }}"
           echo "deploy_branch=${DEPLOY_BRANCH}" >> "$GITHUB_OUTPUT"
           echo "Deploying to Acquia branch: ${DEPLOY_BRANCH}"
 
@@ -166,9 +172,13 @@ jobs:
           DEPLOY_BRANCH="${{ steps.branch.outputs.deploy_branch }}"
 
           echo "==> Fetching environment ID for: ${ENV}"
-          ENV_ID=$(acli api:environments:list "${APP_UUID}" \
-            --no-interaction 2>/dev/null \
-            | python3 -c "
+          DEV_ENV_UUID="${{ secrets.ACQUIA_DEV_ENV_UUID }}"
+          if [[ "${ENV}" == 'dev' && -n "${DEV_ENV_UUID}" ]]; then
+            ENV_ID="${DEV_ENV_UUID}"
+          else
+            ENV_ID=$(acli api:environments:list "${APP_UUID}" \
+              --no-interaction 2>/dev/null \
+              | python3 -c "
           import json, sys
           envs = json.load(sys.stdin)
           for e in envs:
@@ -176,6 +186,7 @@ jobs:
                   print(e['id'])
                   break
           " 2>/dev/null || echo "")
+          fi
 
           if [[ -z "${ENV_ID}" ]]; then
             echo "ERROR: Could not find environment ID for '${ENV}'"

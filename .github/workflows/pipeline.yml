@@ -96,6 +96,8 @@ jobs:
       ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
       ACQUIA_GIT_URL: ${{ secrets.ACQUIA_GIT_URL }}
       ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+      ACQUIA_APP_UUID: ${{ secrets.ACQUIA_APP_UUID }}
+      ACQUIA_DEV_ENV_UUID: ${{ secrets.ACQUIA_DEV_ENV_UUID }}
       ACQUIA_SSH_PASSPHRASE: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
 
   # ---------------------------------------------------------------------------
@@ -119,6 +121,8 @@ jobs:
       ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
       ACQUIA_GIT_URL: ${{ secrets.ACQUIA_GIT_URL }}
       ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+      ACQUIA_APP_UUID: ${{ secrets.ACQUIA_APP_UUID }}
+      ACQUIA_DEV_ENV_UUID: ${{ secrets.ACQUIA_DEV_ENV_UUID }}
       ACQUIA_SSH_PASSPHRASE: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
 
   # ---------------------------------------------------------------------------
@@ -141,4 +145,6 @@ jobs:
       ACQUIA_CLI_SECRET: ${{ secrets.ACQUIA_CLI_SECRET }}
       ACQUIA_GIT_URL: ${{ secrets.ACQUIA_GIT_URL }}
       ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
+      ACQUIA_APP_UUID: ${{ secrets.ACQUIA_APP_UUID }}
+      ACQUIA_DEV_ENV_UUID: ${{ secrets.ACQUIA_DEV_ENV_UUID }}
       ACQUIA_SSH_PASSPHRASE: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
