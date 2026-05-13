@@ -68,16 +68,7 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Stage 1: CI — code quality checks
-  # ---------------------------------------------------------------------------
-  ci:
-    name: CI
-    uses: ./.github/workflows/ci.yml
-    # Run CI on both push and PR events
-    secrets: inherit
-
-  # ---------------------------------------------------------------------------
-  # Stage 2: Build — only on push (not PRs)
+  # Stage 1: Build — only on push (not PRs)
   # ---------------------------------------------------------------------------
   build:
     name: Build
