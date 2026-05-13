@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "skills": {
+    "application-management": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/application-management/SKILL.md",
+      "computedHash": "16f5dea61cf375cc18b0584a5cb0e211580ba1fdeb3c24279f28ecc34912f14e"
+    },
+    "codestudio": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/codestudio/SKILL.md",
+      "computedHash": "52dd083e356fc8a5abcc59e8bf04aed7f695b0386567f88a5c2b38ded7b9f448"
+    },
+    "dependency-updates": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/drupal-maintenance/dependency-updates/SKILL.md",
+      "computedHash": "fc6ff5244196581958c7d795f0f283fbf7b01374e10df79dca1531486703388d"
+    },
+    "drupal-update-deploy": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/playbooks/drupal-update-deploy/SKILL.md",
+      "computedHash": "25fd410c4388353f611b3fc598f374560241b9b0cfe6bbcc5a0eec135d3af564"
+    },
+    "environment-management": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/environment-management/SKILL.md",
+      "computedHash": "9142213cd43c5288a356cfdb50b2a3453cc43a5f3f010b8e3e20cc0487851ca0"
+    },
+    "getting-started": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/getting-started/SKILL.md",
+      "computedHash": "234ece6261b65c7dcc6cdd4a6fb31ddf715bab6d060d92e9dbe797985ec99045"
+    },
+    "ide-management": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/ide-management/SKILL.md",
+      "computedHash": "2b8aafe54cd186773705f02ab19bef3dce381d14851e5f1035ffcd98c8e2a2ab"
+    },
+    "pipeline-operations": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/pipelines-cli/pipeline-operations/SKILL.md",
+      "computedHash": "b0938f76631dd67c203caa5edc78b26487b7c07667d2d0ee2a09a9c3ae149e86"
+    },
+    "pull-push": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/pull-push/SKILL.md",
+      "computedHash": "6a49ce3b10622efe160df73224576e0be89291cef9132dc6e5b5aae0e95ffc54"
+    },
+    "remote-access": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/remote-access/SKILL.md",
+      "computedHash": "30445a048bdcaf36aae4c155f53c205dd23b47d9d00e026c3bcf8aca6c68ab13"
+    },
+    "scripting": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/scripting/SKILL.md",
+      "computedHash": "369849b633940af33296285ff5daaab8cf6e2eb3ce3cb8738c7a2c66c4285d7b"
+    },
+    "security-updates": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/drupal-maintenance/security-updates/SKILL.md",
+      "computedHash": "cd13923a190a1e1ed878e4965790425e414f1c873f71f688a3dee851861c8a3e"
+    },
+    "ssh-key-management": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/ssh-key-management/SKILL.md",
+      "computedHash": "36b51b39205405d823cd035ba997e5451499100f451e24e1d3ad1d10fd08a6ee"
+    },
+    "troubleshooting": {
+      "source": "acquia/acquia-skills",
+      "sourceType": "github",
+      "skillPath": "skills/acli/troubleshooting/SKILL.md",
+      "computedHash": "34cd1ce3aa21610fd4fcfa736418c6b9e65fcd3817a421400eafdc0b776f40bc"
+    }
+  }
+}

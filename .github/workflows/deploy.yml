@@ -104,7 +104,7 @@ jobs:
         id: branch
         run: |
           # Mirror the Acquia Pipelines naming: pipelines-build-<source>
-          DEPLOY_BRANCH="pipeline-build-${{ inputs.source-branch }}"
+          DEPLOY_BRANCH="pipelines-build-${{ inputs.source-branch }}"
           echo "deploy_branch=${DEPLOY_BRANCH}" >> "$GITHUB_OUTPUT"
           echo "Deploying to Acquia branch: ${DEPLOY_BRANCH}"
 
