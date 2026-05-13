@@ -69,8 +69,6 @@ jobs:
     name: Deploy to ${{ inputs.environment }}
     runs-on: ubuntu-24.04
     environment:
-      # Maps to a GitHub Environment (Settings → Environments) so you can
-      # configure required reviewers for test/prod gates.
       name: acquia-${{ inputs.environment }}
       url: >-
         ${{
@@ -104,7 +102,7 @@ jobs:
         id: branch
         run: |
           # Mirror the Acquia Pipelines naming: pipelines-build-<source>
-          DEPLOY_BRANCH="pipeline-build-${{ inputs.source-branch }}"
+          DEPLOY_BRANCH="pipelines-build-${{ inputs.source-branch }}"
           echo "deploy_branch=${DEPLOY_BRANCH}" >> "$GITHUB_OUTPUT"
           echo "Deploying to Acquia branch: ${DEPLOY_BRANCH}"
 
@@ -195,8 +193,7 @@ jobs:
           echo "==> Environment ID: ${ENV_ID}"
 
           echo "==> Switching ${ENV} to branch: ${DEPLOY_BRANCH}"
-          acli api:environments:code-switch "${ENV_ID}" \
-            --branch="${DEPLOY_BRANCH}" \
+          acli api:environments:code-switch "${ENV_ID}" "${DEPLOY_BRANCH}" \
             --no-interaction
           echo "==> Branch switch initiated. Acquia post-code-deploy hook will run on the server."
 
