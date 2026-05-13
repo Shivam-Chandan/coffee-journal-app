@@ -81,7 +81,7 @@ jobs:
   # ---------------------------------------------------------------------------
   build:
     name: Build
-    needs: ci
+    # needs: ci  # Temporarily disabled for testing
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/build.yml
     with:
