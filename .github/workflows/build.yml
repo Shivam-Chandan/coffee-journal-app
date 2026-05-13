@@ -103,46 +103,19 @@ jobs:
 
           echo "==> CSS size: $(wc -c < css/coffee-theme.css) bytes"
 
-      # ── Step 3: Restore Drupal core files excluded by docroot/.gitignore ──
+      # ── Step 3: Run Drupal scaffold to restore files excluded by docroot/.gitignore ──
       # docroot/.gitignore excludes .htaccess, index.php, robots.txt etc.
-      # These are Drupal core files installed by Composer into docroot/ but
-      # excluded from git to avoid committing vendor-managed files. They must
-      # be present in the artifact for the site to function on Acquia Cloud.
+      # These are managed by Composer scaffold but skipped above with --no-scripts.
+      # Run scaffold explicitly so these files are present in the artifact.
       - name: Restore Drupal core docroot files
         run: |
-          echo "==> Restoring Drupal core files excluded by docroot/.gitignore"
-          DRUPAL_CORE="vendor/drupal/core"
-
-          # Copy .htaccess from drupal/core
-          if [ -f "${DRUPAL_CORE}/.htaccess" ]; then
-            cp "${DRUPAL_CORE}/.htaccess" docroot/.htaccess
-            echo "Restored: docroot/.htaccess"
-          else
-            echo "ERROR: ${DRUPAL_CORE}/.htaccess not found" && exit 1
-          fi
-
-          # Copy index.php
-          if [ -f "${DRUPAL_CORE}/index.php" ]; then
-            cp "${DRUPAL_CORE}/index.php" docroot/index.php
-            echo "Restored: docroot/index.php"
-          else
-            echo "ERROR: ${DRUPAL_CORE}/index.php not found" && exit 1
-          fi
-
-          # Copy robots.txt
-          if [ -f "${DRUPAL_CORE}/robots.txt" ]; then
-            cp "${DRUPAL_CORE}/robots.txt" docroot/robots.txt
-            echo "Restored: docroot/robots.txt"
-          fi
-
-          # Copy autoload.php
-          if [ -f "vendor/autoload.php" ]; then
-            cp vendor/autoload.php docroot/autoload.php
-            echo "Restored: docroot/autoload.php"
-          fi
-
-          echo "==> Drupal core files restored"
+          echo "==> Running composer drupal:scaffold to restore .htaccess, index.php etc."
+          composer drupal:scaffold --no-interaction
+          echo "==> Scaffold complete"
           ls -la docroot/.htaccess docroot/index.php
+        env:
+          COMPOSER_NO_INTERACTION: '1'
+          COMPOSER_MEMORY_LIMIT: '-1'
 
       # ── Step 4: Artifact preparation ─────────────────────────────────────
       - name: Prepare artifact
