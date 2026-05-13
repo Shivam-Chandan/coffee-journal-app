@@ -94,10 +94,7 @@ jobs:
   deploy-dev:
     name: Deploy › Dev
     needs: build
-    if: |
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      (github.event.inputs.target_env == '' || github.event.inputs.target_env == 'dev' ||
-       github.event.inputs.target_env == 'test' || github.event.inputs.target_env == 'prod')
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.target_env || 'dev') == 'dev') }}
     uses: ./.github/workflows/deploy.yml
     with:
       environment: dev
