@@ -1,0 +1,203 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║          🚀 GLOBAL COMMUNITY FEED — LOCAL TESTING REFERENCE CARD           ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌─ SETUP (Copy & Paste) ─────────────────────────────────────────────────────┐
+│                                                                             │
+│  cd /Users/shivam.chandan/brewtal                                          │
+│  drush cache:rebuild && drush config:import -y && drush cache:rebuild     │
+│                                                                             │
+│  Expected: ~17 config items imported, no errors                            │
+│  Time: ~30 seconds                                                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ KEY FILES CREATED ────────────────────────────────────────────────────────┐
+│                                                                             │
+│  ✓ config/default/node.type.brew_recipe.yml          (content type)       │
+│  ✓ config/default/field.storage.node.field_*.yml     (5 fields)           │
+│  ✓ config/default/field.field.node.brew_recipe.*     (field instances)    │
+│  ✓ docroot/modules/custom/coffee_journal_api/        (FeedController)     │
+│    src/Controller/FeedController.php                                       │
+│  ✓ docroot/themes/custom/coffee_journal/             (templates + js)     │
+│    templates/page/page--front.html.twig                                    │
+│    templates/coffee-journal-sidebar-nav.html.twig                          │
+│    templates/node/node--brew-recipe--teaser.html.twig                      │
+│    js/app.js (+ 2 new behaviors: cjGlobalFeed, cjSidebarNav)              │
+│    css/coffee-theme.css (+ ~400 lines sidebar/feed styling)                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ 3 CRITICAL THINGS TO CHECK ──────────────────────────────────────────────┐
+│                                                                             │
+│  1. HOMEPAGE (/)                                                           │
+│     ✓ Authenticated user → Feed page (no redirect)                        │
+│     ✓ Anonymous user → /user/login (redirect)                            │
+│                                                                             │
+│  2. CONTENT TYPE                                                           │
+│     ✓ Visit /admin/structure/types                                        │
+│     ✓ See "Brew Recipe" with 7 fields                                     │
+│                                                                             │
+│  3. RECIPE CARDS                                                           │
+│     ✓ Create public brew_recipe nodes                                     │
+│     ✓ Cards appear in responsive grid on feed                             │
+│     ✓ Private recipes hidden from feed                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ QUICK TEST (5 MINUTES) ───────────────────────────────────────────────────┐
+│                                                                             │
+│  1. Setup (30s)       → Run cache rebuild & config import                  │
+│  2. Create recipes (2m)  → 5 public + 1 private brew recipes              │
+│  3. View feed (1m)    → Log in → Visit / → See cards                      │
+│  4. Test mobile (1m)  → Resize to 375px → Test hamburger menu            │
+│  5. Check console (30s) → F12 → Console → NO RED ERRORS                   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DESKTOP LAYOUT (>1024px) ────────────────────────────────────────────────┐
+│                                                                             │
+│   Fixed Sidebar (240px)     Main Content                                   │
+│   ┌──────────────────────┐  ┌───────────────────────────────────────────┐ │
+│   │ ☕ Feed             │  │ ☕ Coffee Journal         [🌙 Toggle] │ │
+│   │ 📔 My Coffees       │  ├───────────────────────────────────────────┤ │
+│   │ 👤 Profile          │  │ Community Feed                           │ │
+│   │                      │  │                                          │ │
+│   │                      │  │ ┌─────────┬─────────┬─────────┐        │ │
+│   │                      │  │ │ Recipe  │ Recipe  │ Recipe  │        │ │
+│   │                      │  │ │  Card   │  Card   │  Card   │        │ │
+│   │                      │  │ ├─────────┼─────────┼─────────┤        │ │
+│   │                      │  │ │ Recipe  │ Recipe  │ Recipe  │        │ │
+│   │                      │  │ │  Card   │  Card   │  Card   │        │ │
+│   │                      │  │ └─────────┴─────────┴─────────┘        │ │
+│   │                      │  │                                          │ │
+│   │                      │  │ [  Load More  ]                         │ │
+│   │                      │  └───────────────────────────────────────────┘ │
+│   └──────────────────────┘                                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ MOBILE LAYOUT (<768px) ───────────────────────────────────────────────────┐
+│                                                                             │
+│ ┌──────────────────────────────────────────────────────────────────────┐  │
+│ │ ☰ ☕ Coffee Journal                            [🌙 Toggle] │ │ ← Click ☰│
+│ ├──────────────────────────────────────────────────────────────────────┤  │
+│ │                                                                       │  │
+│ │ When ☰ clicked:                                                      │  │
+│ │ ┌──────────────────────────────────────────────────────────────────┐│  │
+│ │ │ ☕ Feed          ← Menu slides down                              ││  │
+│ │ │ 📔 My Coffees                                                    ││  │
+│ │ │ 👤 Profile                                                       ││  │
+│ │ └──────────────────────────────────────────────────────────────────┘│  │
+│ │                                                                       │  │
+│ │ Community Feed                                                        │  │
+│ │                                                                       │  │
+│ │ ┌────────────────────────────────────────────────────────────────┐  │  │
+│ │ │ Recipe Card 1                                                  │  │  │
+│ │ │ V60, 18g, 300g, Ratio 1:16.67                                │  │  │
+│ │ │ [View Recipe →]                                              │  │  │
+│ │ └────────────────────────────────────────────────────────────────┘  │  │
+│ │                                                                       │  │
+│ │ ┌────────────────────────────────────────────────────────────────┐  │  │
+│ │ │ Recipe Card 2                                                  │  │  │
+│ │ └────────────────────────────────────────────────────────────────┘  │  │
+│ │                                                                       │  │
+│ │ [  Load More  ]                                                       │  │
+│ │                                                                       │  │
+│ └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ RECIPE CARD CONTENT ─────────────────────────────────────────────────────┐
+│                                                                             │
+│  ┌─────────────────────────────────────────┐                              │
+│  │ ★ Perfect V60              [hover: ↑]   │ ← Title + hover effect       │
+│  │ by admin                                │ ← Author                     │
+│  ├─────────────────────────────────────────┤                              │
+│  │ Method:        V60                      │ ← From field_method          │
+│  │ Coffee:        18g                      │ ← From field_coffee_weight   │
+│  │ Water:         300g                     │ ← From field_water_weight    │
+│  │ Ratio:         1:16.67                  │ ← Calculated (water/coffee)  │
+│  │ 💬 0                                     │ ← Comment count              │
+│  ├─────────────────────────────────────────┤                              │
+│  │ [View Recipe →]                         │ ← Link to detail page        │
+│  └─────────────────────────────────────────┘                              │
+│                                                                             │
+│  Grid Layout:                                                              │
+│  • Desktop (>1024px): 3 columns (responsive)                              │
+│  • Tablet  (640-1024px): 2 columns                                        │
+│  • Mobile  (<640px): 1 column                                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ SUCCESS CRITERIA (10-POINT CHECKLIST) ───────────────────────────────────┐
+│                                                                             │
+│  ✓ 1. Anonymous redirect: / → /user/login                                │
+│  ✓ 2. Auth no redirect: Logged in user sees feed at /                    │
+│  ✓ 3. brew_recipe type exists with 7 fields                              │
+│  ✓ 4. Recipe cards render in responsive grid                             │
+│  ✓ 5. Each card shows: title, author, method, weights, ratio, comments   │
+│  ✓ 6. Private recipes hidden (field_is_public=false not visible)         │
+│  ✓ 7. Sidebar nav visible on desktop, hamburger on mobile                │
+│  ✓ 8. "Load More" button works (pagination)                              │
+│  ✓ 9. Browser console clean (no red errors)                              │
+│  ✓ 10. Theme toggle (🌙/☀️) switches light/dark mode                     │
+│                                                                             │
+│  All 10 = WORKING ✅                                                      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ TROUBLESHOOTING QUICK FIXES ─────────────────────────────────────────────┐
+│                                                                             │
+│  Problem: 404 on /                                                         │
+│  Fix: drush cache:rebuild                                                 │
+│                                                                             │
+│  Problem: No recipe cards showing                                          │
+│  Fix: Create some public brew_recipe nodes at /node/add/brew_recipe      │
+│                                                                             │
+│  Problem: Red errors in console (F12)                                      │
+│  Fix: Check that #cj-global-feed and #cj-nav-menu exist in page HTML     │
+│                                                                             │
+│  Problem: Sidebar layout broken                                            │
+│  Fix: Hard refresh (Ctrl+Shift+R) to clear CSS cache                      │
+│                                                                             │
+│  Problem: Private recipes showing on feed                                  │
+│  Fix: Check brew_privacy.module handles brew_recipe nodes (should be ✓)  │
+│                                                                             │
+│  Problem: Hamburger menu doesn't work                                      │
+│  Fix: Check for JS errors in console; verify #cj-nav-toggle exists       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DOCUMENTATION FILES ─────────────────────────────────────────────────────┐
+│                                                                             │
+│  📄 QUICK_START.md              → 30-second setup + key checks             │
+│  📄 TESTING_GUIDE.md            → 10-step detailed testing instructions    │
+│  📄 TESTING_CHECKLIST.md        → Checkbox matrix of all tests             │
+│  📄 JSONAPI_EXAMPLES.md         → curl commands for API testing            │
+│  📄 LOCAL_TESTING_SUMMARY.md    → Visual guide + expected outcomes        │
+│  🔧 test-feed-setup.sh          → Auto diagnostic script                   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ GIT COMMITS ──────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  ba36b5edc: feat: implement global community feed with brew_recipe        │
+│             (main feature implementation - all code & config)              │
+│                                                                             │
+│  5e96e7d6c: docs: add comprehensive testing guide                         │
+│             (testing documentation - all guides & examples)                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+🎯 READY TO TEST? 
+
+   1. Run: drush cache:rebuild && drush config:import -y && drush cache:rebuild
+   2. Create test recipes at: http://your-site.test/node/add/brew_recipe
+   3. Visit: http://your-site.test/ (logged in)
+   4. Check console: F12 → Console → NO RED ERRORS ✓
+   5. Verify all 10 success criteria above ✓
+
+═══════════════════════════════════════════════════════════════════════════════
