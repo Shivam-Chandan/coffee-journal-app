@@ -69,8 +69,6 @@ jobs:
     name: Deploy to ${{ inputs.environment }}
     runs-on: ubuntu-24.04
     environment:
-      # Maps to a GitHub Environment (Settings → Environments) so you can
-      # configure required reviewers for test/prod gates.
       name: acquia-${{ inputs.environment }}
       url: >-
         ${{
@@ -128,6 +126,12 @@ jobs:
           git fetch acquia "${DEPLOY_BRANCH}" 2>/dev/null \
             && git checkout -b "${DEPLOY_BRANCH}" "acquia/${DEPLOY_BRANCH}" \
             || git checkout -b "${DEPLOY_BRANCH}"
+
+          echo "==> Removing all .gitignore files so all artifact files (vendor/, .htaccess etc.) are committed"
+          # The source repo has .gitignore files that exclude vendor/, docroot/.htaccess etc.
+          # These are correct for source control but wrong for a deploy artifact — we need
+          # every file in the artifact to reach Acquia Cloud.
+          find . -name ".gitignore" -not -path "./.git/*" -delete
 
           echo "==> Staging all artifact files"
           git add -A
