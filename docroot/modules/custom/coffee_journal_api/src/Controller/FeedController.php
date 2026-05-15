@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Drupal\coffee_journal_api\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -13,17 +12,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 final class FeedController extends ControllerBase {
 
-  public function __construct(
-    private readonly AccountInterface $currentUser,
-  ) {}
-
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container): static {
-    return new static(
-      $container->get('current_user'),
-    );
+    return new static();
   }
 
   /**
