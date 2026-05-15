@@ -58,7 +58,7 @@ function coffee_journal_api_user_login(AccountInterface $account): void {
  */
 function _coffee_journal_api_get_social_auth_profile(): ?array {
   try {
-    $session = \Drupal::service('social_auth.session');
+    $session = \Drupal::service('social_auth.data_handler');
   }
   catch (\Throwable $e) {
     return NULL;
@@ -80,13 +80,29 @@ function _coffee_journal_api_get_social_auth_profile(): ?array {
  * Saves a remote profile image into public:// and returns the managed File.
  */
 function _coffee_journal_api_save_remote_profile_image(string $image_url): ?File {
-  $data = @file_get_contents($image_url);
-  if ($data === FALSE) {
+  // Use Guzzle HTTP client with timeout instead of file_get_contents.
+  try {
+    $client = \Drupal::httpClient();
+    $response = $client->get($image_url, ['timeout' => 5]);
+    $data = $response->getBody()->getContents();
+  }
+  catch (\Throwable $e) {
     return NULL;
   }
 
+  if (empty($data)) {
+    return NULL;
+  }
+
+  $file_system = \Drupal::service('file_system');
   $directory = 'public://social_auth_google_profiles';
-  if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+
+  // Use modern Drupal 11 file_system service instead of file_prepare_directory().
+  if (!$file_system->prepareDirectory(
+    $directory,
+    \Drupal\Core\File\FileSystemInterface::CREATE_DIRECTORY |
+    \Drupal\Core\File\FileSystemInterface::MODIFY_PERMISSIONS
+  )) {
     return NULL;
   }
 
@@ -94,11 +110,21 @@ function _coffee_journal_api_save_remote_profile_image(string $image_url): ?File
   $filename = preg_replace('/[^a-zA-Z0-9._-]+/', '_', $filename) ?: 'profile.jpg';
   $destination = $directory . '/' . $filename;
 
-  $file = file_save_data($data, $destination, FILE_EXISTS_RENAME);
-  if ($file instanceof File) {
-    $file->setPermanent();
-    $file->save();
-    return $file;
+  // Use modern file.repository service instead of file_save_data().
+  try {
+    $file = \Drupal::service('file.repository')->writeData(
+      $data,
+      $destination,
+      \Drupal\Core\File\FileSystemInterface::EXISTS_RENAME
+    );
+    if ($file instanceof File) {
+      $file->setPermanent();
+      $file->save();
+      return $file;
+    }
+  }
+  catch (\Throwable $e) {
+    return NULL;
   }
 
   return NULL;

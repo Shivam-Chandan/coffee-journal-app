@@ -1,0 +1,4 @@
+profile_styles:
+  css:
+    theme:
+      css/profile.css: {}

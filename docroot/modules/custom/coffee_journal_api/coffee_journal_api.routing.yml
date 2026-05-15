@@ -17,7 +17,7 @@ coffee_journal_api.places_search:
     _user_is_logged_in: 'TRUE'
 
 coffee_journal_api.user_me:
-  path: '/jsonapi/user/user/me'
+  path: '/api/user/me'
   defaults:
     _controller: '\Drupal\coffee_journal_api\Controller\UserStateController::me'
     _title: 'Current user state'

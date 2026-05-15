@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @file
  * Coffee Journal Access — node access control + URL alias generation
@@ -11,6 +13,21 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\node\NodeInterface;
 use Drupal\path_alias\Entity\PathAlias;
+
+/**
+ * Implements hook_theme().
+ */
+function coffee_journal_access_theme(array $existing, string $type, string $theme, string $path): array {
+  return [
+    'profile_page' => [
+      'variables' => [
+        'user' => [],
+      ],
+      'template' => 'profile-page',
+      'path' => $path . '/templates',
+    ],
+  ];
+}
 
 // ── Access control ─────────────────────────────────────────────────────────
 

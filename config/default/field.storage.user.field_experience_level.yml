@@ -3,18 +3,27 @@ langcode: en
 status: true
 dependencies:
   module:
-    - list
+    - options
 id: user.field_experience_level
 field_name: field_experience_level
 entity_type: user
 type: list_string
 settings:
   allowed_values:
-    beginner: 'Beginner'
-    enthusiast: 'Enthusiast'
-    barista: 'Barista'
-    roaster: 'Roaster'
-module: list
+    -
+      value: beginner
+      label: 'Beginner'
+    -
+      value: enthusiast
+      label: 'Enthusiast'
+    -
+      value: barista
+      label: 'Barista'
+    -
+      value: roaster
+      label: 'Roaster'
+  allowed_values_function: ''
+module: options
 locked: false
 cardinality: 1
 translatable: true

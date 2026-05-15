@@ -1,0 +1,165 @@
+/**
+ * Profile page styles
+ * Uses CSS custom properties for theming compatibility with coffee_journal theme
+ */
+
+.cj-profile-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.cj-profile-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.cj-profile-header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.cj-profile-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary, #666);
+}
+
+.cj-profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.cj-profile-section {
+  padding: 1.5rem;
+  background: var(--surface, #f9f9f9);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border, #e0e0e0);
+}
+
+.cj-profile-section h2 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.cj-profile-picture-section {
+  text-align: center;
+}
+
+.cj-profile-picture-wrapper {
+  margin: 1rem 0;
+}
+
+.cj-profile-picture {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary, #8b6f47);
+  display: block;
+  margin: 0 auto;
+}
+
+.cj-profile-picture-hint {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #666);
+}
+
+.cj-profile-field {
+  margin-bottom: 1rem;
+}
+
+.cj-profile-field:last-child {
+  margin-bottom: 0;
+}
+
+.cj-profile-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.cj-profile-value {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary, #333);
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.cj-profile-roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cj-profile-role-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--primary-light, #d4c4a8);
+  color: var(--primary-dark, #5a4a2a);
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.cj-profile-actions-section {
+  text-align: center;
+}
+
+.cj-profile-edit-link {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary, #8b6f47);
+  color: white;
+  text-decoration: none;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  transition: background 200ms ease;
+}
+
+.cj-profile-edit-link:hover,
+.cj-profile-edit-link:focus {
+  background: var(--primary-dark, #5a4a2a);
+  outline: none;
+}
+
+.cj-profile-actions-hint {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #666);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .cj-profile-section {
+    background: var(--surface-dark, #2a2a2a);
+    border-color: var(--border-dark, #444);
+  }
+
+  .cj-profile-header h1,
+  .cj-profile-section h2 {
+    color: var(--text-primary-dark, #f5f5f5);
+  }
+
+  .cj-profile-subtitle,
+  .cj-profile-picture-hint,
+  .cj-profile-label,
+  .cj-profile-actions-hint {
+    color: var(--text-secondary-dark, #aaa);
+  }
+
+  .cj-profile-value {
+    color: var(--text-primary-dark, #eee);
+  }
+}

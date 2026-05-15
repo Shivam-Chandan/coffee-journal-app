@@ -1,8 +1,9 @@
 name: 'Coffee Journal API'
 type: module
-description: 'Exposes /api/scrape-coffee (Gemini AI), /api/places/search (Google Places), and a current-user JSON:API endpoint. API keys are read from Acquia environment variables GEMINI_API_KEY and GOOGLE_PLACES_API_KEY.'
+description: 'Exposes /api/scrape-coffee (Gemini AI), /api/places/search (Google Places), and /api/user/me (current user state endpoint). API keys are read from Acquia environment variables GEMINI_API_KEY and GOOGLE_PLACES_API_KEY.'
 package: Custom
 core_version_requirement: ^10.1 || ^11
 dependencies:
   - drupal:user
   - drupal:jsonapi
+  - social_auth:social_auth

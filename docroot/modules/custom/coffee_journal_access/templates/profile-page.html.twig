@@ -1,0 +1,268 @@
+{#
+  Profile management page template.
+  
+  Provides a user interface for managing profile information including:
+  - Display name and email
+  - Profile picture upload
+  - Bio
+  - Coffee experience level
+  - Account creation and last login dates
+#}
+<div class="cj-profile-container">
+  <div class="cj-profile-header">
+    <h1>{{ 'Manage Profile'|t }}</h1>
+    <p class="cj-profile-subtitle">{{ 'Update your profile information and preferences'|t }}</p>
+  </div>
+
+  <div class="cj-profile-content">
+    
+    {# Profile Picture Section #}
+    <section class="cj-profile-section cj-profile-picture-section">
+      <h2>{{ 'Profile Picture'|t }}</h2>
+      <div class="cj-profile-picture-wrapper">
+        <img id="cj-profile-picture-preview" 
+             src="{{ user.picture_url or 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22%3E%3Crect fill=%22%23ddd%22 width=%2240%22 height=%2240%22/%3E%3Ctext x=%2220%22 y=%2220%22 font-size=%2220%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E?%3C/text%3E%3C/svg%3E' }}"
+             alt="{{ 'Profile picture'|t }}"
+             class="cj-profile-picture">
+      </div>
+      <p class="cj-profile-picture-hint">
+        {{ 'Your profile picture is automatically set from your Google account on first login.'|t }}
+      </p>
+    </section>
+
+    {# Basic Information Section #}
+    <section class="cj-profile-section cj-profile-info-section">
+      <h2>{{ 'Basic Information'|t }}</h2>
+      
+      <div class="cj-profile-field">
+        <label class="cj-profile-label">{{ 'Name'|t }}</label>
+        <p class="cj-profile-value">{{ user.name }}</p>
+      </div>
+
+      <div class="cj-profile-field">
+        <label class="cj-profile-label">{{ 'Email'|t }}</label>
+        <p class="cj-profile-value">{{ user.email }}</p>
+      </div>
+
+      {% if user.bio %}
+        <div class="cj-profile-field">
+          <label class="cj-profile-label">{{ 'Bio'|t }}</label>
+          <p class="cj-profile-value">{{ user.bio }}</p>
+        </div>
+      {% endif %}
+
+      {% if user.experience_level %}
+        <div class="cj-profile-field">
+          <label class="cj-profile-label">{{ 'Coffee Experience Level'|t }}</label>
+          <p class="cj-profile-value">
+            {% set level_labels = {
+              'beginner': 'Beginner'|t,
+              'enthusiast': 'Enthusiast'|t,
+              'barista': 'Barista'|t,
+              'roaster': 'Roaster'|t,
+            } %}
+            {{ level_labels[user.experience_level] or user.experience_level }}
+          </p>
+        </div>
+      {% endif %}
+    </section>
+
+    {# Account Metadata Section #}
+    <section class="cj-profile-section cj-profile-metadata-section">
+      <h2>{{ 'Account Activity'|t }}</h2>
+      
+      <div class="cj-profile-field">
+        <label class="cj-profile-label">{{ 'Member Since'|t }}</label>
+        <p class="cj-profile-value">{{ user.created|date('medium') }}</p>
+      </div>
+
+      <div class="cj-profile-field">
+        <label class="cj-profile-label">{{ 'Last Login'|t }}</label>
+        <p class="cj-profile-value">
+          {% if user.last_login > 0 %}
+            {{ user.last_login|date('medium') }}
+          {% else %}
+            {{ 'Never'|t }}
+          {% endif %}
+        </p>
+      </div>
+    </section>
+
+    {# User Roles Section #}
+    {% if user.roles %}
+      <section class="cj-profile-section cj-profile-roles-section">
+        <h2>{{ 'Roles'|t }}</h2>
+        <div class="cj-profile-roles-list">
+          {% for role in user.roles %}
+            <span class="cj-profile-role-badge">{{ role|capitalize }}</span>
+          {% else %}
+            <p>{{ 'No additional roles assigned.'|t }}</p>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    {# Edit Profile Link #}
+    <section class="cj-profile-section cj-profile-actions-section">
+      <a href="{{ path('entity.user.edit_form') }}" class="cj-profile-edit-link">
+        {{ 'Edit Profile Details'|t }} →
+      </a>
+      <p class="cj-profile-actions-hint">
+        {{ 'To update your bio, experience level, or other profile details, visit the account settings page.'|t }}
+      </p>
+    </section>
+
+  </div>
+</div>
+
+<style>
+  .cj-profile-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
+  .cj-profile-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .cj-profile-header h1 {
+    margin: 0 0 0.5rem;
+    font-size: 2rem;
+    font-weight: 600;
+  }
+
+  .cj-profile-subtitle {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-secondary, #666);
+  }
+
+  .cj-profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .cj-profile-section {
+    padding: 1.5rem;
+    background: var(--surface, #f9f9f9);
+    border-radius: 0.5rem;
+    border: 1px solid var(--border, #e0e0e0);
+  }
+
+  .cj-profile-section h2 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .cj-profile-picture-section {
+    text-align: center;
+  }
+
+  .cj-profile-picture-wrapper {
+    margin: 1rem 0;
+  }
+
+  .cj-profile-picture {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary, #8b6f47);
+    display: block;
+    margin: 0 auto;
+  }
+
+  .cj-profile-picture-hint {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #666);
+  }
+
+  .cj-profile-field {
+    margin-bottom: 1rem;
+  }
+
+  .cj-profile-field:last-child {
+    margin-bottom: 0;
+  }
+
+  .cj-profile-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-secondary, #666);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+
+  .cj-profile-value {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary, #333);
+    word-break: break-word;
+  }
+
+  .cj-profile-roles-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .cj-profile-role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: var(--primary-light, #d4c4a8);
+    color: var(--primary-dark, #5a4a2a);
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .cj-profile-actions-section {
+    text-align: center;
+  }
+
+  .cj-profile-edit-link {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--primary, #8b6f47);
+    color: white;
+    text-decoration: none;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    transition: background 200ms ease;
+  }
+
+  .cj-profile-edit-link:hover {
+    background: var(--primary-dark, #5a4a2a);
+  }
+
+  .cj-profile-actions-hint {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #666);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .cj-profile-section {
+      background: var(--surface-dark, #2a2a2a);
+      border-color: var(--border-dark, #444);
+    }
+
+    .cj-profile-subtitle,
+    .cj-profile-picture-hint,
+    .cj-profile-label,
+    .cj-profile-actions-hint {
+      color: var(--text-secondary-dark, #aaa);
+    }
+
+    .cj-profile-value {
+      color: var(--text-primary-dark, #eee);
+    }
+  }
+</style>
