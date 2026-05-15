@@ -40,10 +40,50 @@ function coffee_journal_preprocess_html(&$variables) {
  * Implements hook_preprocess_page().
  *
  * Passes current user auth state to page templates.
+ * Injects sidebar nav on the global feed route.
  */
 function coffee_journal_preprocess_page(&$variables) {
   $variables['is_front']  = \Drupal::service('path.matcher')->isFrontPage();
   $variables['logged_in'] = \Drupal::currentUser()->isAuthenticated();
+  
+  // Inject sidebar nav on global feed route
+  $route = \Drupal::routeMatch()->getRouteName();
+  if ($route === 'coffee_journal_api.global_feed') {
+    $nav_html = <<<HTML
+<nav id="cj-sidebar-nav" class="cj-sidebar-nav" role="navigation" aria-label="Main navigation">
+  <button id="cj-nav-toggle" class="cj-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="cj-nav-menu">
+    <span aria-hidden="true">☰</span>
+  </button>
+  <div id="cj-nav-menu" class="cj-nav-menu" aria-hidden="true">
+    <ul class="cj-nav-list">
+      <li class="cj-nav-item active">
+        <a href="/feed" class="cj-nav-link" aria-current="page">
+          <span class="cj-nav-icon" aria-hidden="true">☕</span>
+          <span class="cj-nav-label">Global Feed</span>
+        </a>
+      </li>
+      <li class="cj-nav-item">
+        <a href="/my-coffees" class="cj-nav-link">
+          <span class="cj-nav-icon" aria-hidden="true">📔</span>
+          <span class="cj-nav-label">My Coffees</span>
+        </a>
+      </li>
+      <li class="cj-nav-item">
+        <a href="/user/profile" class="cj-nav-link">
+          <span class="cj-nav-icon" aria-hidden="true">👤</span>
+          <span class="cj-nav-label">Profile</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+HTML;
+    
+    $variables['sidebar_nav'] = [
+      '#type' => 'markup',
+      '#markup' => $nav_html,
+    ];
+  }
 }
 
 /**
