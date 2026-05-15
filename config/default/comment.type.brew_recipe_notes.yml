@@ -1,0 +1,8 @@
+uuid: h7e9fd g6-ci5d-7e1g-f9hd-i6jc5e8h0i3
+langcode: en
+status: true
+dependencies: {  }
+target_entity_type: node
+id: brew_recipe_notes
+label: 'Brew Recipe Notes'
+description: 'Comments on brew recipes from the community feed'

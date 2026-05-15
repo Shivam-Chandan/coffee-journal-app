@@ -1,0 +1,19 @@
+uuid: e4b6ca d3-9f2a-4b8d-c6ea-f3g9d2b5e7f0
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_method
+field_name: field_method
+entity_type: node
+type: string
+settings:
+  max_length: 255
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

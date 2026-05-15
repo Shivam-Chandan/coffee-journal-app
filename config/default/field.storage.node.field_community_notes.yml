@@ -1,0 +1,20 @@
+uuid: n3kf5j m2-io1j-dk7m-lf5nj-ocpqi1kem6o9
+langcode: en
+status: true
+dependencies:
+  module:
+    - comment
+    - node
+id: node.field_community_notes
+field_name: field_community_notes
+entity_type: node
+type: comment
+settings:
+  comment_type: brew_recipe_notes
+module: comment
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

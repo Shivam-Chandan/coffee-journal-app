@@ -1,0 +1,68 @@
+uuid: r7oj9n q6-ms5n-ho1q-pj9rn-sgtumc5oiq3s3
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_display.node.brew_recipe.default
+    - field.field.node.brew_recipe.field_coffee_bean_ref
+    - field.field.node.brew_recipe.field_method
+    - field.field.node.brew_recipe.field_coffee_weight
+    - field.field.node.brew_recipe.field_water_weight
+    - node.type.brew_recipe
+  module:
+    - user
+id: node.brew_recipe.teaser
+targetEntityType: node
+bundle: brew_recipe
+mode: teaser
+content:
+  title:
+    label: hidden
+    type: string
+    weight: 0
+    region: content
+    settings:
+      link_to_entity: true
+    third_party_settings: {  }
+  field_method:
+    label: inline
+    type: string
+    weight: 1
+    region: content
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  field_coffee_weight:
+    label: inline
+    type: number_decimal
+    weight: 2
+    region: content
+    settings:
+      thousand_separator: ''
+      decimal_separator: .
+      scale: 2
+      prefix_suffix: false
+    third_party_settings: {  }
+  field_water_weight:
+    label: inline
+    type: number_integer
+    weight: 3
+    region: content
+    settings:
+      thousand_separator: false
+      prefix_suffix: false
+    third_party_settings: {  }
+  links:
+    weight: 4
+    region: content
+hidden:
+  created: true
+  field_coffee_bean_ref: true
+  field_community_notes: true
+  field_is_public: true
+  langcode: true
+  path: true
+  promote: true
+  status: true
+  sticky: true
+  uid: true

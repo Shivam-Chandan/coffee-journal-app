@@ -1,0 +1,27 @@
+uuid: j9gb1f i8-ek7f-9g3i-hb1jf-k8le7gaj2k5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_coffee_bean_ref
+    - node.type.brew_recipe
+    - node.type.coffee_bean
+id: node.brew_recipe.field_coffee_bean_ref
+field_name: field_coffee_bean_ref
+entity_type: node
+bundle: brew_recipe
+label: 'Coffee Bean'
+description: 'The coffee bean this recipe is for'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      coffee_bean: coffee_bean
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

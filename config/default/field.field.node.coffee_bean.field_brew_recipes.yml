@@ -1,0 +1,27 @@
+uuid: s8pk0o r7-nt6o-ip2r-qkaoS-thuvnd6pjr4t4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_coffee_bean_ref
+    - node.type.coffee_bean
+    - node.type.brew_recipe
+id: node.coffee_bean.field_brew_recipes
+field_name: field_coffee_bean_ref
+entity_type: node
+bundle: coffee_bean
+label: 'Available Brew Recipes'
+description: 'Brewing methods for this coffee bean'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      brew_recipe: brew_recipe
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

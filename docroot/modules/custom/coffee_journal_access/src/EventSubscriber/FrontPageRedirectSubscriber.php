@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * Redirects the front page based on authentication state.
  *
  * - Anonymous  → /user/login
- * - Authenticated → /my-coffees
+ * - Authenticated → / (Community feed, no redirect)
  *
  * This keeps the site.page.front setting at /node (the Drupal default)
  * and intercepts requests to '/' at the kernel.request level instead,
@@ -54,19 +54,15 @@ final class FrontPageRedirectSubscriber implements EventSubscriberInterface {
       return;
     }
 
-    if ($this->currentUser->isAuthenticated()) {
-      $destination = Url::fromRoute('view.coffee_journal.page_1')->toString();
-    }
-    else {
+    // Only redirect anonymous users to login. Authenticated users see the community feed at /.
+    if ($this->currentUser->isAnonymous()) {
       $destination = Url::fromRoute('user.login')->toString();
+      $response = new TrustedRedirectResponse($destination, 302);
+      // Vary the cache by user authentication state so both paths are cached separately.
+      $response->getCacheableMetadata()
+        ->addCacheContexts(['user.roles:authenticated']);
+      $event->setResponse($response);
     }
-
-    $response = new TrustedRedirectResponse($destination, 302);
-    // Vary the cache by user authentication state so both paths are cached separately.
-    $response->getCacheableMetadata()
-      ->addCacheContexts(['user.roles:authenticated']);
-
-    $event->setResponse($response);
   }
 
 }

@@ -679,4 +679,191 @@
     }
   };
 
+  // ── 7. GLOBAL FEED (Community Recipes) ───────────────────────────────────
+
+  Drupal.behaviors.cjGlobalFeed = {
+    attach: function (context) {
+      var feedContainer = once('cj-global-feed-init', '#cj-global-feed', context)[0];
+      if (!feedContainer) return;
+
+      var offset = 0;
+      var isLoading = false;
+      var hasMore = true;
+
+      /**
+       * Fetch recipes from JSON:API with optional filters.
+       */
+      function fetchRecipes(pageOffset) {
+        if (isLoading) return Promise.resolve([]);
+        isLoading = true;
+
+        var url = '/jsonapi/node/brew_recipe?' +
+          'filter[visibility][condition][path]=field_is_public' +
+          '&filter[visibility][condition][value]=1' +
+          '&sort=-created' +
+          '&include=uid,field_coffee_bean_ref,field_community_notes' +
+          '&page[limit]=20' +
+          '&page[offset]=' + pageOffset;
+
+        return fetch(url, {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: {
+            'Accept': 'application/vnd.api+json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        })
+          .then(function (response) {
+            if (!response.ok) throw new Error('Failed to fetch recipes');
+            return response.json();
+          })
+          .then(function (data) {
+            isLoading = false;
+            return data.data || [];
+          })
+          .catch(function (error) {
+            console.error('Error fetching recipes:', error);
+            isLoading = false;
+            return [];
+          });
+      }
+
+      /**
+       * Render a single recipe card.
+       */
+      function renderRecipeCard(recipe) {
+        var attrs = recipe.attributes || {};
+        var uid = recipe.relationships && recipe.relationships.uid
+          ? recipe.relationships.uid.data
+          : null;
+
+        var html = '<article class="cj-recipe-card" data-recipe-id="' + recipe.id + '">' +
+          '<div class="cj-recipe-card__header">' +
+          '<h3 class="cj-recipe-card__title">' +
+          '<a href="/node/' + recipe.id.split('--')[1] + '">' + 
+          (attrs.title || 'Untitled Recipe') +
+          '</a></h3>';
+
+        if (uid) {
+          html += '<p class="cj-recipe-card__author">by ' + uid.id + '</p>';
+        }
+
+        html += '</div>' +
+          '<div class="cj-recipe-card__body">' +
+          '<div class="cj-recipe-info">';
+
+        if (attrs.field_method) {
+          html += '<div class="cj-recipe-field">' +
+            '<strong class="cj-recipe-label">Method:</strong> ' +
+            '<span class="cj-recipe-value">' + attrs.field_method + '</span>' +
+            '</div>';
+        }
+
+        if (attrs.field_coffee_weight) {
+          html += '<div class="cj-recipe-field">' +
+            '<strong class="cj-recipe-label">Coffee:</strong> ' +
+            '<span class="cj-recipe-value">' + attrs.field_coffee_weight + 'g</span>' +
+            '</div>';
+        }
+
+        if (attrs.field_water_weight) {
+          html += '<div class="cj-recipe-field">' +
+            '<strong class="cj-recipe-label">Water:</strong> ' +
+            '<span class="cj-recipe-value">' + attrs.field_water_weight + 'g</span>' +
+            '</div>';
+        }
+
+        if (attrs.field_coffee_weight && attrs.field_water_weight) {
+          var ratio = (attrs.field_water_weight / attrs.field_coffee_weight).toFixed(2);
+          html += '<div class="cj-recipe-field">' +
+            '<strong class="cj-recipe-label">Ratio:</strong> ' +
+            '<span class="cj-recipe-value">1:' + ratio + '</span>' +
+            '</div>';
+        }
+
+        html += '</div>' +
+          '<div class="cj-recipe-card__meta">' +
+          '<p class="cj-recipe-comments">💬 0</p>' +
+          '</div>' +
+          '</div>' +
+          '<div class="cj-recipe-card__footer">' +
+          '<a href="/node/' + recipe.id.split('--')[1] + '" class="cj-recipe-card__link">View Recipe</a>' +
+          '</div>' +
+          '</article>';
+
+        return html;
+      }
+
+      /**
+       * Load and render recipes.
+       */
+      function loadRecipes(pageOffset) {
+        if (!hasMore) return;
+
+        fetchRecipes(pageOffset).then(function (recipes) {
+          if (recipes.length === 0) {
+            hasMore = false;
+            if (offset === 0) {
+              feedContainer.innerHTML = '<p class="cj-feed-empty">No recipes shared yet.</p>';
+            }
+            return;
+          }
+
+          recipes.forEach(function (recipe) {
+            var card = document.createElement('div');
+            card.innerHTML = renderRecipeCard(recipe);
+            feedContainer.appendChild(card.firstChild);
+          });
+
+          offset += recipes.length;
+        });
+      }
+
+      // Initial load
+      loadRecipes(0);
+
+      // Load more button handler
+      var loadMoreBtn = document.getElementById('cj-load-more');
+      if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function () {
+          loadRecipes(offset);
+        });
+      }
+    }
+  };
+
+  // ── 8. SIDEBAR NAVIGATION ────────────────────────────────────────────────
+
+  Drupal.behaviors.cjSidebarNav = {
+    attach: function (context) {
+      var navToggle = once('cj-nav-toggle-init', '#cj-nav-toggle', context)[0];
+      var navMenu = document.getElementById('cj-nav-menu');
+
+      if (!navToggle || !navMenu) return;
+
+      navToggle.addEventListener('click', function () {
+        var isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
+        navToggle.setAttribute('aria-expanded', !isExpanded);
+        navMenu.setAttribute('aria-hidden', isExpanded);
+      });
+
+      // Close menu when a link is clicked (mobile UX)
+      navMenu.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          navToggle.setAttribute('aria-expanded', 'false');
+          navMenu.setAttribute('aria-hidden', 'true');
+        });
+      });
+
+      // Close menu on outside click
+      document.addEventListener('click', function (e) {
+        var isClickInsideNav = navToggle.contains(e.target) || navMenu.contains(e.target);
+        if (!isClickInsideNav && navToggle.getAttribute('aria-expanded') === 'true') {
+          navToggle.setAttribute('aria-expanded', 'false');
+          navMenu.setAttribute('aria-hidden', 'true');
+        }
+      });
+    }
+  };
+
 })(Drupal, drupalSettings, once);

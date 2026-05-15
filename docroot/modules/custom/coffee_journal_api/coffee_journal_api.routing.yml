@@ -24,3 +24,12 @@ coffee_journal_api.user_me:
   requirements:
     _user_is_logged_in: 'TRUE'
   methods: [GET]
+
+coffee_journal_api.global_feed:
+  path: '/'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\FeedController::globalFeed'
+    _title: 'Global Feed'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'

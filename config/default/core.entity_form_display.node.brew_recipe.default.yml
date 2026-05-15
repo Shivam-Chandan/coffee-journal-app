@@ -1,0 +1,74 @@
+uuid: p5mh7l o4-kq3l-fm9o-nh7pl-qersak3mgo1q1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.brew_recipe.field_coffee_bean_ref
+    - field.field.node.brew_recipe.field_method
+    - field.field.node.brew_recipe.field_coffee_weight
+    - field.field.node.brew_recipe.field_water_weight
+    - field.field.node.brew_recipe.field_is_public
+    - field.field.node.brew_recipe.field_community_notes
+    - node.type.brew_recipe
+  module:
+    - comment
+id: node.brew_recipe.default
+targetEntityType: node
+bundle: brew_recipe
+mode: default
+content:
+  title:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: 'e.g. My Perfect V60'
+    third_party_settings: {  }
+  field_coffee_bean_ref:
+    type: entity_reference_autocomplete
+    weight: 1
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: 'Search for a coffee bean...'
+    third_party_settings: {  }
+  field_method:
+    type: string_textfield
+    weight: 2
+    region: content
+    settings:
+      size: 60
+      placeholder: 'e.g. V60, French Press, Espresso'
+    third_party_settings: {  }
+  field_coffee_weight:
+    type: number
+    weight: 3
+    region: content
+    settings:
+      placeholder: '18'
+    third_party_settings: {  }
+  field_water_weight:
+    type: number
+    weight: 4
+    region: content
+    settings:
+      placeholder: '300'
+    third_party_settings: {  }
+  field_is_public:
+    type: boolean_checkbox
+    weight: 5
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  created: true
+  field_community_notes: true
+  langcode: true
+  path: true
+  promote: true
+  status: true
+  sticky: true
+  uid: true

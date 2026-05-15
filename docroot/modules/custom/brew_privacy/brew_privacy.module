@@ -9,12 +9,16 @@ use Drupal\node\NodeInterface;
  * Implements hook_node_access_records().
  */
 function brew_privacy_node_access_records(NodeInterface $node): array {
-  if ($node->bundle() !== 'coffee_bean' || $node->isNew()) {
+  $bundle = $node->bundle();
+  
+  // Apply privacy rules to both coffee_bean and brew_recipe nodes
+  if (!in_array($bundle, ['coffee_bean', 'brew_recipe'], TRUE) || $node->isNew()) {
     return [];
   }
 
   $records = [];
   $is_public = (bool) $node->get('field_is_public')->value;
+  
   if ($is_public) {
     $records[] = [
       'realm' => 'brew_privacy_public',

@@ -1,0 +1,55 @@
+{#
+/**
+ * Mobile-friendly sidebar navigation component.
+ *
+ * Variables:
+ *   - current_page: The current page ('feed', 'my-coffees', 'profile')
+ */
+#}
+
+<nav id="cj-sidebar-nav" 
+     class="cj-sidebar-nav" 
+     role="navigation" 
+     aria-label="{{ 'Main navigation'|t }}">
+
+  {# Mobile menu toggle button #}
+  <button id="cj-nav-toggle" 
+          class="cj-nav-toggle" 
+          aria-label="{{ 'Open navigation menu'|t }}"
+          aria-expanded="false"
+          aria-controls="cj-nav-menu">
+    <span aria-hidden="true">☰</span>
+  </button>
+
+  {# Navigation menu #}
+  <div id="cj-nav-menu" class="cj-nav-menu" aria-hidden="true">
+    <ul class="cj-nav-list">
+      <li class="cj-nav-item {% if current_page == 'feed' %}active{% endif %}">
+        <a href="{{ path('<front>') }}" 
+           class="cj-nav-link"
+           {% if current_page == 'feed' %}aria-current="page"{% endif %}>
+          <span class="cj-nav-icon" aria-hidden="true">☕</span>
+          <span class="cj-nav-label">{{ 'Global Feed'|t }}</span>
+        </a>
+      </li>
+
+      <li class="cj-nav-item {% if current_page == 'my-coffees' %}active{% endif %}">
+        <a href="{{ path('view.coffee_journal.page_1') }}" 
+           class="cj-nav-link"
+           {% if current_page == 'my-coffees' %}aria-current="page"{% endif %}>
+          <span class="cj-nav-icon" aria-hidden="true">📔</span>
+          <span class="cj-nav-label">{{ 'My Coffees'|t }}</span>
+        </a>
+      </li>
+
+      <li class="cj-nav-item {% if current_page == 'profile' %}active{% endif %}">
+        <a href="{{ path('coffee_journal_access.profile') }}" 
+           class="cj-nav-link"
+           {% if current_page == 'profile' %}aria-current="page"{% endif %}>
+          <span class="cj-nav-icon" aria-hidden="true">👤</span>
+          <span class="cj-nav-label">{{ 'Profile'|t }}</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>

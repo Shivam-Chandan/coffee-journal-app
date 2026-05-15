@@ -1,0 +1,11 @@
+uuid: b2c4a8f1-7d92-4e5c-9f8a-c1e3d5f9a2b8
+langcode: en
+status: true
+dependencies: {  }
+name: 'Brew Recipe'
+type: brew_recipe
+description: 'A brewing method for a coffee bean, sharable on the community feed.'
+help: null
+new_revision: false
+preview_mode: 0
+display_submitted: false

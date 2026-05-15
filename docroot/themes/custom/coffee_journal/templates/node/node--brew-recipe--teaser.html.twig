@@ -1,0 +1,83 @@
+{#
+/**
+ * Template for brew_recipe node in teaser view mode.
+ *
+ * This displays a card with the brew recipe details, typically
+ * rendered on the global community feed.
+ *
+ * Variables:
+ *   - node: The brew_recipe node object
+ *   - attributes: HTML attributes for the outer wrapper
+ *   - content: Rendered field content
+ */
+#}
+
+<article{{ attributes.addClass('cj-recipe-card') }}>
+  <div class="cj-recipe-card__header">
+    <h3 class="cj-recipe-card__title">
+      <a href="{{ node.url }}">{{ node.label }}</a>
+    </h3>
+    <p class="cj-recipe-card__author">
+      {% if node.uid.entity %}
+        {{ 'by'|t }}
+        <a href="{{ node.uid.entity.url }}">{{ node.uid.entity.field_display_name.value|default(node.uid.entity.name.value) }}</a>
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="cj-recipe-card__body">
+    <div class="cj-recipe-info">
+      {% if node.field_method.value %}
+        <div class="cj-recipe-field">
+          <strong class="cj-recipe-label">{{ 'Method'|t }}:</strong>
+          <span class="cj-recipe-value">{{ node.field_method.value }}</span>
+        </div>
+      {% endif %}
+
+      {% if node.field_coffee_weight.value %}
+        <div class="cj-recipe-field">
+          <strong class="cj-recipe-label">{{ 'Coffee'|t }}:</strong>
+          <span class="cj-recipe-value">{{ node.field_coffee_weight.value }}g</span>
+        </div>
+      {% endif %}
+
+      {% if node.field_water_weight.value %}
+        <div class="cj-recipe-field">
+          <strong class="cj-recipe-label">{{ 'Water'|t }}:</strong>
+          <span class="cj-recipe-value">{{ node.field_water_weight.value }}g</span>
+        </div>
+      {% endif %}
+
+      {# Calculate and display brew ratio #}
+      {% if node.field_coffee_weight.value and node.field_water_weight.value %}
+        {% set ratio = (node.field_water_weight.value / node.field_coffee_weight.value)|round(2) %}
+        <div class="cj-recipe-field">
+          <strong class="cj-recipe-label">{{ 'Ratio'|t }}:</strong>
+          <span class="cj-recipe-value">1:{{ ratio }}</span>
+        </div>
+      {% endif %}
+
+      {% if node.field_coffee_bean_ref.entity %}
+        <div class="cj-recipe-field">
+          <strong class="cj-recipe-label">{{ 'Coffee Bean'|t }}:</strong>
+          <a href="{{ node.field_coffee_bean_ref.entity.url }}" class="cj-recipe-link">
+            {{ node.field_coffee_bean_ref.entity.label }}
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    {# Comment count #}
+    <div class="cj-recipe-card__meta">
+      <p class="cj-recipe-comments">
+        <span aria-label="{{ 'Number of comments'|t }}">
+          💬 {{ node.get('field_community_notes').comment_count|default(0) }}
+        </span>
+      </p>
+    </div>
+  </div>
+
+  <div class="cj-recipe-card__footer">
+    <a href="{{ node.url }}" class="cj-recipe-card__link">{{ 'View Recipe'|t }}</a>
+  </div>
+</article>

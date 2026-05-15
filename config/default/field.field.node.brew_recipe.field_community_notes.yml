@@ -1,0 +1,27 @@
+uuid: o4lg6k n3-jp2k-el8n-mg6ok-pdqrj2lfn7p0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_community_notes
+    - node.type.brew_recipe
+    - comment.type.brew_recipe_notes
+  module:
+    - comment
+id: node.brew_recipe.field_community_notes
+field_name: field_community_notes
+entity_type: node
+bundle: brew_recipe
+label: 'Community Notes'
+description: 'Comments and feedback from other users'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  default_mode: 1
+  per_page: 50
+  anonymous: 0
+  form_location: true
+  preview: 1
+field_type: comment
