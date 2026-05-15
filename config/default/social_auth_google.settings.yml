@@ -1,3 +1,4 @@
 client_id: FILTERED_CLIENT_ID
 client_secret: FILTERED_SECRET
 scopes: 'email profile'
+endpoints: 'https://www.googleapis.com/oauth2/v2/userinfo'
