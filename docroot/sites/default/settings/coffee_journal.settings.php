@@ -15,8 +15,7 @@
  */
 
 // ── Google OAuth (Social Auth Google) ──────────────────────────────────────
-// Only override when env vars are present (Acquia Cloud environments).
-// Locally, credentials are read directly from config/default/social_auth_google.settings.yml.
+// Maps Acquia env vars to the social_auth_google config object.
 if (getenv('GOOGLE_CLIENT_ID')) {
   $config['social_auth_google.settings']['client_id'] = getenv('GOOGLE_CLIENT_ID');
 }
@@ -25,5 +24,6 @@ if (getenv('GOOGLE_CLIENT_SECRET')) {
 }
 
 // ── Trusted host patterns ───────────────────────────────────────────────────
+// Acquia sets SERVER_NAME; add any custom domains here.
 $settings['trusted_host_patterns'][] = '^.+\.acquia-sites\.com$';
 $settings['trusted_host_patterns'][] = '^eeschandan1(dev|test)?\.prod\.acquia-sites\.com$';
