@@ -1,0 +1,8 @@
+coffee_journal_access.profile:
+  path: '/user/profile'
+  defaults:
+    _controller: '\Drupal\coffee_journal_access\Controller\ProfileController::profile'
+    _title: 'Manage profile'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [GET]

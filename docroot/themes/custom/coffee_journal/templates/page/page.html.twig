@@ -23,6 +23,11 @@
         </a>
 
         <div class="cj-topbar-right">
+          {% if logged_in %}
+            <a href="{{ path('coffee_journal_access.profile') }}" class="cj-topbar-link">
+              {{ 'Manage profile'|t }}
+            </a>
+          {% endif %}
           {# User account menu block is placed here via block layout #}
           {{ page.topbar }}
 
