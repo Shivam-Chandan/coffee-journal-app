@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Drupal\coffee_journal_api\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Routing\TrustedRedirectResponse;
+use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -27,6 +29,12 @@ final class FeedController extends ControllerBase {
    * vanilla JS Drupal behavior via JSON:API queries.
    */
   public function globalFeed() {
+    // Redirect anonymous users to login
+    if ($this->currentUser()->isAnonymous()) {
+      $destination = Url::fromRoute('user.login')->toString();
+      return new TrustedRedirectResponse($destination, 302);
+    }
+
     return [
       '#type' => 'container',
       '#attributes' => [
