@@ -25,6 +25,9 @@ final class FeedController extends ControllerBase {
    * Renders the global community feed page.
    */
   public function globalFeed() {
+    // Log that controller was called
+    \Drupal::logger('coffee_journal_api')->info('FeedController::globalFeed() called for path: ' . \Drupal::request()->getPathInfo());
+    
     $nav_html = <<<HTML
 <nav id="cj-sidebar-nav" class="cj-sidebar-nav" role="navigation" aria-label="Main navigation">
   <button id="cj-nav-toggle" class="cj-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="cj-nav-menu">
