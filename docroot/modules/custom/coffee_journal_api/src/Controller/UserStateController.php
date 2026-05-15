@@ -26,7 +26,7 @@ final class UserStateController extends ControllerBase {
    * Returns the current user's profile data as a JSON response.
    */
   public function me(): JsonResponse {
-    $account = $this->currentUser;
+    $account = $this->currentUser();
 
     /** @var \Drupal\user\UserInterface|null $user */
     $user = $this->entityTypeManager()
@@ -38,7 +38,7 @@ final class UserStateController extends ControllerBase {
     }
 
     $picture_url = NULL;
-    if (!$user->get('field_profile_picture')->isEmpty()) {
+    if ($user->hasField('field_profile_picture') && !$user->get('field_profile_picture')->isEmpty()) {
       /** @var \Drupal\file\FileInterface $file */
       $file = $user->get('field_profile_picture')->entity;
       if ($file) {
@@ -55,12 +55,12 @@ final class UserStateController extends ControllerBase {
       'created'         => (int) $user->getCreatedTime(),
       'last_login'      => (int) $user->getLastLoginTime(),
       'picture_url'     => $picture_url,
-      'bio'             => $user->get('field_bio')->isEmpty()
-                             ? NULL
-                             : (string) $user->get('field_bio')->value,
-      'experience_level' => $user->get('field_experience_level')->isEmpty()
-                              ? NULL
-                              : (string) $user->get('field_experience_level')->value,
+      'bio'             => $user->hasField('field_bio') && !$user->get('field_bio')->isEmpty()
+                             ? (string) $user->get('field_bio')->value
+                             : NULL,
+      'experience_level' => $user->hasField('field_experience_level') && !$user->get('field_experience_level')->isEmpty()
+                              ? (string) $user->get('field_experience_level')->value
+                              : NULL,
     ];
 
     return new JsonResponse($data);

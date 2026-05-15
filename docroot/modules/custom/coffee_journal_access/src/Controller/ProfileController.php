@@ -48,7 +48,7 @@ final class ProfileController extends ControllerBase {
 
     // Get profile picture URL if available.
     $picture_url = NULL;
-    if (!$user->get('field_profile_picture')->isEmpty()) {
+    if ($user->hasField('field_profile_picture') && !$user->get('field_profile_picture')->isEmpty()) {
       /** @var \Drupal\file\FileInterface|null $file */
       $file = $user->get('field_profile_picture')->entity;
       if ($file) {
@@ -65,12 +65,12 @@ final class ProfileController extends ControllerBase {
       'created'          => $user->getCreatedTime(),
       'last_login'       => $user->getLastLoginTime(),
       'picture_url'      => $picture_url,
-      'bio'              => $user->get('field_bio')->isEmpty()
-                              ? NULL
-                              : (string) $user->get('field_bio')->value,
-      'experience_level' => $user->get('field_experience_level')->isEmpty()
-                              ? NULL
-                              : (string) $user->get('field_experience_level')->value,
+      'bio'              => $user->hasField('field_bio') && !$user->get('field_bio')->isEmpty()
+                              ? (string) $user->get('field_bio')->value
+                              : NULL,
+      'experience_level' => $user->hasField('field_experience_level') && !$user->get('field_experience_level')->isEmpty()
+                              ? (string) $user->get('field_experience_level')->value
+                              : NULL,
       'roles'            => array_diff($user->getRoles(), ['authenticated']),
     ];
 
