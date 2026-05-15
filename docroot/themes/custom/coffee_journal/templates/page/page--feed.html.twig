@@ -26,8 +26,11 @@
     <div id="cj-app" class="cj-app-with-sidebar">
 
       {# ── SIDEBAR NAVIGATION ─────────────────────────────────────────────── #}
+      <!-- DEBUG: page.sidebar_nav = {{ page.sidebar_nav|json_encode }} -->
       {% if page.sidebar_nav %}
         {{ page.sidebar_nav }}
+      {% else %}
+        <!-- DEBUG: sidebar_nav is empty/null -->
       {% endif %}
 
       <div class="cj-main-content">

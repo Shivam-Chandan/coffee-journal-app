@@ -48,7 +48,10 @@ function coffee_journal_preprocess_page(&$variables) {
   
   // Inject sidebar nav on global feed route
   $route = \Drupal::routeMatch()->getRouteName();
+  \Drupal::logger('coffee_journal_theme')->info('preprocess_page route: ' . $route);
+  
   if ($route === 'coffee_journal_api.global_feed') {
+    \Drupal::logger('coffee_journal_theme')->info('Setting sidebar_nav for feed route');
     $nav_html = <<<HTML
 <nav id="cj-sidebar-nav" class="cj-sidebar-nav" role="navigation" aria-label="Main navigation">
   <button id="cj-nav-toggle" class="cj-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="cj-nav-menu">

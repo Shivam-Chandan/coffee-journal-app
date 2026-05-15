@@ -25,25 +25,57 @@ final class FeedController extends ControllerBase {
    * Renders the global community feed page.
    */
   public function globalFeed() {
-    $feed_html = <<<HTML
-<div class="cj-page-inner">
-  <section class="cj-feed-section">
-    <h1 class="cj-feed-title">Community Feed</h1>
-    <div id="cj-feed-loading" class="cj-feed-loading" aria-hidden="true">
-      <span class="cj-loading-spinner"></span>
-      <p>Loading recipes…</p>
+    $html = <<<HTML
+<div class="cj-app-with-sidebar">
+  <nav id="cj-sidebar-nav" class="cj-sidebar-nav" role="navigation" aria-label="Main navigation">
+    <button id="cj-nav-toggle" class="cj-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="cj-nav-menu">
+      <span aria-hidden="true">☰</span>
+    </button>
+    <div id="cj-nav-menu" class="cj-nav-menu" aria-hidden="true">
+      <ul class="cj-nav-list">
+        <li class="cj-nav-item active">
+          <a href="/feed" class="cj-nav-link" aria-current="page">
+            <span class="cj-nav-icon" aria-hidden="true">☕</span>
+            <span class="cj-nav-label">Global Feed</span>
+          </a>
+        </li>
+        <li class="cj-nav-item">
+          <a href="/my-coffees" class="cj-nav-link">
+            <span class="cj-nav-icon" aria-hidden="true">📔</span>
+            <span class="cj-nav-label">My Coffees</span>
+          </a>
+        </li>
+        <li class="cj-nav-item">
+          <a href="/user/profile" class="cj-nav-link">
+            <span class="cj-nav-icon" aria-hidden="true">👤</span>
+            <span class="cj-nav-label">Profile</span>
+          </a>
+        </li>
+      </ul>
     </div>
-    <div id="cj-global-feed" class="cj-global-feed"></div>
-    <div class="cj-feed-actions">
-      <button id="cj-load-more" class="cj-load-more-btn" aria-label="Load more recipes">Load More</button>
+  </nav>
+
+  <div class="cj-main-content">
+    <div class="cj-page-inner">
+      <section class="cj-feed-section">
+        <h1 class="cj-feed-title">Community Feed</h1>
+        <div id="cj-feed-loading" class="cj-feed-loading" aria-hidden="true">
+          <span class="cj-loading-spinner"></span>
+          <p>Loading recipes…</p>
+        </div>
+        <div id="cj-global-feed" class="cj-global-feed"></div>
+        <div class="cj-feed-actions">
+          <button id="cj-load-more" class="cj-load-more-btn" aria-label="Load more recipes">Load More</button>
+        </div>
+      </section>
     </div>
-  </section>
+  </div>
 </div>
 HTML;
 
     return [
       '#type' => 'markup',
-      '#markup' => $feed_html,
+      '#markup' => $html,
       '#attached' => [
         'library' => [
           'coffee_journal/app',

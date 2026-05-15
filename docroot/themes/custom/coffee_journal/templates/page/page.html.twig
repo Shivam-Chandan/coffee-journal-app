@@ -13,7 +13,39 @@
     #}
     {{ page_top }}
 
-    <div id="cj-app">
+    <!-- COFFEE_JOURNAL_PAGE_TEMPLATE_LOADED -->
+    <div id="cj-app" class="cj-app-with-sidebar">
+
+      {# ── SIDEBAR NAVIGATION ─────────────────────────────────────────────── #}
+      <nav id="cj-sidebar-nav" class="cj-sidebar-nav" role="navigation" aria-label="Main navigation">
+        <button id="cj-nav-toggle" class="cj-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="cj-nav-menu">
+          <span aria-hidden="true">☰</span>
+        </button>
+        <div id="cj-nav-menu" class="cj-nav-menu" aria-hidden="true">
+          <ul class="cj-nav-list">
+            <li class="cj-nav-item active">
+              <a href="/feed" class="cj-nav-link" aria-current="page">
+                <span class="cj-nav-icon" aria-hidden="true">☕</span>
+                <span class="cj-nav-label">Global Feed</span>
+              </a>
+            </li>
+            <li class="cj-nav-item">
+              <a href="/my-coffees" class="cj-nav-link">
+                <span class="cj-nav-icon" aria-hidden="true">📔</span>
+                <span class="cj-nav-label">My Coffees</span>
+              </a>
+            </li>
+            <li class="cj-nav-item">
+              <a href="/user/profile" class="cj-nav-link">
+                <span class="cj-nav-icon" aria-hidden="true">👤</span>
+                <span class="cj-nav-label">Profile</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="cj-main-content">
 
       {# ── TOP BAR ─────────────────────────────────────────────────────── #}
       <header id="cj-topbar" role="banner">
@@ -55,6 +87,8 @@
           {{ page.content }}
         </div>
       </main>
+
+      </div>{# end .cj-main-content #}
 
     </div>{# end #cj-app #}
 
