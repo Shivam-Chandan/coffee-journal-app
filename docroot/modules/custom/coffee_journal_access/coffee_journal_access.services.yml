@@ -1,10 +1,8 @@
 services:
 
-  # Disabled: The FrontPageRedirectSubscriber is no longer needed.
-  # The FeedController at / serves as the homepage directly.
-  # coffee_journal_access.front_page_redirect:
-  #   class: Drupal\coffee_journal_access\EventSubscriber\FrontPageRedirectSubscriber
-  #   arguments:
-  #     - '@current_user'
-  #   tags:
-  #     - { name: event_subscriber }
+  coffee_journal_access.front_page_redirect:
+    class: Drupal\coffee_journal_access\EventSubscriber\FrontPageRedirectSubscriber
+    arguments:
+      - '@current_user'
+    tags:
+      - { name: event_subscriber }
