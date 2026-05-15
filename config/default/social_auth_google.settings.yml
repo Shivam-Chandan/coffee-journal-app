@@ -1,2 +1,3 @@
 client_id: FILTERED_CLIENT_ID
 client_secret: FILTERED_SECRET
+scopes: 'email profile'
