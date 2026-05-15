@@ -1,0 +1,23 @@
+uuid: 79e2cdc5-67fc-4cc6-9a5b-590df83ae584
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_is_public
+    - node.type.brew_recipe
+id: node.brew_recipe.field_is_public
+field_name: field_is_public
+entity_type: node
+bundle: brew_recipe
+label: Public
+description: ''
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

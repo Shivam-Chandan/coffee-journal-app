@@ -1,7 +1,7 @@
 _core:
   default_config_hash: 0E8z47ONguVcapiw1PGWDRs6g0NRDCzrym4mP_jcELU
 auth: {  }
-post_login: /my-coffees
+post_login: /feed
 user_allowed: register
 redirect_user_form: false
 disable_admin_login: true

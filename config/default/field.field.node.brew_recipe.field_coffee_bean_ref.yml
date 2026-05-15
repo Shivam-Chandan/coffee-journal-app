@@ -1,0 +1,24 @@
+uuid: bf731120-ce63-4318-87de-71dd12b2c22d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_coffee_bean_ref
+    - node.type.brew_recipe
+    - node.type.coffee_bean
+id: node.brew_recipe.field_coffee_bean_ref
+field_name: field_coffee_bean_ref
+entity_type: node
+bundle: brew_recipe
+label: 'Coffee Bean'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      coffee_bean: coffee_bean
+field_type: entity_reference

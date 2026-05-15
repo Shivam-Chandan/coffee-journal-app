@@ -1,0 +1,23 @@
+uuid: 823740cc-3bdd-434c-a973-d9916d9f5c5b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_coffee_weight
+    - node.type.brew_recipe
+id: node.brew_recipe.field_coffee_weight
+field_name: field_coffee_weight
+entity_type: node
+bundle: brew_recipe
+label: 'Coffee Weight (g)'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: decimal

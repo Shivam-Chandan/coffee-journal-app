@@ -1,0 +1,19 @@
+uuid: 1730b57a-ff51-4b15-8eb3-4f463f0895f8
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_brew_method
+    - node.type.brew_recipe
+id: node.brew_recipe.field_brew_method
+field_name: field_brew_method
+entity_type: node
+bundle: brew_recipe
+label: 'Brew Method'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,23 @@
+uuid: acaeae4c-1095-4619-b619-6079aa970d7e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_water_weight
+    - node.type.brew_recipe
+id: node.brew_recipe.field_water_weight
+field_name: field_water_weight
+entity_type: node
+bundle: brew_recipe
+label: 'Water Weight (g)'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: decimal

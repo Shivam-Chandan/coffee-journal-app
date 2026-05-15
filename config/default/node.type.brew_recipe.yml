@@ -1,0 +1,11 @@
+uuid: 9d90d7b0-fd06-4936-9bd9-6b93680d961e
+langcode: en
+status: true
+dependencies: {  }
+name: 'Brew Recipe'
+type: brew_recipe
+description: 'A community brew recipe shared by users.'
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

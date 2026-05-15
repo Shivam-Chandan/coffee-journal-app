@@ -1,0 +1,22 @@
+uuid: 3d6a5825-66ff-4762-8de5-08ba48552e8a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_community_notes
+    - node.type.brew_recipe
+  module:
+    - text
+id: node.brew_recipe.field_community_notes
+field_name: field_community_notes
+entity_type: node
+bundle: brew_recipe
+label: 'Tasting Notes'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

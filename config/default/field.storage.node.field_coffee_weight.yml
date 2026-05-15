@@ -1,0 +1,20 @@
+uuid: bb2c3a53-17e1-4829-acbc-4a9db729304a
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_coffee_weight
+field_name: field_coffee_weight
+entity_type: node
+type: decimal
+settings:
+  precision: 10
+  scale: 1
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

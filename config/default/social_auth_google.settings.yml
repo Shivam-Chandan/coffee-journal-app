@@ -1,16 +1,10 @@
 langcode: en
+client_id: FILTERED_CLIENT_ID
+client_secret: FILTERED_SECRET
+scopes: 'email profile'
+endpoints: ''
 status: true
 dependencies:
   module:
     - social_auth_google
 id: social_auth_google.settings
-client_id: ''
-client_secret: ''
-# NOTE: These values are intentionally empty here.
-# The real values are injected at runtime via settings.php overrides
-# reading from Acquia environment variables:
-#   $config['social_auth_google.settings']['client_id'] = getenv('GOOGLE_CLIENT_ID');
-#   $config['social_auth_google.settings']['client_secret'] = getenv('GOOGLE_CLIENT_SECRET');
-# Set those env vars in the Acquia Cloud UI for each environment.
-scopes: 'email profile'
-endpoints: ''
