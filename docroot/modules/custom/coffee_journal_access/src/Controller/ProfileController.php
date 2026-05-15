@@ -7,27 +7,38 @@ namespace Drupal\coffee_journal_access\Controller;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 final class ProfileController extends ControllerBase {
 
   public function __construct(
+    private readonly AccountInterface $currentUser,
     private readonly DateFormatterInterface $dateFormatter,
   ) {}
 
   public static function create(ContainerInterface $container): static {
     return new static(
+      $container->get('current_user'),
       $container->get('date.formatter'),
     );
   }
 
   public function profile(): array {
+    $uid = $this->currentUser->id();
+    
+    if (!$uid) {
+      return [
+        '#markup' => $this->t('You must be logged in to view this page.'),
+      ];
+    }
+
     // Load the full User entity to access getLastLoginTime().
     /** @var \Drupal\user\UserInterface|null $user */
     $user = $this->entityTypeManager()
       ->getStorage('user')
-      ->load($this->currentUser->id());
+      ->load($uid);
 
     if (!$user instanceof UserInterface) {
       return [
