@@ -32,4 +32,4 @@ coffee_journal_api.global_feed:
     _title: 'Global Feed'
   methods: [GET]
   requirements:
-    _access: 'TRUE'
+    _user_is_logged_in: 'TRUE'

@@ -23,23 +23,64 @@ final class FeedController extends ControllerBase {
 
   /**
    * Renders the global community feed page.
-   *
-   * This page displays publicly shared brew recipes from the community.
-   * The actual data fetching and rendering is handled by the cjGlobalFeed
-   * vanilla JS Drupal behavior via JSON:API queries.
    */
   public function globalFeed() {
-    // Redirect anonymous users to login
-    if ($this->currentUser()->isAnonymous()) {
-      $destination = Url::fromRoute('user.login')->toString();
-      return new TrustedRedirectResponse($destination, 302);
-    }
+    // At this point, the route requirement _user_is_logged_in ensures the user
+    // is authenticated. If not, Drupal's permission system will redirect to login.
 
-    return [
+    // Return the content to be rendered by the page template
+    $build = [
       '#type' => 'container',
       '#attributes' => [
-        'id' => 'cj-feed-container',
-        'class' => ['cj-feed-page'],
+        'id' => 'cj-feed-page-wrapper',
+      ],
+      'sidebar_nav' => [
+        '#theme' => 'coffee_journal_sidebar_nav',
+        '#current_page' => 'feed',
+      ],
+      'content' => [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['cj-main-content'],
+        ],
+        'feed_section' => [
+          '#type' => 'container',
+          '#attributes' => [
+            'class' => ['cj-feed-section'],
+          ],
+          'title' => [
+            '#type' => 'html_tag',
+            '#tag' => 'h1',
+            '#attributes' => ['class' => ['cj-feed-title']],
+            '#value' => 'Community Feed',
+          ],
+          'loading' => [
+            '#type' => 'html_tag',
+            '#tag' => 'div',
+            '#attributes' => [
+              'id' => 'cj-feed-loading',
+              'class' => ['cj-feed-loading'],
+              'aria-hidden' => 'true',
+            ],
+            '#value' => '<span class="cj-loading-spinner"></span><p>Loading recipes…</p>',
+          ],
+          'feed' => [
+            '#type' => 'html_tag',
+            '#tag' => 'div',
+            '#attributes' => [
+              'id' => 'cj-global-feed',
+              'class' => ['cj-global-feed'],
+            ],
+          ],
+          'load_more' => [
+            '#type' => 'html_tag',
+            '#tag' => 'div',
+            '#attributes' => [
+              'class' => ['cj-feed-actions'],
+            ],
+            '#value' => '<button id="cj-load-more" class="cj-load-more-btn" aria-label="Load more recipes">Load More</button>',
+          ],
+        ],
       ],
       '#attached' => [
         'drupalSettings' => [
@@ -49,55 +90,9 @@ final class FeedController extends ControllerBase {
           ],
         ],
       ],
-      'sidebar' => [
-        '#type' => 'markup',
-        '#markup' => '<nav id="cj-sidebar-nav" class="cj-sidebar-nav" role="navigation" aria-label="Main navigation">
-          <button id="cj-nav-toggle" class="cj-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="cj-nav-menu">
-            <span aria-hidden="true">☰</span>
-          </button>
-          <div id="cj-nav-menu" class="cj-nav-menu" aria-hidden="true">
-            <ul class="cj-nav-list">
-              <li class="cj-nav-item active">
-                <a href="/" class="cj-nav-link" aria-current="page">
-                  <span class="cj-nav-icon" aria-hidden="true">☕</span>
-                  <span class="cj-nav-label">Global Feed</span>
-                </a>
-              </li>
-              <li class="cj-nav-item">
-                <a href="/my-coffees" class="cj-nav-link">
-                  <span class="cj-nav-icon" aria-hidden="true">📔</span>
-                  <span class="cj-nav-label">My Coffees</span>
-                </a>
-              </li>
-              <li class="cj-nav-item">
-                <a href="/user/profile" class="cj-nav-link">
-                  <span class="cj-nav-icon" aria-hidden="true">👤</span>
-                  <span class="cj-nav-label">Profile</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </nav>',
-      ],
-      'feed' => [
-        '#type' => 'container',
-        '#attributes' => [
-          'id' => 'cj-global-feed',
-          'class' => ['feed-container'],
-        ],
-        '#markup' => '<h1 class="cj-feed-title">Community Feed</h1>
-          <div id="cj-feed-loading" class="cj-feed-loading" aria-hidden="true">
-            <span class="cj-loading-spinner"></span>
-            <p>Loading recipes…</p>
-          </div>',
-      ],
-      'load_more' => [
-        '#type' => 'markup',
-        '#markup' => '<div class="cj-feed-actions">
-          <button id="cj-load-more" class="cj-load-more-btn" aria-label="Load more recipes">Load More</button>
-        </div>',
-      ],
     ];
+
+    return $build;
   }
 
 }

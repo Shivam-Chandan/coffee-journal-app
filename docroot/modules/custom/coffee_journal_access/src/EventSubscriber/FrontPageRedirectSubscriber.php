@@ -42,10 +42,20 @@ final class FrontPageRedirectSubscriber implements EventSubscriberInterface {
    * Redirect the front page (path '/') to the appropriate destination.
    */
   public function onRequest(RequestEvent $event): void {
-    // DISABLED: Let the feed route handle both anonymous and authenticated users.
-    // The route will show the feed for authenticated users and Drupal's normal
-    // permission system will handle access control.
-    return;
+    $request = $event->getRequest();
+
+    // Only intercept the exact front-page path.
+    if ($request->getPathInfo() !== '/') {
+      return;
+    }
+
+    // Sub-requests (AJAX, ESI) should not redirect.
+    if (!$event->isMainRequest()) {
+      return;
+    }
+
+    // Anonymous users are handled by the route requirement (_user_is_logged_in).
+    // No additional redirect logic needed here.
   }
 
 }
