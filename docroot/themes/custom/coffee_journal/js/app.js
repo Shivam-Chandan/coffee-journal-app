@@ -698,8 +698,7 @@
         isLoading = true;
 
         var url = '/jsonapi/node/brew_recipe?' +
-          'filter[visibility][condition][path]=field_is_public' +
-          '&filter[visibility][condition][value]=1' +
+          'filter[field_is_public]=1' +
           '&sort=-created' +
           '&include=uid,field_coffee_bean_ref,field_community_notes' +
           '&page[limit]=20' +
