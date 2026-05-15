@@ -1,3 +1,17 @@
+app:
+  version: VERSION
+  css:
+    theme:
+      css/coffee-theme.css: {}
+  js:
+    js/app.js: { preprocess: false }
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+    - core/drupal.announce
+    - core/drupal.message
+
 global:
   version: VERSION
   css:

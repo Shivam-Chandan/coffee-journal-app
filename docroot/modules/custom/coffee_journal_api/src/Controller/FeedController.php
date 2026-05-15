@@ -25,9 +25,6 @@ final class FeedController extends ControllerBase {
    * Renders the global community feed page.
    */
   public function globalFeed() {
-    // Debug: Log that this controller was called
-    \Drupal::logger('coffee_journal_api')->info('FeedController::globalFeed() called');
-    
     $nav_html = <<<HTML
 <nav id="cj-sidebar-nav" class="cj-sidebar-nav" role="navigation" aria-label="Main navigation">
   <button id="cj-nav-toggle" class="cj-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="cj-nav-menu">
@@ -36,7 +33,7 @@ final class FeedController extends ControllerBase {
   <div id="cj-nav-menu" class="cj-nav-menu" aria-hidden="true">
     <ul class="cj-nav-list">
       <li class="cj-nav-item active">
-        <a href="/feed" class="cj-nav-link" aria-current="page">
+        <a href="/" class="cj-nav-link" aria-current="page">
           <span class="cj-nav-icon" aria-hidden="true">☕</span>
           <span class="cj-nav-label">Global Feed</span>
         </a>
@@ -56,15 +53,34 @@ final class FeedController extends ControllerBase {
     </ul>
   </div>
 </nav>
+
+<div class="cj-main-content">
+  <main id="cj-main" role="main">
+    <a id="main-content" tabindex="-1"></a>
+    <div class="cj-page-inner">
+      <section class="cj-feed-section">
+        <h1 class="cj-feed-title">Community Feed</h1>
+        <div id="cj-feed-loading" class="cj-feed-loading" aria-hidden="true">
+          <span class="cj-loading-spinner"></span>
+          <p>Loading recipes…</p>
+        </div>
+        <div id="cj-global-feed" class="cj-global-feed"></div>
+        <div class="cj-feed-actions">
+          <button id="cj-load-more" class="cj-load-more-btn" aria-label="Load more recipes">Load More</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
 HTML;
 
-    $build = [
-      '#type' => 'page',
-      'sidebar_nav' => [
-        '#type' => 'markup',
-        '#markup' => $nav_html,
-      ],
+    return [
+      '#type' => 'markup',
+      '#markup' => $nav_html,
       '#attached' => [
+        'library' => [
+          'coffee_journal/app',
+        ],
         'drupalSettings' => [
           'coffeeJournal' => [
             'feedApiEndpoint' => '/jsonapi/node/brew_recipe',
@@ -73,8 +89,6 @@ HTML;
         ],
       ],
     ];
-
-    return $build;
   }
 
 }
