@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_node_access_records().
+ */
+function brew_privacy_node_access_records(NodeInterface $node): array {
+  if ($node->bundle() !== 'coffee_bean' || $node->isNew()) {
+    return [];
+  }
+
+  $records = [];
+  $is_public = (bool) $node->get('field_is_public')->value;
+  if ($is_public) {
+    $records[] = [
+      'realm' => 'brew_privacy_public',
+      'gid' => 1,
+      'grant_view' => 1,
+      'grant_update' => 0,
+      'grant_delete' => 0,
+    ];
+  }
+
+  $records[] = [
+    'realm' => 'brew_privacy_author',
+    'gid' => (int) $node->getOwnerId(),
+    'grant_view' => 1,
+    'grant_update' => 1,
+    'grant_delete' => 1,
+  ];
+
+  return $records;
+}
+
+/**
+ * Implements hook_node_grants().
+ */
+function brew_privacy_node_grants(AccountInterface $account, $op): array {
+  if ($op !== 'view' && $op !== 'update' && $op !== 'delete') {
+    return [];
+  }
+
+  $grants = [
+    'brew_privacy_public' => [1],
+  ];
+
+  if (!$account->isAnonymous()) {
+    $grants['brew_privacy_author'] = [(int) $account->id()];
+  }
+
+  return $grants;
+}

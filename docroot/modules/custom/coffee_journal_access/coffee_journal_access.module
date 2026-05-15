@@ -16,25 +16,16 @@ use Drupal\path_alias\Entity\PathAlias;
 
 /**
  * Implements hook_node_access().
+ *
+ * Let the brew_privacy node access records and grants manage coffee_bean
+ * visibility rules so private entries remain hidden by default.
  */
 function coffee_journal_access_node_access(NodeInterface $node, $op, AccountInterface $account) {
   if ($node->bundle() !== 'coffee_bean') {
     return AccessResult::neutral();
   }
 
-  if ($account->id() == 1) {
-    return AccessResult::neutral()->cachePerUser();
-  }
-
-  if ($account->isAnonymous()) {
-    return AccessResult::forbidden()->cachePerUser();
-  }
-
-  $is_owner = ((int) $node->getOwnerId() === (int) $account->id());
-
-  return $is_owner
-    ? AccessResult::allowed()->cachePerUser()->addCacheableDependency($node)
-    : AccessResult::forbidden()->cachePerUser()->addCacheableDependency($node);
+  return AccessResult::neutral();
 }
 
 // ── Form alterations ────────────────────────────────────────────────────────

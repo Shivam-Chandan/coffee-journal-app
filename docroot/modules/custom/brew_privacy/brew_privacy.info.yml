@@ -1,0 +1,8 @@
+name: 'Brew Privacy'
+type: module
+description: 'Provides privacy-aware access control for coffee_bean entries and JSON:API query enforcement.'
+package: Custom
+core_version_requirement: ^10.1 || ^11
+dependencies:
+  - drupal:node
+  - drupal:jsonapi

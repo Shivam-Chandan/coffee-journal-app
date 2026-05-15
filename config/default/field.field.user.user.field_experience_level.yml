@@ -1,0 +1,19 @@
+uuid: 33d4e4c2-8a54-4ff5-b5a6-884bfd80f3e1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_experience_level
+    - user.user
+id: user.user.field_experience_level
+field_name: field_experience_level
+entity_type: user
+bundle: user
+label: 'Experience level'
+description: 'Select the user’s coffee experience tier.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

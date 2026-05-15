@@ -1,0 +1,105 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Session\AccountInterface;
+use Drupal\file\Entity\File;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_user_login().
+ *
+ * Maps available Google profile data from the social auth session to the
+ * Drupal user account on first login.
+ */
+function coffee_journal_api_user_login(AccountInterface $account): void {
+  if (!$account instanceof UserInterface || $account->isAnonymous()) {
+    return;
+  }
+
+  $profile = _coffee_journal_api_get_social_auth_profile();
+  if (empty($profile) || !is_array($profile)) {
+    return;
+  }
+
+  $updated = FALSE;
+
+  if ($account->get('field_profile_picture')->isEmpty() && !empty($profile['picture']) && filter_var($profile['picture'], FILTER_VALIDATE_URL)) {
+    $file = _coffee_journal_api_save_remote_profile_image((string) $profile['picture']);
+    if ($file) {
+      $account->set('field_profile_picture', [
+        'target_id' => $file->id(),
+        'alt' => $account->getDisplayName() . ' profile picture',
+      ]);
+      $updated = TRUE;
+    }
+  }
+
+  if ($account->get('field_bio')->isEmpty() && !empty($profile['bio'])) {
+    $account->set('field_bio', [
+      'value' => (string) $profile['bio'],
+      'format' => 'plain_text',
+    ]);
+    $updated = TRUE;
+  }
+
+  if ($account->get('field_experience_level')->isEmpty() && !empty($profile['experienceLevel'])) {
+    $account->set('field_experience_level', (string) $profile['experienceLevel']);
+    $updated = TRUE;
+  }
+
+  if ($updated) {
+    $account->save();
+  }
+}
+
+/**
+ * Returns social auth profile data when available.
+ */
+function _coffee_journal_api_get_social_auth_profile(): ?array {
+  try {
+    $session = \Drupal::service('social_auth.session');
+  }
+  catch (\Throwable $e) {
+    return NULL;
+  }
+
+  if (!method_exists($session, 'get')) {
+    return NULL;
+  }
+
+  $profile = $session->get('social_auth_google') ?? $session->get('social_auth_google_user_profile') ?? $session->get('social_auth_google_profile');
+  if (is_array($profile)) {
+    return $profile;
+  }
+
+  return NULL;
+}
+
+/**
+ * Saves a remote profile image into public:// and returns the managed File.
+ */
+function _coffee_journal_api_save_remote_profile_image(string $image_url): ?File {
+  $data = @file_get_contents($image_url);
+  if ($data === FALSE) {
+    return NULL;
+  }
+
+  $directory = 'public://social_auth_google_profiles';
+  if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+    return NULL;
+  }
+
+  $filename = basename(parse_url($image_url, PHP_URL_PATH) ?? 'profile.jpg');
+  $filename = preg_replace('/[^a-zA-Z0-9._-]+/', '_', $filename) ?: 'profile.jpg';
+  $destination = $directory . '/' . $filename;
+
+  $file = file_save_data($data, $destination, FILE_EXISTS_RENAME);
+  if ($file instanceof File) {
+    $file->setPermanent();
+    $file->save();
+    return $file;
+  }
+
+  return NULL;
+}

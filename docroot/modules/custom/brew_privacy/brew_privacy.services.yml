@@ -1,0 +1,6 @@
+services:
+  brew_privacy.query_access_subscriber:
+    class: Drupal\brew_privacy\EventSubscriber\QueryAccessSubscriber
+    arguments: ['@current_user']
+    tags:
+      - { name: event_subscriber }

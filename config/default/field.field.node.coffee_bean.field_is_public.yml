@@ -1,0 +1,23 @@
+uuid: c2af38ea-8b6d-47bc-8215-8f4d38b4c9c0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_is_public
+    - node.type.coffee_bean
+id: node.coffee_bean.field_is_public
+field_name: field_is_public
+entity_type: node
+bundle: coffee_bean
+label: 'Public entry'
+description: 'When enabled, this journal entry is visible to other users.'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'Public'
+  off_label: 'Private'
+field_type: boolean
