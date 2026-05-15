@@ -1,5 +1,5 @@
-client_id: GOOGLE_OAUTH_CLIENT_ID_PLACEHOLDER
-client_secret: GOOGLE_OAUTH_CLIENT_SECRET_PLACEHOLDER
+client_id: FILTERED_CLIENT_ID
+client_secret: FILTERED_SECRET
 scopes: ''
 endpoints: ''
 restricted_domain: ''

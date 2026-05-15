@@ -17,10 +17,8 @@ dependencies:
     - field.field.node.coffee_bean.field_quantity_unit
     - field.field.node.coffee_bean.field_roast_level
     - field.field.node.coffee_bean.field_worth_reordering
-    - field.field.node.coffee_bean.field_is_public
     - node.type.coffee_bean
   module:
-    - boolean
     - datetime
     - text
 id: node.coffee_bean.default
@@ -93,12 +91,6 @@ content:
     region: content
     settings:
       placeholder: ''
-    third_party_settings: {  }
-  field_is_public:
-    type: boolean_checkbox
-    weight: 15
-    region: content
-    settings: {  }
     third_party_settings: {  }
   field_purchase_date:
     type: datetime_default

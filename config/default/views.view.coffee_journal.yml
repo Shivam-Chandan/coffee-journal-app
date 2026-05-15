@@ -103,7 +103,7 @@ display:
           plugin_id: standard
           order: DESC
           expose:
-            label: 'Rating'
+            label: Rating
             field_identifier: overallTasteRating
           exposed: true
       arguments:
