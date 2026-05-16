@@ -1,66 +1,76 @@
 {{ page_top }}
-<div id="cj-app" class="cj-app-with-sidebar">
-  <!-- THIS IS FROM page--feed.html.twig -->
-  <nav id="cj-sidebar-nav" class="cj-sidebar-nav" role="navigation" aria-label="Main navigation">
-    <button id="cj-nav-toggle" class="cj-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="cj-nav-menu">
-      <span aria-hidden="true">☰</span>
-    </button>
-    <div id="cj-nav-menu" class="cj-nav-menu" aria-hidden="true">
-      <ul class="cj-nav-list">
-        <li class="cj-nav-item active">
-          <a href="/feed" class="cj-nav-link" aria-current="page">
-            <span class="cj-nav-icon" aria-hidden="true">☕</span>
-            <span class="cj-nav-label">Global Feed</span>
-          </a>
-        </li>
-        <li class="cj-nav-item">
-          <a href="/my-coffees" class="cj-nav-link">
-            <span class="cj-nav-icon" aria-hidden="true">📔</span>
-            <span class="cj-nav-label">My Coffees</span>
-          </a>
-        </li>
-        <li class="cj-nav-item">
-          <a href="/user/profile" class="cj-nav-link">
-            <span class="cj-nav-icon" aria-hidden="true">👤</span>
-            <span class="cj-nav-label">Profile</span>
-          </a>
-        </li>
-      </ul>
+
+<div id="cj-app">
+
+  {# ── TOP BAR ────────────────────────────────────────────────────────── #}
+  <header id="cj-topbar" role="banner">
+    <a href="{{ path('<front>') }}" class="cj-brand" aria-label="{{ 'Coffee Journal'|t }} - {{ 'Home'|t }}">
+      <span class="cj-brand-icon" aria-hidden="true">☕</span>
+      <span>{{ 'Coffee Journal'|t }}</span>
+    </a>
+    <div class="cj-topbar-actions">
+      <button id="cj-theme-toggle"
+              aria-label="{{ 'Toggle colour theme'|t }}"
+              title="{{ 'Toggle colour theme'|t }}">
+        <span aria-hidden="true">🌙</span>
+      </button>
     </div>
-  </nav>
-  <div class="cj-main-content">
-    <header id="cj-topbar" role="banner">
-      <a href="{{ path('<front>') }}" class="cj-brand" aria-label="{{ 'Coffee Journal'|t }} - {{ 'Home'|t }}">
-        <span class="cj-brand-icon" aria-hidden="true">☕</span>
-        <span>{{ 'Coffee Journal'|t }}</span>
-      </a>
-      <div class="cj-topbar-right">
-        <button id="cj-theme-toggle"
-                aria-label="{{ 'Toggle colour theme'|t }}"
-                title="{{ 'Toggle colour theme'|t }}">
-          <span aria-hidden="true">🌙</span>
-        </button>
-      </div>
-    </header>
-    {% if page.status_messages %}
-      <div id="cj-status-messages" role="alert" aria-live="polite">
-        {{ page.status_messages }}
-      </div>
-    {% endif %}
-    <main id="cj-main" role="main">
-      <a id="main-content" tabindex="-1"></a>
-      <div class="cj-page-inner">
-        {{ page.content }}
-      </div>
-    </main>
-  </div>
-</div>
-<div id="cj-drawer" class="cj-drawer" role="dialog" aria-modal="true" aria-labelledby="cj-drawer-title" aria-hidden="true" inert>
+  </header>
+
+  {# ── STATUS MESSAGES ────────────────────────────────────────────────── #}
+  {% if page.status_messages %}
+    <div id="cj-status-messages" role="alert" aria-live="polite">
+      {{ page.status_messages }}
+    </div>
+  {% endif %}
+
+  {# ── MAIN CONTENT ───────────────────────────────────────────────────── #}
+  <main id="cj-main" role="main">
+    <a id="main-content" tabindex="-1"></a>
+    <div class="cj-page-inner">
+      {{ page.content }}
+    </div>
+  </main>
+
+</div>{# end #cj-app #}
+
+{# ── BOTTOM NAVIGATION ──────────────────────────────────────────────── #}
+<nav id="cj-bottom-nav" class="cj-bottom-nav" role="navigation" aria-label="{{ 'Main navigation'|t }}">
+  <a href="{{ path('coffee_journal_api.global_feed') }}" class="cj-bottom-nav-item" data-cj-nav-feed>
+    <span class="cj-nav-icon" aria-hidden="true">☕</span>
+    <span class="cj-nav-label">{{ 'Feed'|t }}</span>
+    <span class="cj-nav-indicator" aria-hidden="true"></span>
+  </a>
+  <a href="{{ path('view.coffee_journal.page_1') }}" class="cj-bottom-nav-item" data-cj-nav-my-coffees>
+    <span class="cj-nav-icon" aria-hidden="true">📔</span>
+    <span class="cj-nav-label">{{ 'My Coffees'|t }}</span>
+    <span class="cj-nav-indicator" aria-hidden="true"></span>
+  </a>
+  {% if logged_in %}
+    <a href="{{ path('coffee_journal_access.profile') }}" class="cj-bottom-nav-item" data-cj-nav-profile>
+      <span class="cj-nav-icon" aria-hidden="true">👤</span>
+      <span class="cj-nav-label">{{ 'Profile'|t }}</span>
+      <span class="cj-nav-indicator" aria-hidden="true"></span>
+    </a>
+  {% endif %}
+</nav>
+
+{# ── Add / Edit Coffee Drawer ────────────────────────────────────────── #}
+<div id="cj-drawer"
+     class="cj-drawer"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="cj-drawer-title"
+     aria-hidden="true"
+     inert>
   <div class="cj-drawer__backdrop" id="cj-drawer-backdrop"></div>
   <div class="cj-drawer__sheet">
     <div class="cj-drawer__header">
       <h2 class="cj-drawer__title" id="cj-drawer-title">{{ 'Add Coffee'|t }}</h2>
-      <button type="button" class="cj-drawer__close" id="cj-drawer-close" aria-label="{{ 'Close'|t }}">
+      <button type="button"
+              class="cj-drawer__close"
+              id="cj-drawer-close"
+              aria-label="{{ 'Close'|t }}">
         {{ 'Close'|t }}
       </button>
     </div>
@@ -71,4 +81,5 @@
     <div id="cj-drawer-body" class="cj-drawer__body"></div>
   </div>
 </div>
+
 {{ page_bottom }}
