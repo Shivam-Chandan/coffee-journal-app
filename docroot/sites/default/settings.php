@@ -59,6 +59,18 @@
  */
 
 /**
+ * Define root paths required by Drupal and settings files.
+ *
+ * These variables are required by the settings.php configuration and must be
+ * defined before any other settings are processed.
+ */
+$app_root = dirname(dirname(dirname(__FILE__)));
+$site_path = 'sites/default';
+if (!defined('DRUPAL_ROOT')) {
+  define('DRUPAL_ROOT', $app_root . '/docroot');
+}
+
+/**
  * Database settings:
  *
  * The $databases array specifies the database connection or
