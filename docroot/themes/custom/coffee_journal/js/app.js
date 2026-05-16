@@ -1176,4 +1176,174 @@
     }
   };
 
+
+  // ── 8. SEGMENTED ROAST CONTROL ──────────────────────────────────────────
+
+  Drupal.behaviors.cjSegmentedRoast = {
+    attach: function (context) {
+      // Find all segmented roast controls
+      once('cj-roast-seg', '[data-cj-roast-control]', context).forEach(function (container) {
+        var select = container.querySelector('select');
+        if (!select) return;
+
+        var currentValue = select.value;
+        var roastLabels = {
+          'light':        'Light',
+          'light_medium': 'Lt-Med',
+          'medium':       'Medium',
+          'medium_dark':  'Med-Dark',
+          'dark':         'Dark'
+        };
+
+        // Create buttons for each roast option
+        select.style.display = 'none';
+        var segmented = document.createElement('div');
+        segmented.className = 'cj-segmented-buttons';
+
+        Array.from(select.options).forEach(function (option) {
+          if (!option.value) return; // Skip empty option
+          
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cj-seg-btn';
+          btn.dataset.value = option.value;
+          btn.textContent = roastLabels[option.value] || option.text;
+          
+          if (option.value === currentValue) {
+            btn.classList.add('active');
+          }
+          
+          btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            // Update select value
+            select.value = option.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Update button states
+            segmented.querySelectorAll('.cj-seg-btn').forEach(function (b) {
+              b.classList.toggle('active', b.dataset.value === option.value);
+            });
+          });
+          
+          segmented.appendChild(btn);
+        });
+
+        // Listen to select changes (for programmatic updates)
+        select.addEventListener('change', function () {
+          segmented.querySelectorAll('.cj-seg-btn').forEach(function (b) {
+            b.classList.toggle('active', b.dataset.value === select.value);
+          });
+        });
+
+        select.parentNode.insertBefore(segmented, select);
+      });
+    }
+  };
+
+  // ── 8. SEGMENTED ROAST CONTROL ──────────────────────────────────────────
+
+  Drupal.behaviors.cjSegmentedRoast = {
+    attach: function (context) {
+      // Find all segmented roast controls
+      once('cj-roast-seg', '[data-cj-roast-control]', context).forEach(function (container) {
+        var select = container.querySelector('select');
+        if (!select) return;
+
+        var currentValue = select.value;
+        var roastLabels = {
+          'light':        'Light',
+          'light_medium': 'Lt-Med',
+          'medium':       'Medium',
+          'medium_dark':  'Med-Dark',
+          'dark':         'Dark'
+        };
+
+        // Create buttons for each roast option
+        select.style.display = 'none';
+        var segmented = document.createElement('div');
+        segmented.className = 'cj-segmented-buttons';
+
+        Array.from(select.options).forEach(function (option) {
+          if (!option.value) return; // Skip empty option
+          
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cj-seg-btn';
+          btn.dataset.value = option.value;
+          btn.textContent = roastLabels[option.value] || option.text;
+          
+          if (option.value === currentValue) {
+            btn.classList.add('active');
+          }
+          
+          btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            // Update select value
+            select.value = option.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Update button states
+            segmented.querySelectorAll('.cj-seg-btn').forEach(function (b) {
+              b.classList.toggle('active', b.dataset.value === option.value);
+            });
+          });
+          
+          segmented.appendChild(btn);
+        });
+
+        // Listen to select changes (for programmatic updates)
+        select.addEventListener('change', function () {
+          segmented.querySelectorAll('.cj-seg-btn').forEach(function (b) {
+            b.classList.toggle('active', b.dataset.value === select.value);
+          });
+        });
+
+        select.parentNode.insertBefore(segmented, select);
+      });
+    }
+  };
+
 })(Drupal, drupalSettings);
+
+  // ── 9. BOTTOM NAVIGATION — Active state management ─────────────────────────
+
+  Drupal.behaviors.cjBottomNav = {
+    attach: function (context) {
+      // Set active nav item based on current route
+      var navItems = [
+        { selector: '[data-cj-nav-feed]', routes: ['coffee_journal_api.global_feed'] },
+        { selector: '[data-cj-nav-my-coffees]', routes: ['view.coffee_journal.page_1'] },
+        { selector: '[data-cj-nav-profile]', routes: ['coffee_journal_access.profile'] }
+      ];
+
+      function updateActiveNav() {
+        // Get current route/path
+        var currentPath = window.location.pathname;
+        var isHomepage = currentPath === '/' || currentPath === '/feed';
+        
+        navItems.forEach(function (item) {
+          var element = document.querySelector(item.selector);
+          if (!element) return;
+          
+          var href = element.getAttribute('href');
+          var isActive = false;
+          
+          // Check if link href matches current path
+          if (href && (currentPath.startsWith(href) || (isHomepage && (href.includes('/feed') || href === '/')))) {
+            isActive = true;
+          }
+          
+          element.classList.toggle('active', isActive);
+        });
+      }
+
+      // Update on initial page load
+      once('cj-bottom-nav', '#cj-bottom-nav', context).forEach(function () {
+        updateActiveNav();
+      });
+
+      // Update when navigation occurs (for SPAs or page transitions)
+      window.addEventListener('popstate', updateActiveNav);
+    }
+  };
+

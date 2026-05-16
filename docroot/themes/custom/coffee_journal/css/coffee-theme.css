@@ -485,3 +485,1014 @@
 .cj-recipe-action-btn--delete:hover {
   background: #bd2828; color: #fff !important; border-color: #bd2828;
 }
+
+/* ── COFFEE DETAIL PAGE (node--coffee-bean full view) ─────────────────────── */
+.cj-node-detail {
+  max-width: 740px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.cj-detail-hero {
+  margin-bottom: 1.5rem;
+}
+
+.cj-detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.cj-detail-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+  color: var(--cj-text);
+}
+
+.cj-detail-brand {
+  font-size: 0.88rem;
+  color: var(--cj-text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.cj-detail-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.cj-detail-stars {
+  display: flex;
+  align-items: center;
+  gap: 0.05rem;
+}
+
+.cj-detail-stars .star {
+  font-size: 1.1rem;
+  color: var(--cj-muted);
+}
+
+.cj-detail-stars .star.filled {
+  color: var(--cj-star);
+}
+
+.cj-detail-date {
+  font-size: 0.78rem;
+  color: var(--cj-text-faint);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ── FLAVOR CHIPS ──────────────────────────────────────────────────────────── */
+.cj-detail-flavor-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.cj-flavor-chip {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--cj-muted);
+  color: var(--cj-text-muted);
+  border: 1px solid var(--cj-border);
+}
+
+/* ── DETAIL CARD ───────────────────────────────────────────────────────────── */
+.cj-detail-card {
+  background: var(--cj-surface);
+  border: 1px solid var(--cj-border-card);
+  border-radius: var(--cj-radius-lg);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 0.85rem;
+}
+
+.cj-detail-card__label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--cj-text-faint);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--cj-border);
+}
+
+.cj-detail-field-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--cj-border);
+}
+
+.cj-detail-field-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.cj-detail-field-key {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--cj-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 100px;
+  flex-shrink: 0;
+  padding-top: 0.1rem;
+}
+
+.cj-detail-field-val {
+  font-size: 0.88rem;
+  color: var(--cj-text);
+  flex: 1;
+  line-height: 1.6;
+}
+
+/* ── TASTE PROFILE ─────────────────────────────────────────────────────────── */
+.cj-detail-taste-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--cj-border);
+}
+
+.cj-detail-taste-row:last-child {
+  border-bottom: none;
+}
+
+.cj-detail-taste-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cj-text-muted);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.cj-detail-taste-bar-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.cj-detail-taste-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--cj-muted);
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cj-detail-taste-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--cj-primary);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.cj-detail-taste-num {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cj-text-muted);
+  min-width: 2rem;
+  text-align: right;
+}
+
+/* ── NOTES / REVIEW ────────────────────────────────────────────────────────── */
+.cj-detail-notes-text {
+  font-size: 0.88rem;
+  color: var(--cj-text-muted);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ── RECIPES SECTION ───────────────────────────────────────────────────────── */
+.cj-detail-recipes-section {
+  /* inherits .cj-detail-card styling */
+}
+
+.cj-detail-recipes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.cj-detail-recipes-list #cj-bean-recipes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cj-detail-recipes-empty {
+  font-size: 0.85rem;
+  color: var(--cj-text-faint);
+  margin: 0.5rem 0 0.75rem;
+}
+
+.cj-detail-add-recipe-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--cj-radius);
+  background: var(--cj-primary);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s;
+  margin-top: 0.25rem;
+}
+
+.cj-detail-add-recipe-btn:hover {
+  background: var(--cj-primary-hover);
+}
+
+/* ── RECIPE CARDS in detail page ───────────────────────────────────────────── */
+.cj-detail-recipes-list .cj-recipe-card {
+  background: var(--cj-elevated);
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.cj-detail-recipes-list .cj-recipe-card::before {
+  display: none;
+}
+
+.cj-detail-recipes-list .cj-recipe-card:hover {
+  transform: none;
+  border-color: var(--cj-primary);
+}
+
+.cj-detail-recipes-list .cj-recipe-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.cj-detail-recipes-list .cj-recipe-card__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.cj-detail-recipes-list .cj-recipe-card__title a {
+  color: var(--cj-text) !important;
+  text-decoration: none !important;
+}
+
+.cj-detail-recipes-list .cj-recipe-card__title a:hover {
+  color: var(--cj-primary) !important;
+}
+
+.cj-detail-recipes-list .cj-recipe-card__actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.cj-detail-recipes-list .cj-recipe-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--cj-radius);
+  border: 1px solid var(--cj-border);
+  background: var(--cj-muted);
+  color: var(--cj-text-faint) !important;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-decoration: none !important;
+  transition: all 0.18s;
+  cursor: pointer;
+}
+
+.cj-detail-recipes-list .cj-recipe-action-btn--edit:hover {
+  background: var(--cj-primary);
+  color: #fff !important;
+  border-color: var(--cj-primary);
+}
+
+.cj-detail-recipes-list .cj-recipe-action-btn--delete:hover {
+  background: #bd2828;
+  color: #fff !important;
+  border-color: #bd2828;
+}
+
+.cj-detail-recipes-list .cj-recipe-card__body {
+  /* inherits existing styling */
+}
+
+.cj-detail-recipes-list .cj-recipe-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem 1rem;
+}
+
+.cj-detail-recipes-list .cj-recipe-field {
+  font-size: 0.82rem;
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.cj-detail-recipes-list .cj-recipe-label {
+  color: var(--cj-text-faint);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 52px;
+  flex-shrink: 0;
+}
+
+.cj-detail-recipes-list .cj-recipe-value {
+  color: var(--cj-text);
+}
+
+.cj-detail-recipes-list .cj-recipe-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--cj-border);
+}
+
+.cj-detail-recipes-list .cj-recipe-card__link {
+  font-size: 0.8rem;
+  color: var(--cj-primary) !important;
+  font-weight: 500;
+  text-decoration: none !important;
+}
+
+.cj-detail-recipes-list .cj-recipe-card__link:hover {
+  color: var(--cj-primary-hover) !important;
+}
+
+.cj-detail-recipes-list .cj-badge--public {
+  color: #82b4e8;
+  background: #0f1e2b;
+}
+
+/* ── ACTION BUTTONS ────────────────────────────────────────────────────────── */
+.cj-detail-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.cj-detail-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1rem;
+  border-radius: var(--cj-radius);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none !important;
+  border: 1px solid var(--cj-border);
+  background: var(--cj-surface);
+  color: var(--cj-text-muted) !important;
+  transition: all 0.18s;
+  cursor: pointer;
+}
+
+.cj-detail-action-btn--edit:hover {
+  background: var(--cj-primary);
+  color: #fff !important;
+  border-color: var(--cj-primary);
+}
+
+.cj-detail-action-btn--danger:hover {
+  background: #bd2828;
+  border-color: #bd2828;
+  color: #fff !important;
+}
+
+/* ── MOBILE ADJUSTMENTS ────────────────────────────────────────────────────── */
+@media (max-width: 639px) {
+  .cj-detail-title {
+    font-size: 1.4rem;
+  }
+
+  .cj-detail-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cj-detail-field-row {
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .cj-detail-field-key {
+    min-width: auto;
+  }
+
+  .cj-detail-taste-row {
+    flex-wrap: wrap;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* FORM ELEMENTS — Redesigned for drawer and full-page contexts */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+/* Form container and general styling */
+.cj-form-group {
+  margin-bottom: 1.1rem;
+}
+
+.cj-form-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--cj-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+}
+
+.cj-form-group input,
+.cj-form-group select,
+.cj-form-group textarea {
+  width: 100%;
+  background: var(--cj-elevated);
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius);
+  color: var(--cj-text);
+  padding: 0.65rem 0.875rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  -webkit-appearance: none;
+}
+
+.cj-form-group input:focus,
+.cj-form-group select:focus,
+.cj-form-group textarea:focus {
+  border-color: var(--cj-primary);
+  box-shadow: 0 0 0 3px rgba(198, 92, 16, 0.2);
+}
+
+.cj-form-group input::placeholder {
+  color: var(--cj-text-faint);
+}
+
+.cj-form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.cj-form-group select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23706c68' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+  padding-right: 2rem;
+}
+
+/* Form row layout (side-by-side fields) */
+.cj-form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.cj-form-row > .cj-form-group {
+  flex: 1;
+}
+
+/* Segmented control for roast level */
+.cj-segmented {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius);
+  overflow: hidden;
+  background: var(--cj-elevated);
+}
+
+.cj-segmented select {
+  display: none;
+}
+
+.cj-seg-btn {
+  flex: 1;
+  padding: 0.55rem 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--cj-text-muted);
+  border-right: 1px solid var(--cj-border);
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.cj-seg-btn:last-child {
+  border-right: none;
+}
+
+.cj-seg-btn:hover {
+  background: var(--cj-muted);
+  color: var(--cj-text);
+}
+
+.cj-seg-btn.active {
+  background: var(--cj-primary);
+  color: var(--cj-primary-fg);
+}
+
+/* Quantity input group (number + unit) */
+.cj-quantity-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cj-quantity-group input {
+  flex: 1;
+}
+
+.cj-quantity-group select {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+/* Section divider */
+.cj-section-divider {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--cj-text-faint);
+  margin: 1.5rem 0 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--cj-border);
+}
+
+/* URL Scraper section */
+.cj-form-scraper {
+  background: var(--cj-elevated);
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius-lg);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.cj-scraper-header {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cj-text-muted);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cj-scraper-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cj-scraper-input {
+  flex: 1;
+  background: var(--cj-surface);
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius);
+  color: var(--cj-text);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.18s;
+}
+
+.cj-scraper-input:focus {
+  border-color: var(--cj-primary);
+  box-shadow: 0 0 0 3px rgba(198, 92, 16, 0.2);
+}
+
+.cj-scraper-input::placeholder {
+  color: var(--cj-text-faint);
+}
+
+.cj-scraper-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1rem;
+  border-radius: var(--cj-radius);
+  background: var(--cj-primary);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+
+.cj-scraper-btn:hover {
+  background: var(--cj-primary-hover);
+}
+
+/* Form actions (submit buttons) */
+.cj-form-actions {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.cj-form-actions .form-submit,
+.cj-form-actions button[type="submit"],
+.cj-form-actions input[type="submit"] {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--cj-primary);
+  color: #fff;
+  border-radius: var(--cj-radius);
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.1s;
+}
+
+.cj-form-actions .form-submit:hover,
+.cj-form-actions button[type="submit"]:hover,
+.cj-form-actions input[type="submit"]:hover {
+  background: var(--cj-primary-hover);
+}
+
+.cj-form-actions .form-submit:active,
+.cj-form-actions button[type="submit"]:active,
+.cj-form-actions input[type="submit"]:active {
+  transform: scale(0.98);
+}
+
+.cj-form-actions .button--secondary,
+.cj-form-actions a.button:not(.form-submit) {
+  width: 100%;
+  padding: 0.65rem;
+  background: var(--cj-muted);
+  color: var(--cj-text-muted);
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+
+.cj-form-actions .button--secondary:hover,
+.cj-form-actions a.button:not(.form-submit):hover {
+  background: var(--cj-elevated);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 639px) {
+  .cj-form-row {
+    flex-direction: column;
+  }
+
+  .cj-form-row > .cj-form-group {
+    flex: 1 1 auto;
+  }
+
+  .cj-quantity-input-group {
+    flex-direction: column;
+  }
+
+  .cj-quantity-group select {
+    width: 100%;
+  }
+}
+
+/* Segmented buttons container */
+.cj-segmented-buttons {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius);
+  overflow: hidden;
+  background: var(--cj-elevated);
+}
+
+.cj-segmented-buttons .cj-seg-btn {
+  flex: 1;
+  padding: 0.55rem 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--cj-text-muted);
+  border-right: 1px solid var(--cj-border);
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.cj-segmented-buttons .cj-seg-btn:last-child {
+  border-right: none;
+}
+
+.cj-segmented-buttons .cj-seg-btn:hover {
+  background: var(--cj-muted);
+  color: var(--cj-text);
+}
+
+.cj-segmented-buttons .cj-seg-btn.active {
+  background: var(--cj-primary);
+  color: var(--cj-primary-fg);
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* BOTTOM NAVIGATION — Mobile-first navigation bar */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+#cj-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  height: calc(64px + env(safe-area-inset-bottom, 0));
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  background: var(--cj-elevated);
+  border-top: 1px solid var(--cj-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@media (min-width: 768px) {
+  #cj-bottom-nav {
+    display: none;
+  }
+}
+
+.cj-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--cj-text-faint);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  flex: 1;
+}
+
+.cj-bottom-nav-item:hover {
+  color: var(--cj-primary);
+}
+
+.cj-bottom-nav-item.active {
+  color: var(--cj-primary);
+}
+
+.cj-bottom-nav-item .cj-nav-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.cj-bottom-nav-item.active .cj-nav-icon {
+  transform: scale(1.1);
+}
+
+.cj-nav-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cj-nav-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--cj-primary);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.cj-bottom-nav-item.active .cj-nav-indicator {
+  opacity: 1;
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* APP LAYOUT ADJUSTMENTS — Update for bottom nav */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+#cj-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#cj-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--cj-topbar-height, 56px);
+  background-color: var(--cj-elevated);
+  border-bottom: 1px solid var(--cj-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  gap: 1rem;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.toolbar-fixed #cj-topbar {
+  top: 39px;
+}
+
+body.toolbar-fixed.toolbar-horizontal.toolbar-tray-open #cj-topbar {
+  top: 79px;
+}
+
+.cj-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--cj-text) !important;
+  letter-spacing: -0.01em;
+  text-decoration: none !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cj-brand:hover {
+  color: var(--cj-primary) !important;
+}
+
+.cj-brand-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.cj-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+#cj-theme-toggle {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--cj-border);
+  background: transparent;
+  color: var(--cj-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+#cj-theme-toggle:hover {
+  background: var(--cj-muted);
+  color: var(--cj-text);
+  border-color: var(--cj-text-faint);
+}
+
+#cj-main {
+  flex: 1;
+  width: 100%;
+  padding: 0 1rem calc(64px + env(safe-area-inset-bottom, 0) + 1rem);
+}
+
+@media (min-width: 640px) {
+  #cj-main {
+    padding: 0 1rem 5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  #cj-main {
+    padding: 0 1rem 5rem;
+  }
+}
+
+.cj-page-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 1.5rem;
+}
+
+.cj-page-inner > .page-title,
+.cj-page-inner > h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--cj-text);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+/* FAB positioning with bottom nav */
+.cj-fab {
+  position: fixed;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0) + 1rem);
+  right: 1.25rem;
+  z-index: 150;
+  width: 50px;
+  height: 50px;
+  background: var(--cj-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 300;
+  line-height: 1;
+  text-decoration: none !important;
+  color: var(--cj-primary-fg) !important;
+  box-shadow: 0 4px 20px rgba(198, 92, 16, 0.4), 0 2px 8px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  border: none;
+}
+
+.cj-fab:hover {
+  background: var(--cj-primary-hover) !important;
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 8px 28px rgba(198, 92, 16, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5);
+  color: var(--cj-primary-fg) !important;
+}
+
+.cj-fab:active {
+  transform: scale(0.97);
+}
+
+@media (min-width: 640px) {
+  .cj-fab {
+    width: 56px;
+    height: 56px;
+    font-size: 1.6rem;
+    bottom: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .cj-fab {
+    width: 56px;
+    height: 56px;
+    font-size: 1.6rem;
+    bottom: 2rem;
+    right: 2rem;
+  }
+}
