@@ -1,6 +1,6 @@
 langcode: en
-client_id: FILTERED_CLIENT_ID
-client_secret: FILTERED_SECRET
+client_id: ''
+client_secret: ''
 scopes: 'email profile'
 endpoints: ''
 status: true
