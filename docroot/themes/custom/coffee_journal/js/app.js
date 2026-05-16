@@ -986,44 +986,7 @@
     }
   };
 
-  // ── 8. SIDEBAR NAVIGATION ────────────────────────────────────────────────
-
-  Drupal.behaviors.cjSidebarNav = {
-    attach: function (context) {
-      var navToggle = (context || document).querySelector('#cj-nav-toggle');
-      var navMenu = (context || document).querySelector('#cj-nav-menu');
-
-      if (!navToggle || !navMenu || navToggle.getAttribute('data-cj-nav-initialized')) {
-        return;
-      }
-      navToggle.setAttribute('data-cj-nav-initialized', 'true');
-
-      navToggle.addEventListener('click', function () {
-        var isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
-        navToggle.setAttribute('aria-expanded', !isExpanded);
-        navMenu.setAttribute('aria-hidden', isExpanded);
-      });
-
-      // Close menu when a link is clicked (mobile UX)
-      navMenu.querySelectorAll('a').forEach(function (link) {
-        link.addEventListener('click', function () {
-          navToggle.setAttribute('aria-expanded', 'false');
-          navMenu.setAttribute('aria-hidden', 'true');
-        });
-      });
-
-      // Close menu on outside click
-      document.addEventListener('click', function (e) {
-        var isClickInsideNav = navToggle.contains(e.target) || navMenu.contains(e.target);
-        if (!isClickInsideNav && navToggle.getAttribute('aria-expanded') === 'true') {
-          navToggle.setAttribute('aria-expanded', 'false');
-          navMenu.setAttribute('aria-hidden', 'true');
-        }
-      });
-    }
-  };
-
-  // ── 9. ADD RECIPE FROM COFFEE FORM (nested) ─────────────────────────────
+  // ── 8. ADD RECIPE FROM COFFEE FORM (nested) ─────────────────────────────
   //
   // Handles [data-cj-add-recipe] buttons anywhere on the page.
   // The button carries data-bean-nid set server-side so we never need to
