@@ -1,0 +1,21 @@
+<?php
+/**
+ * @file
+ * Update hooks for coffee_journal_api module.
+ */
+
+/**
+ * Grant brew_recipe create/edit permissions to authenticated role.
+ */
+function coffee_journal_api_update_9001() {
+  // Permissions to add to the authenticated role.
+  $perms = [
+    'create brew_recipe content',
+    'edit own brew_recipe content',
+  ];
+
+  // Grant permissions to the authenticated role.
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, $perms);
+
+  return t('Granted brew_recipe create/edit permissions to authenticated role.');
+}

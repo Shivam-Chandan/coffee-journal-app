@@ -74,6 +74,9 @@
     {% if worth_reorder %}
       <span class="cj-badge cj-badge--reorder">{{ 'Would Reorder'|t }}</span>
     {% endif %}
+    {% if recipe_count is defined and recipe_count and recipe_count > 0 %}
+      <span class="cj-badge cj-badge--recipe">{{ recipe_count }} {{ recipe_count == 1 ? 'recipe'|t : 'recipes'|t }}</span>
+    {% endif %}
   </div>
 
   {# ── Details section ── #}

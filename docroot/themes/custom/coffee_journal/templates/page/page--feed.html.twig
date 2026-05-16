@@ -1,139 +1,74 @@
-{#
-/**
- * Page template for the global community feed front page.
- *
- * This page displays publicly shared brew recipes and coffee beans
- * from the community. The content is fetched and rendered by the
- * cjGlobalFeed vanilla JS Drupal behavior via JSON:API.
- */
-#}
-
-<!DOCTYPE html>
-<html{{ html_attributes }}>
-  <head>
-    <head-placeholder token="{{ placeholder_token }}">
-    <title>{{ head_title|safe_join(' | ') }}</title>
-    <css-placeholder token="{{ placeholder_token }}">
-    <js-placeholder token="{{ placeholder_token }}">
-  </head>
-  <body{{ attributes }}>
-    {#
-      page_top and page_bottom are where Drupal injects the admin toolbar,
-      contextual links, and other administrative overlays.
-    #}
-    {{ page_top }}
-
-    <div id="cj-app" class="cj-app-with-sidebar">
-
-      {# ── SIDEBAR NAVIGATION ─────────────────────────────────────────────── #}
-      <!-- DEBUG: page.sidebar_nav = {{ page.sidebar_nav|json_encode }} -->
-      {% if page.sidebar_nav %}
-        {{ page.sidebar_nav }}
-      {% else %}
-        <!-- DEBUG: sidebar_nav is empty/null -->
-      {% endif %}
-
-      <div class="cj-main-content">
-
-        {# ── TOP BAR ────────────────────────────────────────────────────────── #}
-        <header id="cj-topbar" role="banner">
-          <a href="{{ path('<front>') }}" class="cj-brand" aria-label="{{ 'Coffee Journal'|t }} - {{ 'Home'|t }}">
-            <span class="cj-brand-icon" aria-hidden="true">☕</span>
-            <span>{{ 'Coffee Journal'|t }}</span>
+{{ page_top }}
+<div id="cj-app" class="cj-app-with-sidebar">
+  <!-- THIS IS FROM page--feed.html.twig -->
+  <nav id="cj-sidebar-nav" class="cj-sidebar-nav" role="navigation" aria-label="Main navigation">
+    <button id="cj-nav-toggle" class="cj-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="cj-nav-menu">
+      <span aria-hidden="true">☰</span>
+    </button>
+    <div id="cj-nav-menu" class="cj-nav-menu" aria-hidden="true">
+      <ul class="cj-nav-list">
+        <li class="cj-nav-item active">
+          <a href="/feed" class="cj-nav-link" aria-current="page">
+            <span class="cj-nav-icon" aria-hidden="true">☕</span>
+            <span class="cj-nav-label">Global Feed</span>
           </a>
-
-          <div class="cj-topbar-right">
-            {# Dark / light mode toggle — populated by JS #}
-            <button id="cj-theme-toggle"
-                    aria-label="{{ 'Toggle colour theme'|t }}"
-                    title="{{ 'Toggle colour theme'|t }}">
-              <span aria-hidden="true">🌙</span>
-            </button>
-          </div>
-        </header>
-
-        {# ── STATUS MESSAGES ────────────────────────────────────────────────── #}
-        {% if page.status_messages %}
-          <div id="cj-status-messages" role="alert" aria-live="polite">
-            {{ page.status_messages }}
-          </div>
-        {% endif %}
-
-        {# ── MAIN CONTENT ───────────────────────────────────────────────────── #}
-        <main id="cj-main" role="main">
-          {# Skip to main content link for accessibility #}
-          <a id="main-content" tabindex="-1"></a>
-
-          <div class="cj-page-inner">
-            <section class="cj-feed-section">
-              <h1 class="cj-feed-title">{{ 'Community Feed'|t }}</h1>
-
-              {# Loading state #}
-              <div id="cj-feed-loading" class="cj-feed-loading" aria-hidden="true">
-                <span class="cj-loading-spinner"></span>
-                <p>{{ 'Loading recipes…'|t }}</p>
-              </div>
-
-              {# Feed container — populated by cjGlobalFeed JS behavior #}
-              <div id="cj-global-feed" class="cj-global-feed">
-                {# Content injected here by JS #}
-              </div>
-
-              {# Load more button #}
-              <div class="cj-feed-actions">
-                <button id="cj-load-more" 
-                        class="cj-load-more-btn"
-                        aria-label="{{ 'Load more recipes'|t }}">
-                  {{ 'Load More'|t }}
-                </button>
-              </div>
-
-              {# Empty state #}
-              <div id="cj-feed-empty" class="cj-feed-empty" aria-hidden="true">
-                <p>{{ 'No recipes shared yet. Be the first to share your brew method!'|t }}</p>
-              </div>
-            </section>
-          </div>
-        </main>
-
-      </div>{# end .cj-main-content #}
-
-    </div>{# end #cj-app #}
-
-    {# ── Add / Edit Coffee Drawer — global, available on every page ────────── #}
-    <div id="cj-drawer"
-         class="cj-drawer"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="cj-drawer-title"
-         aria-hidden="true"
-         inert>
-
-      <div class="cj-drawer__backdrop" id="cj-drawer-backdrop"></div>
-
-      <div class="cj-drawer__sheet">
-
-        <div class="cj-drawer__header">
-          <h2 class="cj-drawer__title" id="cj-drawer-title">{{ 'Add Coffee'|t }}</h2>
-          <button type="button"
-                  class="cj-drawer__close"
-                  id="cj-drawer-close"
-                  aria-label="{{ 'Close'|t }}">
-            {{ 'Close'|t }}
-          </button>
-        </div>
-
-        <div id="cj-drawer-spinner" class="cj-drawer__spinner">
-          <span class="cj-drawer__spinner-ring" aria-hidden="true"></span>
-          <span class="visually-hidden">{{ 'Loading form…'|t }}</span>
-        </div>
-
-        <div id="cj-drawer-body" class="cj-drawer__body"></div>
-
-      </div>
+        </li>
+        <li class="cj-nav-item">
+          <a href="/my-coffees" class="cj-nav-link">
+            <span class="cj-nav-icon" aria-hidden="true">📔</span>
+            <span class="cj-nav-label">My Coffees</span>
+          </a>
+        </li>
+        <li class="cj-nav-item">
+          <a href="/user/profile" class="cj-nav-link">
+            <span class="cj-nav-icon" aria-hidden="true">👤</span>
+            <span class="cj-nav-label">Profile</span>
+          </a>
+        </li>
+      </ul>
     </div>
-
-    {{ page_bottom }}
-    <js-bottom-placeholder token="{{ placeholder_token }}">
-  </body>
-</html>
+  </nav>
+  <div class="cj-main-content">
+    <header id="cj-topbar" role="banner">
+      <a href="{{ path('<front>') }}" class="cj-brand" aria-label="{{ 'Coffee Journal'|t }} - {{ 'Home'|t }}">
+        <span class="cj-brand-icon" aria-hidden="true">☕</span>
+        <span>{{ 'Coffee Journal'|t }}</span>
+      </a>
+      <div class="cj-topbar-right">
+        <button id="cj-theme-toggle"
+                aria-label="{{ 'Toggle colour theme'|t }}"
+                title="{{ 'Toggle colour theme'|t }}">
+          <span aria-hidden="true">🌙</span>
+        </button>
+      </div>
+    </header>
+    {% if page.status_messages %}
+      <div id="cj-status-messages" role="alert" aria-live="polite">
+        {{ page.status_messages }}
+      </div>
+    {% endif %}
+    <main id="cj-main" role="main">
+      <a id="main-content" tabindex="-1"></a>
+      <div class="cj-page-inner">
+        {{ page.content }}
+      </div>
+    </main>
+  </div>
+</div>
+<div id="cj-drawer" class="cj-drawer" role="dialog" aria-modal="true" aria-labelledby="cj-drawer-title" aria-hidden="true" inert>
+  <div class="cj-drawer__backdrop" id="cj-drawer-backdrop"></div>
+  <div class="cj-drawer__sheet">
+    <div class="cj-drawer__header">
+      <h2 class="cj-drawer__title" id="cj-drawer-title">{{ 'Add Coffee'|t }}</h2>
+      <button type="button" class="cj-drawer__close" id="cj-drawer-close" aria-label="{{ 'Close'|t }}">
+        {{ 'Close'|t }}
+      </button>
+    </div>
+    <div id="cj-drawer-spinner" class="cj-drawer__spinner">
+      <span class="cj-drawer__spinner-ring" aria-hidden="true"></span>
+      <span class="visually-hidden">{{ 'Loading form…'|t }}</span>
+    </div>
+    <div id="cj-drawer-body" class="cj-drawer__body"></div>
+  </div>
+</div>
+{{ page_bottom }}

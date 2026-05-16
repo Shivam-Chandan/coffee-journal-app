@@ -15,7 +15,7 @@
  *                            secondary sort client-side after page load
  *   6. cjRatingInputs      — 1-10 range sliders + 1-5 star widget
  */
-(function (Drupal, drupalSettings, once) {
+(function (Drupal, drupalSettings) {
   'use strict';
 
   // ── Shared fill helpers ──────────────────────────────────────────────────
@@ -683,9 +683,16 @@
 
   Drupal.behaviors.cjGlobalFeed = {
     attach: function (context) {
-      var feedContainer = once('cj-global-feed-init', '#cj-global-feed', context)[0];
-      if (!feedContainer) return;
-
+      // Find feed container manually without once()
+      var feedContainer = (context || document).getElementById ? (context || document).getElementById('cj-global-feed') : document.getElementById('cj-global-feed');
+      
+      if (!feedContainer || feedContainer.getAttribute('data-cj-initialized')) {
+        return;
+      }
+      feedContainer.setAttribute('data-cj-initialized', 'true');
+      
+      console.log('DEBUG: cjGlobalFeed behavior attached, feedContainer found:', feedContainer.id);
+      
       var offset = 0;
       var isLoading = false;
       var hasMore = true;
@@ -694,15 +701,18 @@
        * Fetch recipes from JSON:API with optional filters.
        */
       function fetchRecipes(pageOffset) {
+        console.log('DEBUG: fetchRecipes called with offset:', pageOffset, 'isLoading:', isLoading);
         if (isLoading) return Promise.resolve([]);
         isLoading = true;
 
         var url = '/jsonapi/node/brew_recipe?' +
           'filter[field_is_public]=1' +
           '&sort=-created' +
-          '&include=uid,field_coffee_bean_ref,field_community_notes' +
+          '&include=uid,field_coffee_bean_ref' +
           '&page[limit]=20' +
           '&page[offset]=' + pageOffset;
+
+        console.log('DEBUG: Fetching from URL:', url);
 
         return fetch(url, {
           method: 'GET',
@@ -713,15 +723,17 @@
           },
         })
           .then(function (response) {
+            console.log('DEBUG: Fetch response status:', response.status, response.ok);
             if (!response.ok) throw new Error('Failed to fetch recipes');
             return response.json();
           })
           .then(function (data) {
+            console.log('DEBUG: Recipes data received:', data.data.length, 'recipes');
             isLoading = false;
             return data.data || [];
           })
           .catch(function (error) {
-            console.error('Error fetching recipes:', error);
+            console.error('ERROR fetching recipes:', error);
             isLoading = false;
             return [];
           });
@@ -732,6 +744,7 @@
        */
       function renderRecipeCard(recipe) {
         var attrs = recipe.attributes || {};
+        var nid = attrs.drupal_internal__nid || recipe.id;
         var uid = recipe.relationships && recipe.relationships.uid
           ? recipe.relationships.uid.data
           : null;
@@ -739,7 +752,7 @@
         var html = '<article class="cj-recipe-card" data-recipe-id="' + recipe.id + '">' +
           '<div class="cj-recipe-card__header">' +
           '<h3 class="cj-recipe-card__title">' +
-          '<a href="/node/' + recipe.id.split('--')[1] + '">' + 
+          '<a href="/node/' + nid + '">' + 
           (attrs.title || 'Untitled Recipe') +
           '</a></h3>';
 
@@ -751,10 +764,10 @@
           '<div class="cj-recipe-card__body">' +
           '<div class="cj-recipe-info">';
 
-        if (attrs.field_method) {
+        if (attrs.field_brew_method) {
           html += '<div class="cj-recipe-field">' +
             '<strong class="cj-recipe-label">Method:</strong> ' +
-            '<span class="cj-recipe-value">' + attrs.field_method + '</span>' +
+            '<span class="cj-recipe-value">' + attrs.field_brew_method + '</span>' +
             '</div>';
         }
 
@@ -780,13 +793,20 @@
             '</div>';
         }
 
+        if (attrs.field_community_notes && attrs.field_community_notes.value) {
+          html += '<div class="cj-recipe-field">' +
+            '<strong class="cj-recipe-label">Notes:</strong> ' +
+            '<span class="cj-recipe-value">' + attrs.field_community_notes.value + '</span>' +
+            '</div>';
+        }
+
         html += '</div>' +
           '<div class="cj-recipe-card__meta">' +
           '<p class="cj-recipe-comments">💬 0</p>' +
           '</div>' +
           '</div>' +
           '<div class="cj-recipe-card__footer">' +
-          '<a href="/node/' + recipe.id.split('--')[1] + '" class="cj-recipe-card__link">View Recipe</a>' +
+          '<a href="/node/' + nid + '" class="cj-recipe-card__link">View Recipe</a>' +
           '</div>' +
           '</article>';
 
@@ -797,10 +817,16 @@
        * Load and render recipes.
        */
       function loadRecipes(pageOffset) {
-        if (!hasMore) return;
+        console.log('DEBUG: loadRecipes called with offset:', pageOffset, 'hasMore:', hasMore);
+        if (!hasMore) {
+          console.log('DEBUG: hasMore is false, returning');
+          return;
+        }
 
         fetchRecipes(pageOffset).then(function (recipes) {
+          console.log('DEBUG: loadRecipes received', recipes.length, 'recipes from fetch');
           if (recipes.length === 0) {
+            console.log('DEBUG: No recipes, setting hasMore to false');
             hasMore = false;
             if (offset === 0) {
               feedContainer.innerHTML = '<p class="cj-feed-empty">No recipes shared yet.</p>';
@@ -808,6 +834,7 @@
             return;
           }
 
+          console.log('DEBUG: Rendering', recipes.length, 'recipe cards');
           recipes.forEach(function (recipe) {
             var card = document.createElement('div');
             card.innerHTML = renderRecipeCard(recipe);
@@ -818,8 +845,8 @@
         });
       }
 
-      // Initial load
-      loadRecipes(0);
+      // Initial load - disabled, server-side rendering provides recipes
+      // loadRecipes(0);
 
       // Load more button handler
       var loadMoreBtn = document.getElementById('cj-load-more');
@@ -835,10 +862,13 @@
 
   Drupal.behaviors.cjSidebarNav = {
     attach: function (context) {
-      var navToggle = once('cj-nav-toggle-init', '#cj-nav-toggle', context)[0];
-      var navMenu = document.getElementById('cj-nav-menu');
+      var navToggle = (context || document).querySelector('#cj-nav-toggle');
+      var navMenu = (context || document).querySelector('#cj-nav-menu');
 
-      if (!navToggle || !navMenu) return;
+      if (!navToggle || !navMenu || navToggle.getAttribute('data-cj-nav-initialized')) {
+        return;
+      }
+      navToggle.setAttribute('data-cj-nav-initialized', 'true');
 
       navToggle.addEventListener('click', function () {
         var isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
@@ -865,4 +895,151 @@
     }
   };
 
-})(Drupal, drupalSettings, once);
+  // ── 9. ADD RECIPE FROM COFFEE FORM (nested) ─────────────────────────────
+  //
+  // Handles clicks on [data-cj-add-recipe] inside a coffee_bean form that may
+  // be rendered in the main page or inside the drawer. Opens the brew_recipe
+  // add form nested inside the drawer body while preserving the coffee form DOM.
+  Drupal.behaviors.cjAddRecipeFromBean = {
+    attach: function (context) {
+      once('cj-add-recipe', '[data-cj-add-recipe]', context).forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+
+          // Find the closest coffee form (could be on page or inside drawer)
+          var coffeeForm = btn.closest('form.node-coffee-bean-form, form.node-coffee-bean-edit-form');
+          var beanNid = null;
+          if (coffeeForm) {
+            // If editing an existing node, the form contains an input with name 'nid' or the node id in form attribute
+            var nidInput = coffeeForm.querySelector('input[name="nid"]');
+            if (nidInput && nidInput.value) beanNid = nidInput.value;
+            // Fallback: data-node-id attribute on form
+            if (!beanNid && coffeeForm.dataset && coffeeForm.dataset.nodeId) beanNid = coffeeForm.dataset.nodeId;
+          }
+
+          // Build recipe add URL; include prefill query param when we have bean nid
+          var url = '/node/add/brew_recipe';
+          if (beanNid) url += '?field_coffee_bean_ref_target_id=' + encodeURIComponent(beanNid);
+
+          // If the coffee form is inside the drawer, open nested form inside drawerBody
+          var drawerBody = document.getElementById('cj-drawer-body');
+          if (drawerBody && drawerBody.contains(coffeeForm)) {
+            // Create nested container
+            var nested = drawerBody.querySelector('#cj-drawer-nested');
+            if (!nested) {
+              nested = document.createElement('div');
+              nested.id = 'cj-drawer-nested';
+              nested.className = 'cj-drawer-nested';
+              // Hide the coffee form visually but keep it in DOM
+              coffeeForm.setAttribute('aria-hidden', 'true');
+              coffeeForm.style.display = 'none';
+              drawerBody.appendChild(nested);
+            }
+
+            // Show spinner while loading
+            nested.innerHTML = '<div class="cj-spinner">' + Drupal.t('Loading…') + '</div>';
+
+            fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+              .then(function (resp) { if (!resp.ok) throw new Error('HTTP ' + resp.status); return resp.text(); })
+              .then(function (html) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                // Extract the form (main content) — reuse same strategy as drawer
+                var main = doc.getElementById('cj-main');
+                var content = main ? main.innerHTML : doc.querySelector('.cj-page-inner') ? doc.querySelector('.cj-page-inner').outerHTML : doc.body.innerHTML;
+                nested.innerHTML = content;
+                Drupal.attachBehaviors(nested, drupalSettings);
+
+                // Wire nested form submit similar to top-level _wireFormSubmit but keep drawer open
+                var nestedForm = nested.querySelector('form.node-brew-recipe-form, form.node-brew-recipe-add-form, form.node-form');
+                if (nestedForm) {
+                  // Remove preview
+                  var preview = nestedForm.querySelector('[data-drupal-selector="edit-preview"], input[value="Preview"], button[value="Preview"]');
+                  if (preview) preview.remove();
+
+                  once('cj-nested-recipe-submit', nestedForm).forEach(function (f) {
+                    f.addEventListener('submit', function (ev) {
+                      ev.preventDefault();
+                      var submitBtn = f.querySelector('[data-drupal-selector="edit-submit"]') || f.querySelector('input[type="submit"], button[type="submit"]');
+                      var originalText = submitBtn ? (submitBtn.value || submitBtn.textContent) : '';
+                      if (submitBtn) { submitBtn.disabled = true; if (submitBtn.tagName === 'INPUT') submitBtn.value = Drupal.t('Saving…'); else submitBtn.textContent = Drupal.t('Saving…'); }
+
+                      var formData = new FormData(f);
+                      fetch(f.action || url, { method: 'POST', credentials: 'same-origin', body: formData, redirect: 'manual' })
+                        .then(function (resp) {
+                          var location = resp.headers.get('Location') || resp.url || '';
+                          var isSuccess = (resp.type === 'opaqueredirect') || (resp.status >= 300 && resp.status < 400) || (location && location.indexOf('/node/') !== -1 && location.indexOf('/add') === -1 && location.indexOf('/edit') === -1);
+                          if (isSuccess) {
+                            // Extract node id from location if present
+                            var nidMatch = location.match(/\/node\/(\d+)/);
+                            var newNid = nidMatch ? nidMatch[1] : null;
+                            // Remove nested form and unhide coffee form
+                            nested.remove();
+                            coffeeForm.removeAttribute('aria-hidden');
+                            coffeeForm.style.display = '';
+
+                            // If we have new nid, fetch its teaser/card HTML and append to #cj-bean-recipes
+                            if (newNid) {
+                              fetch('/node/' + newNid, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                                .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+                                .then(function (html2) {
+                                  var p = new DOMParser();
+                                  var d2 = p.parseFromString(html2, 'text/html');
+                                  // Try to find a recipe card or teaser in the response
+                                  var card = d2.querySelector('.cj-recipe-card, article.cj-recipe-card');
+                                  var wrap = document.getElementById('cj-bean-recipes');
+                                  if (wrap) {
+                                    if (card) {
+                                      wrap.insertAdjacentElement('afterbegin', card);
+                                    } else {
+                                      // Fallback: create a simple link
+                                      var a = document.createElement('a');
+                                      a.href = '/node/' + newNid;
+                                      a.textContent = Drupal.t('View recipe');
+                                      var div = document.createElement('div'); div.className = 'cj-recipe-placeholder'; div.appendChild(a);
+                                      wrap.insertAdjacentElement('afterbegin', div);
+                                    }
+                                  }
+                                })
+                                .catch(function (err2) { console.error('Failed to fetch new recipe teaser', err2); });
+                            }
+                            // Optionally show a small status banner
+                            var banner = document.createElement('div'); banner.className = 'messages messages--status'; banner.textContent = Drupal.t('Recipe saved — added to this coffee.');
+                            coffeeForm.insertBefore(banner, coffeeForm.firstChild);
+                            setTimeout(function () { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 4000);
+                          } else {
+                            // Validation errors — replace nested container contents with response
+                            resp.text().then(function (htmlResp) {
+                              var parser = new DOMParser();
+                              var doc = parser.parseFromString(htmlResp, 'text/html');
+                              var main = doc.getElementById('cj-main');
+                              var content = main ? main.innerHTML : doc.body.innerHTML;
+                              nested.innerHTML = content;
+                              Drupal.attachBehaviors(nested, drupalSettings);
+                            });
+                          }
+                        })
+                        .catch(function (err) {
+                          console.error('Nested recipe submit failed', err);
+                          if (submitBtn) {
+                            submitBtn.disabled = false; if (submitBtn.tagName === 'INPUT') submitBtn.value = originalText; else submitBtn.textContent = originalText;
+                          }
+                        });
+                    });
+                  });
+                }
+              })
+              .catch(function (err) {
+                nested.innerHTML = '<div class="messages messages--error">' + Drupal.t('Could not load recipe form. @err', { '@err': err.message }) + '</div>';
+              });
+
+          } else {
+            // Coffee form not in drawer — open top-level drawer for recipe add form
+            openDrawer(url, Drupal.t('Add Recipe'), false);
+          }
+        });
+      });
+    }
+  };
+
+})(Drupal, drupalSettings);

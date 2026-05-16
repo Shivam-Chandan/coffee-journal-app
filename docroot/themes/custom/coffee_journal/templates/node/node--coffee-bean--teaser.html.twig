@@ -76,6 +76,9 @@
 
   {# ── Meta: roast badge + date + finished indicator ── #}
   <div class="cj-card__meta">
+    {% if recipe_count is defined and recipe_count and recipe_count > 0 %}
+      <span class="cj-badge cj-badge--recipe">{{ recipe_count }} {{ recipe_count == 1 ? 'recipe'|t : 'recipes'|t }}</span>
+    {% endif %}
     {% if roast_val %}
       <span class="cj-badge cj-badge--{{ roast_val }}">
         {{- roast_labels[roast_val]|default(roast_val|capitalize) -}}

@@ -38,4 +38,18 @@
        aria-live="polite"></div>
 </div>
 
+{# Recipes inline area: server-rendered for existing coffee nodes, client-updated when new recipes are added #}
+<div class="cj-form-recipes" id="cj-bean-recipes-wrap">
+  <div class="cj-section__label">{{ 'Recipes'|t }}</div>
+  <div id="cj-bean-recipes">
+    {# If the server injected a form element with related recipes, render it here #}
+    {% if form.cj_related_recipes is defined %}
+      {{ form.cj_related_recipes }}
+    {% endif %}
+  </div>
+  <div class="cj-form-recipes__actions">
+    <button type="button" class="cj-btn cj-btn--secondary" data-cj-add-recipe>{{ 'Add Recipe'|t }}</button>
+  </div>
+</div>
+
 {{ form }}

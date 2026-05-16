@@ -68,7 +68,15 @@ function _coffee_journal_api_get_social_auth_profile(): ?array {
     return NULL;
   }
 
-  $profile = $session->get('social_auth_google') ?? $session->get('social_auth_google_user_profile') ?? $session->get('social_auth_google_profile');
+  try {
+    $profile = $session->get('social_auth_google') ?? $session->get('social_auth_google_user_profile') ?? $session->get('social_auth_google_profile');
+  }
+  catch (\Throwable $e) {
+    // Some social_api implementations may not be fully initialised in certain
+    // environments (eg. CLI or during tests). Fail gracefully.
+    return NULL;
+  }
+
   if (is_array($profile)) {
     return $profile;
   }
@@ -128,4 +136,96 @@ function _coffee_journal_api_save_remote_profile_image(string $image_url): ?File
   }
 
   return NULL;
+}
+
+
+/**
+ * Implements hook_form_FORM_ID_alter() for brew_recipe add form.
+ *
+ * Prefill the field_coffee_bean_ref entity reference when a query param
+ * `field_coffee_bean_ref_target_id` is present. This allows opening the
+ * brew_recipe add form with a coffee bean preselected.
+ */
+function coffee_journal_api_form_node_brew_recipe_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  $request = \Drupal::request();
+  $prefill = $request->query->get('field_coffee_bean_ref_target_id');
+  if ($prefill && is_numeric($prefill) && isset($form['field_coffee_bean_ref']['widget'][0])) {
+    // Set the default value for the entity reference widget.
+    $form['field_coffee_bean_ref']['widget'][0]['target_id']['#default_value'] = intval($prefill);
+  }
+}
+
+
+/**
+ * Implements hook_preprocess_node() to add recipe_count to coffee_bean nodes
+ * and to inject rendered related recipe teasers into the coffee_bean add/edit
+ * form via form_alter (the theme will render form.cj_related_recipes).
+ */
+function coffee_journal_api_preprocess_node(array &$variables) {
+  $node = $variables['node'] ?? NULL;
+  if (!$node || $node->getType() !== 'coffee_bean') {
+    return;
+  }
+
+  try {
+    $query = \Drupal::entityQuery('node')
+      ->condition('type', 'brew_recipe')
+      ->condition('status', 1)
+      ->condition('field_coffee_bean_ref', $node->id());
+    $nids = $query->execute();
+    $count = is_array($nids) ? count($nids) : 0;
+  }
+  catch (\Throwable $e) {
+    $count = 0;
+  }
+
+  $variables['recipe_count'] = $count;
+}
+
+
+/**
+ * Implements hook_form_alter() to attach related recipe teasers to the
+ * coffee_bean add/edit form (server-rendered) so they are visible when
+ * editing an existing coffee bean.
+ */
+function coffee_journal_api_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  // Only act on coffee bean add/edit forms.
+  if ($form_id !== 'node_coffee_bean_form' && $form_id !== 'node_coffee_bean_edit_form') {
+    return;
+  }
+
+  $node = $form_state->getFormObject()->getEntity();
+  if (!$node || $node->isNew()) {
+    return;
+  }
+
+  // Load up to 6 related recipes to render as teasers inside the form.
+  try {
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
+    $nids = \Drupal::entityQuery('node')
+      ->condition('type', 'brew_recipe')
+      ->condition('status', 1)
+      ->condition('field_coffee_bean_ref', $node->id())
+      ->range(0, 6)
+      ->execute();
+
+    if (!empty($nids)) {
+      $recipes = $storage->loadMultiple($nids);
+      $renderer = \Drupal::service('renderer');
+      $build = ['#theme' => 'item_list', '#items' => []];
+      foreach ($recipes as $r) {
+        // Use the recipe teaser view mode template by rendering the node.
+        $build['#items'][] = \Drupal::entityTypeManager()->getViewBuilder('node')->view($r, 'teaser');
+      }
+      $rendered = $renderer->renderRoot($build);
+      $form['cj_related_recipes'] = [
+        '#type' => 'markup',
+        '#markup' => (string) $rendered,
+        '#weight' => -5,
+      ];
+    }
+  }
+  catch (\Throwable $e) {
+    // Ignore errors here; do not block the form.
+  }
 }

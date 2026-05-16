@@ -181,6 +181,16 @@
   position: relative;
 }
 
+/* Badge for coffee beans that have recipes */
+.cj-badge--recipe {
+  background: linear-gradient(90deg, #6b5b95, #9b59b6);
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .cj-recipe-card:before {
   content: '';
   position: absolute;
@@ -322,12 +332,16 @@
 
 /* Feed Loading & Empty States */
 .cj-feed-loading {
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 3rem;
   text-align: center;
+}
+
+.cj-feed-loading[aria-hidden="false"] {
+  display: flex;
 }
 
 .cj-loading-spinner {
