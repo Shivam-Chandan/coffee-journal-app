@@ -90,37 +90,64 @@ HTML;
 }
 
 /**
- * Implements hook_preprocess_node() for coffee_bean nodes.
- *
- * - Marks the node as a full page so Drupal suppresses the default title block
- *   (the template renders its own <h1>).
- * - Pre-computes edit/delete access flags (Twig sandbox blocks entity.access()).
- * - Passes display-ready field values as Twig variables so templates stay
- *   logic-free and the sandbox cannot be bypassed.
+ * Implements hook_preprocess_node().
  */
 function coffee_journal_preprocess_node(&$variables) {
   /** @var \Drupal\node\NodeInterface $node */
-  $node = $variables['node'];
+  $node    = $variables['node'];
+  $account = \Drupal::currentUser();
 
-  if ($node->bundle() !== 'coffee_bean') {
-    return;
+  // ── coffee_bean ────────────────────────────────────────────────────────────
+  if ($node->bundle() === 'coffee_bean') {
+    $variables['page'] = TRUE;
+
+    $variables['user_can_edit']   = $node->access('update', $account);
+    $variables['user_can_delete'] = $node->access('delete', $account);
+
+    $roastValue = $node->get('field_roast_level')->value;
+    $variables['roast_label'] = $roastValue ? _coffee_journal_roast_label($roastValue) : '';
+    $variables['roast_key']   = $roastValue ? str_replace('-', '_', strtolower($roastValue)) : '';
+
+    $ffValue = $node->get('field_form_factor')->value;
+    $variables['form_factor_label'] = $ffValue ? _coffee_journal_form_factor_label($ffValue) : '';
+
+    // Load brew recipes only on the full-page view mode (detail page).
+    if ($variables['view_mode'] === 'full') {
+      $variables['brew_recipes']    = [];
+      $variables['add_recipe_path'] =
+        \Drupal\Core\Url::fromRoute('node.add', ['node_type' => 'brew_recipe'])->toString()
+        . '?field_coffee_bean_ref_target_id=' . $node->id();
+
+      try {
+        $nids = \Drupal::entityQuery('node')
+          ->accessCheck(TRUE)
+          ->condition('type', 'brew_recipe')
+          ->condition('status', 1)
+          ->condition('field_coffee_bean_ref', $node->id())
+          ->sort('created', 'DESC')
+          ->execute();
+        if (!empty($nids)) {
+          $recipe_nodes = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($nids);
+          $view_builder = \Drupal::entityTypeManager()->getViewBuilder('node');
+          foreach ($recipe_nodes as $recipe_node) {
+            $variables['brew_recipes'][] = $view_builder->view($recipe_node, 'teaser');
+          }
+        }
+      }
+      catch (\Throwable $e) {
+        // Silent fail — recipes are supplementary.
+      }
+    }
   }
 
-  $variables['page'] = TRUE;
-
-  $account = \Drupal::currentUser();
-  $variables['user_can_edit']   = $node->access('update', $account);
-  $variables['user_can_delete'] = $node->access('delete', $account);
-
-  // Pass roast_level label (resolved from allowed-values list) so the
-  // template does not need to call entity API methods.
-  $roastValue = $node->get('field_roast_level')->value;
-  $variables['roast_label'] = $roastValue ? _coffee_journal_roast_label($roastValue) : '';
-  $variables['roast_key']   = $roastValue ? str_replace('-', '_', strtolower($roastValue)) : '';
-
-  // Form factor label.
-  $ffValue = $node->get('field_form_factor')->value;
-  $variables['form_factor_label'] = $ffValue ? _coffee_journal_form_factor_label($ffValue) : '';
+  // ── brew_recipe ────────────────────────────────────────────────────────────
+  if ($node->bundle() === 'brew_recipe') {
+    if ($variables['view_mode'] === 'full') {
+      $variables['page'] = TRUE;
+    }
+    $variables['user_can_edit']   = $node->access('update', $account);
+    $variables['user_can_delete'] = $node->access('delete', $account);
+  }
 }
 
 /**

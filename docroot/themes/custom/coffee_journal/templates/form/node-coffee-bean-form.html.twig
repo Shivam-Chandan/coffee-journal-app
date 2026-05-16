@@ -1,10 +1,159 @@
 {#
-  Coffee Journal — Coffee Bean node add/edit form override
+  Coffee Journal — Coffee Bean add/edit form override
   node-coffee-bean-form.html.twig
 
-  The cjFormScraper JS behaviour (app.js) handles URL auto-fill.
-  The recipes section and Add Recipe button are injected via form_alter
-  and will render within the {{ form }} call.
+  Redesigned to match mobile-first drawer layout with:
+  - URL scraper section
+  - Segmented control for roast level
+  - Range sliders for taste ratings (auto-enhanced by cjRatingInputs JS)
+  - Star picker for overall rating (auto-enhanced by cjRatingInputs JS)
+  - Form row layout for side-by-side fields
+
+  The cjFormScraper JS behavior handles URL auto-fill.
+  The cjRatingInputs JS behavior auto-enhances range and star inputs.
+  The form fields are rendered normally, then JS wraps them.
 #}
 
-{{ form }}
+<form{{ attributes }}>
+
+  {# ── URL SCRAPER SECTION (if scraper endpoint is available) ──────────── #}
+  {% if drupal_settings.coffeeJournal.scrapeEndpoint is defined %}
+    <div class="cj-form-scraper">
+      <div class="cj-scraper-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+        {{ 'Import from URL'|t }}
+      </div>
+      <div class="cj-scraper-row">
+        <input type="url" class="cj-scraper-input" id="cj-scraper-url" placeholder="{{ 'Paste product URL...'|t }}">
+        <button type="button" class="cj-scraper-btn" id="cj-scraper-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M21 12a9 9 0 11-6.219-8.56"/>
+          </svg>
+          {{ 'Fetch'|t }}
+        </button>
+      </div>
+    </div>
+  {% endif %}
+
+  {# ── BASIC INFO SECTION ──────────────────────────────────────────────── #}
+
+  {# Coffee Name #}
+  <div class="cj-form-group">
+    {{ form.title }}
+  </div>
+
+  {# Brand / Roaster #}
+  <div class="cj-form-group">
+    {{ form.field_brand_roaster }}
+  </div>
+
+  {# Estate / Farm #}
+  <div class="cj-form-group">
+    {{ form.field_estate }}
+  </div>
+
+  {# Roast Level — Segmented Control #}
+  <div class="cj-form-group">
+    <label class="cj-form-label" for="edit-field-roast-level">
+      {{- form.field_roast_level['#title'] -}}
+    </label>
+    <div class="cj-segmented" data-cj-roast-control>
+      {{ form.field_roast_level }}
+    </div>
+  </div>
+
+  {# Form Factor + Quantity — Side by side #}
+  <div class="cj-form-row">
+    <div class="cj-form-group">
+      {{ form.field_form_factor }}
+    </div>
+    <div class="cj-form-group cj-quantity-group">
+      <label class="cj-form-label">{{ form.field_quantity['#title'] }}</label>
+      <div class="cj-quantity-input-group">
+        {{ form.field_quantity }}
+        {{ form.field_quantity_unit }}
+      </div>
+    </div>
+  </div>
+
+  {# Purchase Date #}
+  <div class="cj-form-group">
+    {{ form.field_purchase_date }}
+  </div>
+
+  {# Flavour Notes #}
+  <div class="cj-form-group">
+    {{ form.field_flavour_notes }}
+  </div>
+
+  {# ── TASTE PROFILE SECTION ───────────────────────────────────────────── #}
+  <div class="cj-section-divider">{{ 'Taste Profile'|t }}</div>
+
+  {# Bitterness #}
+  <div class="cj-form-group">
+    <label class="cj-form-label">{{ form.field_bitterness_rating['#title'] }}</label>
+    {{ form.field_bitterness_rating }}
+  </div>
+
+  {# Acidity #}
+  <div class="cj-form-group">
+    <label class="cj-form-label">{{ form.field_acidity_rating['#title'] }}</label>
+    {{ form.field_acidity_rating }}
+  </div>
+
+  {# Note Clarity #}
+  <div class="cj-form-group">
+    <label class="cj-form-label">{{ form.field_note_clarity_rating['#title'] }}</label>
+    {{ form.field_note_clarity_rating }}
+  </div>
+
+  {# ── OVERALL RATING SECTION ──────────────────────────────────────────── #}
+  <div class="cj-section-divider">{{ 'Overall Rating'|t }}</div>
+
+  {# Overall Taste Rating #}
+  <div class="cj-form-group">
+    {{ form.field_overall_taste_rating }}
+  </div>
+
+  {# ── NOTES / REVIEW ──────────────────────────────────────────────────── #}
+  <div class="cj-form-group">
+    {{ form.field_notes_review }}
+  </div>
+
+  {# ── STATUS FIELDS (finished, worth reorder) ────────────────────────── #}
+  {% if form.field_is_finished is defined %}
+    <div class="cj-form-group">
+      {{ form.field_is_finished }}
+    </div>
+  {% endif %}
+
+  {% if form.field_worth_reordering is defined %}
+    <div class="cj-form-group">
+      {{ form.field_worth_reordering }}
+    </div>
+  {% endif %}
+
+  {# ── ACTIONS (hidden fields, submit buttons) ────────────────────────── #}
+  {% if form.actions is defined %}
+    <div class="cj-form-actions">
+      {{ form.actions.submit }}
+      {% if form.actions.delete is defined %}
+        {{ form.actions.delete }}
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {# ── REMAINING FORM ELEMENTS ────────────────────────────────────────── #}
+  {# Include any remaining form elements (csrf token, etc.) #}
+  {{ form|without('title', 'field_brand_roaster', 'field_estate', 'field_roast_level',
+                   'field_form_factor', 'field_quantity', 'field_quantity_unit',
+                   'field_purchase_date', 'field_flavour_notes', 'field_bitterness_rating',
+                   'field_acidity_rating', 'field_note_clarity_rating', 'field_overall_taste_rating',
+                   'field_notes_review', 'field_is_finished', 'field_worth_reordering', 'actions') }}
+
+</form>

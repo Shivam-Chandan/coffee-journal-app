@@ -1,0 +1,131 @@
+{#
+  Coffee Journal — Brew Recipe full detail page
+  node--brew-recipe.html.twig
+#}
+{% set node_id    = node.id() %}
+{% set edit_url   = path('entity.node.edit_form',   {'node': node_id}) %}
+{% set delete_url = path('entity.node.delete_form', {'node': node_id}) %}
+
+{% set bean          = node.field_coffee_bean_ref.entity %}
+{% set brew_method   = node.field_brew_method.value|default('') %}
+{% set coffee_weight = node.field_coffee_weight.value|default('') %}
+{% set water_weight  = node.field_water_weight.value|default('') %}
+{% set notes         = node.field_community_notes.value|default('') %}
+{% set is_public     = node.field_is_public.value %}
+
+<article{{ attributes.addClass('cj-node') }}>
+
+  {# ── Back link — goes to the parent bean if known, otherwise the journal ── #}
+  {% if bean %}
+    <a class="cj-back" href="{{ path('entity.node.canonical', {'node': bean.id()}) }}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      {{ bean.title.value }}
+    </a>
+  {% else %}
+    <a class="cj-back" href="{{ path('view.coffee_journal.page_1') }}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      {{ 'My Coffee Journal'|t }}
+    </a>
+  {% endif %}
+
+  {# ── Heading ── #}
+  <div class="cj-node__heading">
+    <h1>{{ label }}</h1>
+  </div>
+
+  {# ── Badges ── #}
+  <div class="cj-node__badges">
+    {% if is_public %}
+      <span class="cj-badge cj-badge--public">{{ 'Public'|t }}</span>
+    {% endif %}
+  </div>
+
+  {# ── Recipe details ── #}
+  <div class="cj-section">
+    <div class="cj-section__label">{{ 'Recipe'|t }}</div>
+
+    {% if bean %}
+      <div class="cj-field-row">
+        <span class="cj-field-key">{{ 'Coffee Bean'|t }}</span>
+        <span class="cj-field-val">
+          <a href="{{ path('entity.node.canonical', {'node': bean.id()}) }}">{{ bean.title.value }}</a>
+        </span>
+      </div>
+    {% endif %}
+
+    {% if brew_method %}
+      <div class="cj-field-row">
+        <span class="cj-field-key">{{ 'Method'|t }}</span>
+        <span class="cj-field-val">{{ brew_method }}</span>
+      </div>
+    {% endif %}
+
+    {% if coffee_weight %}
+      <div class="cj-field-row">
+        <span class="cj-field-key">{{ 'Coffee'|t }}</span>
+        <span class="cj-field-val">{{ coffee_weight }}g</span>
+      </div>
+    {% endif %}
+
+    {% if water_weight %}
+      <div class="cj-field-row">
+        <span class="cj-field-key">{{ 'Water'|t }}</span>
+        <span class="cj-field-val">{{ water_weight }}g</span>
+      </div>
+    {% endif %}
+
+    {% if coffee_weight and water_weight %}
+      {% set ratio = (water_weight / coffee_weight)|round(2) %}
+      <div class="cj-field-row">
+        <span class="cj-field-key">{{ 'Ratio'|t }}</span>
+        <span class="cj-field-val">1:{{ ratio }}</span>
+      </div>
+    {% endif %}
+
+  </div>
+
+  {# ── Tasting Notes ── #}
+  {% if notes %}
+    <div class="cj-section">
+      <div class="cj-section__label">{{ 'Tasting Notes'|t }}</div>
+      <div class="cj-field-row">
+        <span class="cj-field-val">{{ notes }}</span>
+      </div>
+    </div>
+  {% endif %}
+
+  {# ── Owner actions ── #}
+  {% if user_can_edit %}
+    <div class="cj-node__actions">
+      <a href="{{ edit_url }}" data-drawer-recipe-edit="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+          <path d="m15 5 4 4"/>
+        </svg>
+        {{ 'Edit'|t }}
+      </a>
+      <a href="{{ delete_url }}" class="delete">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+        {{ 'Delete'|t }}
+      </a>
+    </div>
+  {% endif %}
+
+</article>

@@ -177,10 +177,34 @@
     </div>
   {% endif %}
 
+  {# ── Brew Recipes section ── #}
+  <div class="cj-section cj-recipes-section">
+    <div class="cj-section__label">{{ 'Brew Recipes'|t }}</div>
+
+    {% if brew_recipes is defined and brew_recipes|length > 0 %}
+      <div class="cj-recipes-list">
+        {% for recipe in brew_recipes %}
+          {{ recipe }}
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="cj-recipes-empty">{{ 'No recipes yet.'|t }}</p>
+    {% endif %}
+
+    {% if user_can_edit %}
+      <div class="cj-recipes-add">
+        <a href="{{ add_recipe_path }}"
+           class="button button--primary"
+           data-cj-add-recipe
+           data-bean-nid="{{ node_id }}">{{ '+ Add Recipe'|t }}</a>
+      </div>
+    {% endif %}
+  </div>
+
   {# ── Action links — shown only to the node owner ── #}
   {% if user_can_edit %}
     <div class="cj-node__actions">
-      <a href="{{ edit_url }}">
+      <a href="{{ edit_url }}" data-drawer-edit="true">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2.5"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

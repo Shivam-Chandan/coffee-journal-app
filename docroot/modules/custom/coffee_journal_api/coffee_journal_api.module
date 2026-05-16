@@ -143,15 +143,19 @@ function _coffee_journal_api_save_remote_profile_image(string $image_url): ?File
  * Implements hook_form_FORM_ID_alter() for brew_recipe add form.
  *
  * Prefill the field_coffee_bean_ref entity reference when a query param
- * `field_coffee_bean_ref_target_id` is present. This allows opening the
- * brew_recipe add form with a coffee bean preselected.
+ * `field_coffee_bean_ref_target_id` is present, and hide the field since
+ * the bean is already determined.
  */
 function coffee_journal_api_form_node_brew_recipe_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   $request = \Drupal::request();
   $prefill = $request->query->get('field_coffee_bean_ref_target_id');
-  if ($prefill && is_numeric($prefill) && isset($form['field_coffee_bean_ref']['widget'][0])) {
-    // Set the default value for the entity reference widget.
-    $form['field_coffee_bean_ref']['widget'][0]['target_id']['#default_value'] = intval($prefill);
+  if ($prefill && is_numeric($prefill)) {
+    $bean = \Drupal\node\Entity\Node::load((int) $prefill);
+    if ($bean && isset($form['field_coffee_bean_ref']['widget'][0]['target_id'])) {
+      $form['field_coffee_bean_ref']['widget'][0]['target_id']['#default_value'] = $bean;
+      // Hide the field — the association is already determined.
+      $form['field_coffee_bean_ref']['#access'] = FALSE;
+    }
   }
 }
 
@@ -184,100 +188,92 @@ function coffee_journal_api_preprocess_node(array &$variables) {
 
 
 /**
- * Implements hook_form_node_coffee_bean_form_alter() for coffee bean add forms.
- */
-function coffee_journal_api_form_node_coffee_bean_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
-  _coffee_journal_api_add_recipe_section($form, $form_state);
-}
-
-/**
- * Implements hook_form_node_coffee_bean_edit_form_alter() for coffee bean edit forms.
+ * Implements hook_form_node_coffee_bean_edit_form_alter().
+ *
+ * Adds a Recipes section (list of related brew_recipe nodes + Add Recipe
+ * button) to the coffee_bean edit form. Only runs on the edit form because
+ * a new coffee_bean has no NID yet and cannot be referenced by a recipe.
  */
 function coffee_journal_api_form_node_coffee_bean_edit_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   _coffee_journal_api_add_recipe_section($form, $form_state);
 }
 
 /**
- * Helper function to add recipe section to coffee bean forms.
+ * Adds the Recipes section to the coffee_bean edit form.
+ *
+ * Uses proper render arrays (no renderRoot) so it is safe to call from a
+ * form alter hook. The "Add Recipe" button carries a data-bean-nid attribute
+ * so the JS behaviour can build the correct add-recipe URL without needing
+ * drupalSettings from the fetched page.
  */
-function _coffee_journal_api_add_recipe_section(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+function _coffee_journal_api_add_recipe_section(array &$form, \Drupal\Core\Form\FormStateInterface $form_state): void {
   $node = $form_state->getFormObject()->getEntity();
   if (!$node || $node->isNew()) {
     return;
   }
 
-  error_log("_coffee_journal_api_add_recipe_section: processing node " . $node->id());
+  $nid = (int) $node->id();
 
-  // Load up to 6 related recipes to render as teasers inside the form.
+  // Build render array of existing recipe teasers — no renderRoot() here.
+  $items_element = [
+    '#type' => 'container',
+    '#attributes' => ['id' => 'cj-bean-recipes'],
+  ];
+
   try {
-    $storage = \Drupal::entityTypeManager()->getStorage('node');
     $nids = \Drupal::entityQuery('node')
+      ->accessCheck(TRUE)
       ->condition('type', 'brew_recipe')
       ->condition('status', 1)
-      ->condition('field_coffee_bean_ref', $node->id())
+      ->condition('field_coffee_bean_ref', $nid)
+      ->sort('created', 'DESC')
       ->range(0, 6)
       ->execute();
 
-    error_log("_coffee_journal_api_add_recipe_section: found " . count($nids ?? []) . " recipes");
-
     if (!empty($nids)) {
-      $recipes = $storage->loadMultiple($nids);
-      $renderer = \Drupal::service('renderer');
-      $build = ['#theme' => 'item_list', '#items' => []];
-      foreach ($recipes as $r) {
-        // Use the recipe teaser view mode template by rendering the node.
-        $build['#items'][] = \Drupal::entityTypeManager()->getViewBuilder('node')->view($r, 'teaser');
+      $recipe_nodes = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($nids);
+      $view_builder  = \Drupal::entityTypeManager()->getViewBuilder('node');
+      foreach (array_values($recipe_nodes) as $idx => $recipe_node) {
+        $items_element['recipe_' . $idx] = $view_builder->view($recipe_node, 'teaser');
       }
-      $rendered = $renderer->renderRoot($build);
-      $form['cj_related_recipes'] = [
-        '#type' => 'markup',
-        '#markup' => (string) $rendered,
-        '#weight' => -5,
+    }
+    else {
+      $items_element['empty'] = [
+        '#markup' => \Drupal\Core\Render\Markup::create(
+          '<p class="cj-recipes-empty">' . t('No recipes yet.') . '</p>'
+        ),
       ];
     }
   }
   catch (\Throwable $e) {
-    error_log("_coffee_journal_api_add_recipe_section: error: " . $e->getMessage());
-    // Ignore errors here; do not block the form.
+    $items_element['empty'] = [
+      '#markup' => \Drupal\Core\Render\Markup::create(
+        '<p class="cj-recipes-empty">' . t('No recipes yet.') . '</p>'
+      ),
+    ];
   }
 
-  // Add the "Add Recipe" button as a form element using raw html markup
-  $recipes_label = (string) t('Recipes');
-  $add_recipe_label = (string) t('Add Recipe');
-  $recipes_html = !empty($form['cj_related_recipes']) ? (string) $form['cj_related_recipes']['#markup'] : '';
-  
-  $button_html = <<<HTML
-<div class="cj-form-recipes" id="cj-bean-recipes-wrap">
-  <div class="cj-section__label">{$recipes_label}</div>
-  <div id="cj-bean-recipes">{$recipes_html}</div>
-  <div class="cj-form-recipes__actions">
-    <button type="button" class="cj-btn cj-btn--secondary" data-cj-add-recipe>{$add_recipe_label}</button>
-  </div>
-</div>
-HTML;
-  
-  error_log("_coffee_journal_api_add_recipe_section: setting cj_add_recipe_button with button html");
-  $form['cj_add_recipe_button'] = [
-    '#type' => 'markup',
-    '#markup' => $button_html,
-    '#weight' => -5,
+  $add_label = (string) t('+ Add Recipe');
+
+  $form['cj_recipes'] = [
+    '#type'       => 'container',
+    '#attributes' => ['class' => ['cj-form-recipes'], 'id' => 'cj-bean-recipes-wrap'],
+    '#weight'     => 30,
+    'label'       => [
+      '#markup' => \Drupal\Core\Render\Markup::create(
+        '<div class="cj-section__label">' . t('Recipes') . '</div>'
+      ),
+    ],
+    'items'       => $items_element,
+    'actions'     => [
+      '#type'       => 'container',
+      '#attributes' => ['class' => ['cj-form-recipes__actions']],
+      'btn'         => [
+        '#markup' => \Drupal\Core\Render\Markup::create(
+          '<button type="button" class="button button--primary" data-cj-add-recipe data-bean-nid="' . $nid . '">'
+          . $add_label . '</button>'
+        ),
+      ],
+    ],
   ];
-
-  // Remove cj_related_recipes from rendering in the items list to avoid duplication
-  unset($form['cj_related_recipes']);
-}
-
-/**
- * Implements hook_form_alter() to attach related recipe teasers to the
- * coffee_bean add/edit form (server-rendered) so they are visible when
- * editing an existing coffee bean.
- */
-function coffee_journal_api_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
-  // Only act on coffee bean add/edit forms.
-  if ($form_id !== 'node_coffee_bean_form' && $form_id !== 'node_coffee_bean_edit_form') {
-    return;
-  }
-
-  error_log("coffee_journal_api_form_alter called for form_id: $form_id");
-  _coffee_journal_api_add_recipe_section($form, $form_state);
 }

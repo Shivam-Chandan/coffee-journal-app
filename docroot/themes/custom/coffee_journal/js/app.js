@@ -139,6 +139,11 @@
       var _currentUrl   = null;  // URL being loaded in the drawer
       var _focusScraper = false; // whether to auto-focus scraper input after load
 
+      // Expose openDrawer for cross-behavior access (e.g. cjAddRecipeFromBean)
+      Drupal.behaviors.cjAddDrawer.openDrawer = function (url, title, focusScraper) {
+        openDrawer(url, title, focusScraper);
+      };
+
       // ── Open drawer ──────────────────────────────────────────────────────
 
       function openDrawer(url, title, focusScraper) {
@@ -174,8 +179,11 @@
               // Re-attach Drupal behaviours so sliders/stars/scraper work
               Drupal.attachBehaviors(drawerBody, drupalSettings);
 
-              // Wire up form submit interception
-              var form = drawerBody.querySelector('form.node-coffee-bean-form, form.node-coffee-bean-edit-form');
+              // Wire up form submit interception (coffee bean or brew recipe)
+              var form = drawerBody.querySelector(
+                'form.node-coffee-bean-form, form.node-coffee-bean-edit-form,' +
+                'form.node-brew-recipe-form, form.node-brew-recipe-edit-form'
+              );
               if (form) {
                 // Remove the Preview button — not needed in the drawer UX
                 var previewBtn = form.querySelector('[data-drupal-selector="edit-preview"], input[value="Preview"], button[value="Preview"]');
@@ -274,7 +282,10 @@
                   if (drawerBody) {
                     drawerBody.innerHTML = content;
                     Drupal.attachBehaviors(drawerBody, drupalSettings);
-                    var newForm = drawerBody.querySelector('form.node-coffee-bean-form, form.node-coffee-bean-edit-form');
+                    var newForm = drawerBody.querySelector(
+                      'form.node-coffee-bean-form, form.node-coffee-bean-edit-form,' +
+                      'form.node-brew-recipe-form, form.node-brew-recipe-edit-form'
+                    );
                     if (newForm) {
                       // Remove the Preview button on re-render after validation errors
                       var previewBtn = newForm.querySelector('[data-drupal-selector="edit-preview"], input[value="Preview"], button[value="Preview"]');
@@ -339,6 +350,123 @@
           a.addEventListener('click', function (e) {
             e.preventDefault();
             openDrawer(a.href, Drupal.t('Edit Coffee'), false);
+          });
+        });
+      });
+
+      // ── Recipe edit links: nested panel when inside coffee drawer, else full drawer ──
+
+      context.querySelectorAll && context.querySelectorAll('a[data-drawer-recipe-edit]').forEach(function (link) {
+        once('cj-recipe-edit-drawer', link).forEach(function (a) {
+          a.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            var coffeeForm = a.closest('form.node-coffee-bean-form, form.node-coffee-bean-edit-form');
+
+            if (drawerBody && drawerBody.contains(a) && coffeeForm) {
+              // Inside the coffee edit drawer — load recipe edit form as nested panel
+              var nested = drawerBody.querySelector('#cj-drawer-nested');
+              if (!nested) {
+                nested = document.createElement('div');
+                nested.id        = 'cj-drawer-nested';
+                nested.className = 'cj-drawer-nested';
+                coffeeForm.setAttribute('aria-hidden', 'true');
+                coffeeForm.style.display = 'none';
+                drawerBody.appendChild(nested);
+              }
+
+              nested.innerHTML = '<div class="cj-spinner">' + Drupal.t('Loading…') + '</div>';
+
+              fetch(a.href, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (resp) { if (!resp.ok) throw new Error('HTTP ' + resp.status); return resp.text(); })
+                .then(function (html) {
+                  var parser  = new DOMParser();
+                  var doc     = parser.parseFromString(html, 'text/html');
+                  var main    = doc.getElementById('cj-main');
+                  var content = main ? main.innerHTML
+                    : doc.querySelector('.cj-page-inner') ? doc.querySelector('.cj-page-inner').outerHTML
+                    : doc.body.innerHTML;
+                  nested.innerHTML = content;
+                  Drupal.attachBehaviors(nested, drupalSettings);
+
+                  var nestedForm = nested.querySelector('form.node-brew-recipe-form, form.node-brew-recipe-edit-form');
+                  if (nestedForm) {
+                    var preview = nestedForm.querySelector('[data-drupal-selector="edit-preview"], input[value="Preview"], button[value="Preview"]');
+                    if (preview) preview.remove();
+
+                    once('cj-nested-recipe-edit-submit', nestedForm).forEach(function (f) {
+                      f.addEventListener('submit', function (ev) {
+                        ev.preventDefault();
+                        var submitBtn = f.querySelector('[data-drupal-selector="edit-submit"]') || f.querySelector('input[type="submit"], button[type="submit"]');
+                        var originalText = submitBtn ? (submitBtn.value || submitBtn.textContent) : '';
+                        if (submitBtn) {
+                          submitBtn.disabled = true;
+                          if (submitBtn.tagName === 'INPUT') submitBtn.value = Drupal.t('Saving…');
+                          else submitBtn.textContent = Drupal.t('Saving…');
+                        }
+
+                        var formData = new FormData(f);
+                        fetch(f.action || a.href, { method: 'POST', credentials: 'same-origin', body: formData, redirect: 'manual' })
+                          .then(function (resp) {
+                            var loc = resp.headers.get('Location') || resp.url || '';
+                            var ok  = (resp.type === 'opaqueredirect') ||
+                                      (resp.status >= 300 && resp.status < 400) ||
+                                      (loc && loc.indexOf('/node/') !== -1 && loc.indexOf('/edit') === -1 && loc.indexOf('/add') === -1);
+                            if (ok) {
+                              nested.remove();
+                              coffeeForm.removeAttribute('aria-hidden');
+                              coffeeForm.style.display = '';
+                              var banner = document.createElement('div');
+                              banner.className   = 'messages messages--status';
+                              banner.textContent = Drupal.t('Recipe updated.');
+                              coffeeForm.insertBefore(banner, coffeeForm.firstChild);
+                              setTimeout(function () { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 4000);
+                            } else {
+                              resp.text().then(function (htmlResp) {
+                                var p2   = new DOMParser();
+                                var doc2 = p2.parseFromString(htmlResp, 'text/html');
+                                var m2   = doc2.getElementById('cj-main');
+                                nested.innerHTML = m2 ? m2.innerHTML : doc2.body.innerHTML;
+                                Drupal.attachBehaviors(nested, drupalSettings);
+                              });
+                            }
+                          })
+                          .catch(function (err) {
+                            console.error('Nested recipe edit submit failed', err);
+                            if (submitBtn) {
+                              submitBtn.disabled = false;
+                              if (submitBtn.tagName === 'INPUT') submitBtn.value = originalText;
+                              else submitBtn.textContent = originalText;
+                            }
+                          });
+                      });
+                    });
+                  }
+                })
+                .catch(function (err) {
+                  nested.innerHTML = '<div class="messages messages--error">' +
+                    Drupal.t('Could not load form. @err', { '@err': err.message }) + '</div>';
+                });
+
+            } else {
+              // Outside the coffee form drawer — open in the main drawer
+              openDrawer(a.href, Drupal.t('Edit Recipe'), false);
+            }
+          });
+        });
+      });
+
+      // ── View Recipe links: open recipe detail in drawer ──────────────────
+      // Intercepts <a data-drawer-view-recipe="true"> clicks on recipe card title / footer
+
+      context.querySelectorAll && context.querySelectorAll('a[data-drawer-view-recipe]').forEach(function (link) {
+        once('cj-view-recipe-drawer', link).forEach(function (a) {
+          a.addEventListener('click', function (e) {
+            // Only intercept if we are not already inside a nested panel
+            if (drawerBody && drawerBody.querySelector('#cj-drawer-nested')) return;
+            e.preventDefault();
+            var title = (a.closest('.cj-recipe-card') || {}).querySelector && a.closest('.cj-recipe-card').querySelector('.cj-recipe-card__title');
+            openDrawer(a.href, (title ? title.textContent.trim() : Drupal.t('Recipe')), false);
           });
         });
       });
@@ -897,33 +1025,34 @@
 
   // ── 9. ADD RECIPE FROM COFFEE FORM (nested) ─────────────────────────────
   //
-  // Handles clicks on [data-cj-add-recipe] inside a coffee_bean form that may
-  // be rendered in the main page or inside the drawer. Opens the brew_recipe
-  // add form nested inside the drawer body while preserving the coffee form DOM.
+  // Handles [data-cj-add-recipe] buttons anywhere on the page.
+  // The button carries data-bean-nid set server-side so we never need to
+  // inspect the form DOM or drupalSettings to find the parent coffee NID.
+  //
+  // When the button is inside the drawer (coffee edit form):
+  //   - hides the coffee form, shows the recipe form nested in the drawer body
+  //   - on recipe save: restores the coffee form and appends the new card
+  // When the button is outside the drawer (coffee detail page):
+  //   - navigates directly to the recipe add page (full-page navigation)
   Drupal.behaviors.cjAddRecipeFromBean = {
     attach: function (context) {
       once('cj-add-recipe', '[data-cj-add-recipe]', context).forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.preventDefault();
 
-          // Find the closest coffee form (could be on page or inside drawer)
-          var coffeeForm = btn.closest('form.node-coffee-bean-form, form.node-coffee-bean-edit-form');
-          var beanNid = null;
-          if (coffeeForm) {
-            // If editing an existing node, the form contains an input with name 'nid' or the node id in form attribute
-            var nidInput = coffeeForm.querySelector('input[name="nid"]');
-            if (nidInput && nidInput.value) beanNid = nidInput.value;
-            // Fallback: data-node-id attribute on form
-            if (!beanNid && coffeeForm.dataset && coffeeForm.dataset.nodeId) beanNid = coffeeForm.dataset.nodeId;
-          }
+          // NID is set as a data attribute on the button by the server.
+          var beanNid = btn.getAttribute('data-bean-nid') || null;
 
-          // Build recipe add URL; include prefill query param when we have bean nid
+          // Build recipe add URL
           var url = '/node/add/brew_recipe';
           if (beanNid) url += '?field_coffee_bean_ref_target_id=' + encodeURIComponent(beanNid);
 
-          // If the coffee form is inside the drawer, open nested form inside drawerBody
+          // Detect whether the button is inside the drawer.
+          // If so, open the recipe form nested inside the drawer body.
+          // Otherwise (e.g. detail page), navigate directly to the recipe form.
           var drawerBody = document.getElementById('cj-drawer-body');
-          if (drawerBody && drawerBody.contains(coffeeForm)) {
+          var coffeeForm = btn.closest('form.node-coffee-bean-form, form.node-coffee-bean-edit-form');
+          if (drawerBody && drawerBody.contains(btn) && coffeeForm) {
             // Create nested container
             var nested = drawerBody.querySelector('#cj-drawer-nested');
             if (!nested) {
@@ -1034,8 +1163,13 @@
               });
 
           } else {
-            // Coffee form not in drawer — open top-level drawer for recipe add form
-            openDrawer(url, Drupal.t('Add Recipe'), false);
+            // Not inside the drawer (e.g. detail page) — open in the shared drawer.
+            var openFn = Drupal.behaviors.cjAddDrawer && Drupal.behaviors.cjAddDrawer.openDrawer;
+            if (openFn) {
+              openFn(url, Drupal.t('Add Recipe'), false);
+            } else {
+              window.location.href = url;
+            }
           }
         });
       });

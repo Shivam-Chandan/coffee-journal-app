@@ -412,3 +412,76 @@
     padding: 1rem;
   }
 }
+
+/* ── Brew Recipe section (detail page + edit form) ──────────────────────── */
+.cj-recipes-section { margin-top: 1rem; }
+.cj-recipes-empty { font-size: .85rem; color: var(--cj-text-faint); margin: .5rem 0 .75rem; }
+.cj-recipes-list { display: flex; flex-direction: column; gap: .75rem; margin-bottom: .75rem; }
+.cj-recipes-add { margin-top: .75rem; }
+.cj-recipes-add .button {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--cj-primary); color: var(--cj-primary-fg) !important;
+  border: none; border-radius: var(--cj-radius); padding: .5rem 1.1rem;
+  font-size: .85rem; font-weight: 600; text-decoration: none !important;
+  cursor: pointer; transition: background-color .18s ease;
+}
+.cj-recipes-add .button:hover { background: var(--cj-primary-hover) !important; }
+
+/* ── Recipe form section inside the edit form drawer ─────────────────────── */
+.cj-form-recipes { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--cj-border); }
+.cj-form-recipes .cj-section__label { margin-bottom: .75rem; }
+#cj-bean-recipes { display: flex; flex-direction: column; gap: .5rem; margin-bottom: .75rem; }
+.cj-form-recipes__actions { margin-top: .5rem; }
+.cj-form-recipes__actions .button {
+  display: inline-flex; align-items: center;
+  background: var(--cj-primary); color: var(--cj-primary-fg) !important;
+  border: none; border-radius: var(--cj-radius); padding: .5rem 1.1rem;
+  font-size: .85rem; font-weight: 600; cursor: pointer;
+  transition: background-color .18s ease;
+}
+.cj-form-recipes__actions .button:hover { background: var(--cj-primary-hover) !important; }
+
+/* ── Recipe card tweaks ───────────────────────────────────────────────────── */
+.cj-recipe-card {
+  background: var(--cj-surface); border: 1px solid var(--cj-border-card);
+  border-radius: var(--cj-radius-lg); padding: 1rem; display: flex;
+  flex-direction: column; gap: .5rem;
+}
+.cj-recipe-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+.cj-recipe-card__title { font-size: .95rem; font-weight: 600; flex: 1; }
+.cj-recipe-card__title a { color: var(--cj-text) !important; text-decoration: none !important; }
+.cj-recipe-card__title a:hover { color: var(--cj-primary) !important; }
+.cj-recipe-info { display: flex; flex-direction: column; gap: .3rem; }
+.cj-recipe-field { font-size: .85rem; display: flex; gap: .4rem; align-items: baseline; }
+.cj-recipe-label { color: var(--cj-text-faint); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; min-width: 52px; flex-shrink: 0; }
+.cj-recipe-value { color: var(--cj-text); }
+.cj-recipe-card__footer { display: flex; align-items: center; justify-content: space-between; margin-top: .25rem; padding-top: .6rem; border-top: 1px solid var(--cj-border); }
+.cj-recipe-card__link {
+  background: none !important; padding: 0;
+  color: var(--cj-primary) !important;
+  font-size: .8rem; font-weight: 500; text-decoration: none !important;
+}
+.cj-recipe-card__link:hover { background: none !important; color: var(--cj-primary-hover) !important; transform: none; }
+.cj-badge--public { color: #82b4e8; background: #0f1e2b; }
+.cj-badge--recipe { color: #c9a96e; background: #2b200f; }
+
+/* ── Recipe card action buttons (Edit / Delete with text labels) ─────────── */
+.cj-recipe-card__actions { display: flex; gap: .35rem; flex-shrink: 0; }
+.cj-recipe-action-btn {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .25rem .6rem;
+  border-radius: var(--cj-radius);
+  border: 1px solid var(--cj-border);
+  background: var(--cj-muted);
+  color: var(--cj-text-muted) !important;
+  font-size: .72rem; font-weight: 500;
+  text-decoration: none !important;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+  cursor: pointer;
+}
+.cj-recipe-action-btn--edit:hover {
+  background: var(--cj-primary); color: var(--cj-primary-fg) !important; border-color: var(--cj-primary);
+}
+.cj-recipe-action-btn--delete:hover {
+  background: #bd2828; color: #fff !important; border-color: #bd2828;
+}

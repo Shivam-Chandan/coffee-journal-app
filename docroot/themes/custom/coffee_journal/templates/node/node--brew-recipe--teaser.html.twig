@@ -1,36 +1,59 @@
 {#
-/**
- * Template for brew_recipe node in teaser view mode.
- *
- * This displays a card with the brew recipe details, typically
- * rendered on the global community feed.
- *
- * Variables:
- *   - node: The brew_recipe node object
- *   - attributes: HTML attributes for the outer wrapper
- *   - content: Rendered field content
- */
+  Coffee Journal — Brew Recipe card (teaser view mode).
+
+  Used both on the community feed and inside the coffee bean detail page.
+  user_can_edit / user_can_delete are pre-computed in coffee_journal_preprocess_node().
 #}
+{% set node_id = node.id() %}
 
 <article{{ attributes.addClass('cj-recipe-card') }}>
+
+  {# ── Header: title + owner-only actions ── #}
   <div class="cj-recipe-card__header">
     <h3 class="cj-recipe-card__title">
-      <a href="{{ node.url }}">{{ node.label }}</a>
+      <a href="{{ url }}" data-drawer-view-recipe="true">{{ label }}</a>
     </h3>
-    <p class="cj-recipe-card__author">
-      {% if node.uid.entity %}
-        {{ 'by'|t }}
-        <a href="{{ node.uid.entity.url }}">{{ node.uid.entity.field_display_name.value|default(node.uid.entity.name.value) }}</a>
-      {% endif %}
-    </p>
+
+    {% if user_can_edit %}
+      <div class="cj-recipe-card__actions">
+        <a href="{{ path('entity.node.edit_form', {'node': node_id}) }}"
+           class="cj-recipe-action-btn cj-recipe-action-btn--edit"
+           data-drawer-recipe-edit="true"
+           title="{{ 'Edit'|t }} {{ label }}"
+           aria-label="{{ 'Edit'|t }} {{ label }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+            <path d="m15 5 4 4"/>
+          </svg>
+          <span>{{ 'Edit'|t }}</span>
+        </a>
+        <a href="{{ path('entity.node.delete_form', {'node': node_id}) }}"
+           class="cj-recipe-action-btn cj-recipe-action-btn--delete"
+           title="{{ 'Delete'|t }} {{ label }}"
+           aria-label="{{ 'Delete'|t }} {{ label }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+          <span>{{ 'Delete'|t }}</span>
+        </a>
+      </div>
+    {% endif %}
   </div>
 
   <div class="cj-recipe-card__body">
     <div class="cj-recipe-info">
-      {% if node.field_method.value %}
+
+      {% if node.field_brew_method.value %}
         <div class="cj-recipe-field">
           <strong class="cj-recipe-label">{{ 'Method'|t }}:</strong>
-          <span class="cj-recipe-value">{{ node.field_method.value }}</span>
+          <span class="cj-recipe-value">{{ node.field_brew_method.value }}</span>
         </div>
       {% endif %}
 
@@ -48,7 +71,6 @@
         </div>
       {% endif %}
 
-      {# Calculate and display brew ratio #}
       {% if node.field_coffee_weight.value and node.field_water_weight.value %}
         {% set ratio = (node.field_water_weight.value / node.field_coffee_weight.value)|round(2) %}
         <div class="cj-recipe-field">
@@ -57,27 +79,21 @@
         </div>
       {% endif %}
 
-      {% if node.field_coffee_bean_ref.entity %}
+      {% if node.field_community_notes.value %}
         <div class="cj-recipe-field">
-          <strong class="cj-recipe-label">{{ 'Coffee Bean'|t }}:</strong>
-          <a href="{{ node.field_coffee_bean_ref.entity.url }}" class="cj-recipe-link">
-            {{ node.field_coffee_bean_ref.entity.label }}
-          </a>
+          <strong class="cj-recipe-label">{{ 'Notes'|t }}:</strong>
+          <span class="cj-recipe-value">{{ node.field_community_notes.value }}</span>
         </div>
       {% endif %}
-    </div>
 
-    {# Comment count #}
-    <div class="cj-recipe-card__meta">
-      <p class="cj-recipe-comments">
-        <span aria-label="{{ 'Number of comments'|t }}">
-          💬 {{ node.get('field_community_notes').comment_count|default(0) }}
-        </span>
-      </p>
     </div>
   </div>
 
   <div class="cj-recipe-card__footer">
-    <a href="{{ node.url }}" class="cj-recipe-card__link">{{ 'View Recipe'|t }}</a>
+    <a href="{{ url }}" class="cj-recipe-card__link" data-drawer-view-recipe="true">{{ 'View Recipe'|t }}</a>
+    {% if node.field_is_public.value %}
+      <span class="cj-badge cj-badge--public">{{ 'Public'|t }}</span>
+    {% endif %}
   </div>
+
 </article>
