@@ -22,7 +22,9 @@ if [[ "${ENV}" == "prod" ]]; then
 else
   DOCROOT="/mnt/www/html/${SITE}${ENV}/docroot"
 fi
-DRUSH="${DOCROOT}/../vendor/bin/drush"
+PHP_BIN="/usr/local/php8.4/bin/php"
+DRUSH_SCRIPT="${DOCROOT}/../vendor/drush/drush/drush.php"
+DRUSH="${PHP_BIN} ${DRUSH_SCRIPT} --root=${DOCROOT}"
 
 log() {
   echo "[post-code-update][${SITE}.${ENV}] $*"
@@ -30,9 +32,9 @@ log() {
 
 log "Code update detected — running Drush post-update steps"
 
-if [[ ! -f "${DRUSH}" ]]; then
-  log "WARNING: Drush not found at ${DRUSH} — trying system drush"
-  DRUSH="drush"
+if [[ ! -f "${DRUSH_SCRIPT}" ]]; then
+  log "WARNING: drush.php not found at ${DRUSH_SCRIPT} — trying system drush"
+  DRUSH="drush --root=${DOCROOT}"
 fi
 
 cd "${DOCROOT}"
