@@ -1885,37 +1885,58 @@
   }
 
   /* ── RATING RADAR CHART ──────────────────────────────────────────────── */
+  /* Radar chart — centred column layout */
+  .cj-bean-detail__radar-wrap {
+    padding: 0 16px 4px;
+    border-top: var(--cj-stroke) solid var(--cj-hair);
+  }
   .cj-rating-radar {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
+    padding: 10px 0 4px;
   }
-  .cj-rating-radar svg {
-    overflow: visible;
+  .cj-rating-radar__svg {
+    width: 180px;
+    height: 180px;
     flex-shrink: 0;
+    overflow: visible;
   }
-  .cj-rating-radar__score {
+
+  /* Score row below the chart */
+  .cj-rating-radar__scores {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    width: 100%;
+    border-top: var(--cj-stroke) solid var(--cj-hair);
+    padding-top: 10px;
+  }
+  .cj-rating-radar__score-item {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: 1px;
   }
-  .cj-rating-radar__score-label {
-    font-size: 0.56rem;
+  .cj-rating-radar__score-name {
+    font-size: 9px;
     font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-    color: var(--cj-text-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .cj-rating-radar__score-num {
-    font-size: 1.5rem;
     font-weight: 700;
-    color: var(--cj-text);
-    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--cj-ink-2);
+  }
+  .cj-rating-radar__score-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cj-ink);
+    line-height: 1.1;
   }
   .cj-rating-radar__score-max {
-    font-size: 0.56rem;
-    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-    color: var(--cj-text-faint);
+    font-size: 10px;
+    color: var(--cj-ink-3);
+    font-weight: 400;
   }
 
   /* ── BOTTOM NAV (center-FAB pattern) ─────────────────────────────────── */
@@ -2417,6 +2438,45 @@
   .cj-engage-btn.active {
     color: var(--cj-primary);
   }
+  /* Like / save count shown inline inside the engage button */
+  .cj-engage-count {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: inherit;
+    min-width: 0;
+    line-height: 1;
+  }
+  /* Caption set when publishing a brew to the feed */
+  .cj-feed-card__caption {
+    font-size: 0.78rem;
+    color: var(--cj-ink);
+    line-height: 1.45;
+    margin: 4px 0 2px;
+    word-break: break-word;
+  }
+  /* Share-sheet photo upload */
+  .cj-share-sheet__photo-input {
+    display: block;
+    width: 100%;
+    font-size: 0.8rem;
+    color: var(--cj-ink-2);
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  .cj-share-sheet__photo-input::file-selector-button {
+    background: var(--cj-surface-raised);
+    border: 1px solid var(--cj-border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin-right: 8px;
+    color: var(--cj-ink);
+    transition: background 0.15s ease;
+  }
+  .cj-share-sheet__photo-input::file-selector-button:hover {
+    background: var(--cj-border);
+  }
 
   /* ── FILTER CHIP STRIP (feed + profile tabs) ─────────────────────────── */
   .cj-filter-strip {
@@ -2573,20 +2633,7 @@
     gap: 6px;
     padding: 0 16px 12px;
   }
-  .cj-bean-detail__radar {
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    border-top: var(--cj-stroke) solid var(--cj-hair);
-  }
-  .cj-rating-radar__labels {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 10px;
-    color: var(--cj-ink-2);
-  }
+  /* .cj-bean-detail__radar and __labels replaced by .cj-bean-detail__radar-wrap above */
   .cj-bean-detail__notes {
     padding: 0 16px 12px;
     border-top: var(--cj-stroke) solid var(--cj-hair);
