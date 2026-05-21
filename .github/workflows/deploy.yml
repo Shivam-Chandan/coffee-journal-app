@@ -61,6 +61,10 @@ on:
         required: true
       ACQUIA_DEV_ENV_UUID:
         required: false
+      ACQUIA_TEST_ENV_UUID:
+        required: false
+      ACQUIA_PROD_ENV_UUID:
+        required: false
       ACQUIA_SSH_PASSPHRASE:
         required: false
 
@@ -175,22 +179,12 @@ jobs:
           ENV="${{ inputs.environment }}"
           DEPLOY_BRANCH="${{ steps.branch.outputs.deploy_branch }}"
 
-          echo "==> Fetching environment ID for: ${ENV}"
-          DEV_ENV_UUID="${{ secrets.ACQUIA_DEV_ENV_UUID }}"
-          if [[ "${ENV}" == 'dev' && -n "${DEV_ENV_UUID}" ]]; then
-            ENV_ID="${DEV_ENV_UUID}"
-          else
-            ENV_ID=$(acli api:environments:list "${APP_UUID}" \
-              --no-interaction 2>/dev/null \
-              | python3 -c "
-          import json, sys
-          envs = json.load(sys.stdin)
-          for e in envs:
-              if e.get('name') == '${ENV}':
-                  print(e['id'])
-                  break
-          " 2>/dev/null || echo "")
-          fi
+          echo "==> Resolving environment ID for: ${ENV}"
+          case "${ENV}" in
+            dev)  ENV_ID="${{ secrets.ACQUIA_DEV_ENV_UUID }}" ;;
+            test) ENV_ID="${{ secrets.ACQUIA_TEST_ENV_UUID }}" ;;
+            prod) ENV_ID="${{ secrets.ACQUIA_PROD_ENV_UUID }}" ;;
+          esac
 
           if [[ -z "${ENV_ID}" ]]; then
             echo "ERROR: Could not find environment ID for '${ENV}'"

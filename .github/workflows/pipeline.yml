@@ -99,6 +99,8 @@ jobs:
       ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
       ACQUIA_APP_UUID: ${{ secrets.ACQUIA_APP_UUID }}
       ACQUIA_DEV_ENV_UUID: ${{ secrets.ACQUIA_DEV_ENV_UUID }}
+      ACQUIA_TEST_ENV_UUID: ${{ secrets.ACQUIA_TEST_ENV_UUID }}
+      ACQUIA_PROD_ENV_UUID: ${{ secrets.ACQUIA_PROD_ENV_UUID }}
       ACQUIA_SSH_PASSPHRASE: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
 
   # ---------------------------------------------------------------------------
@@ -124,6 +126,8 @@ jobs:
       ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
       ACQUIA_APP_UUID: ${{ secrets.ACQUIA_APP_UUID }}
       ACQUIA_DEV_ENV_UUID: ${{ secrets.ACQUIA_DEV_ENV_UUID }}
+      ACQUIA_TEST_ENV_UUID: ${{ secrets.ACQUIA_TEST_ENV_UUID }}
+      ACQUIA_PROD_ENV_UUID: ${{ secrets.ACQUIA_PROD_ENV_UUID }}
       ACQUIA_SSH_PASSPHRASE: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
 
   # ---------------------------------------------------------------------------
@@ -148,4 +152,6 @@ jobs:
       ACQUIA_SSH_PRIVATE_KEY: ${{ secrets.ACQUIA_SSH_PRIVATE_KEY }}
       ACQUIA_APP_UUID: ${{ secrets.ACQUIA_APP_UUID }}
       ACQUIA_DEV_ENV_UUID: ${{ secrets.ACQUIA_DEV_ENV_UUID }}
+      ACQUIA_TEST_ENV_UUID: ${{ secrets.ACQUIA_TEST_ENV_UUID }}
+      ACQUIA_PROD_ENV_UUID: ${{ secrets.ACQUIA_PROD_ENV_UUID }}
       ACQUIA_SSH_PASSPHRASE: ${{ secrets.ACQUIA_SSH_PASSPHRASE }}
