@@ -45,20 +45,41 @@ vendor/             Composer-managed PHP dependencies
 
 ## CI/CD & Environments
 
-**Pipeline**: Acquia Pipelines (`.acquia-pipelines.yml`) — PHP 8.3
+**Primary pipeline**: GitHub Actions (`.github/workflows/pipeline.yml`) — push to `master` on the `github` remote triggers the full flow:
 
-Build steps: `setup` → `composer-install` → `tailwind-build` → `artifact-prep`
+```
+Build → Deploy Dev (auto) → Deploy Test (manual approval) → Deploy Prod (manual approval)
+```
 
-Post-deploy hooks (run on every environment after deploy):
-```
-drush config:import && drush cr
-```
+- **Build** (`.github/workflows/build.yml`): `composer install` + Tailwind CSS build → produces a deploy artifact
+- **Deploy** (`.github/workflows/deploy.yml`): pushes artifact to Acquia git remote as branch `pipelines-build-master`, then switches the target environment to that branch via Acquia Cloud API
+- Post-deploy hook on Acquia runs automatically: `drush config:import && drush cr`
+- `.md` files and `scripts/`, `tests/` are excluded from triggering the pipeline (`paths-ignore`)
+
+**git remotes:**
+- `github` → `git@github.com:Shivam-Chandan/coffee-journal-app.git` (push here to deploy)
+- `origin` → Acquia git SVN remote (written to by the deploy workflow, do not push manually)
+
+**To deploy a hotfix to dev only** — use `workflow_dispatch` in GitHub Actions UI and select `dev`.
 
 | Environment | URL |
 |---|---|
 | dev | eeschandan1dev.prod.acquia-sites.com |
 | stage | eeschandan1test.prod.acquia-sites.com |
 | prod | eeschandan1.prod.acquia-sites.com |
+
+### Runtime secrets (Acquia Cloud env vars → Drupal config)
+
+Environment variables set in **Acquia Cloud UI → Configuration → Variables** are injected into Drupal config at runtime via `docroot/sites/default/settings/coffee_journal.settings.php`, which is loaded through this chain:
+
+```
+settings.php
+  └─ acquia-recommended.settings.php
+       └─ includes.settings.php          (uses $site_path = 'sites/default')
+            └─ coffee_journal.settings.php  (reads getenv() → $config[])
+```
+
+If Google OAuth login breaks, check: (1) env vars are set in Acquia Cloud UI, (2) `drush cr` has been run after any settings.php change.
 
 ## Required Environment Variables
 
