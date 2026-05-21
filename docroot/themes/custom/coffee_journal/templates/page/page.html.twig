@@ -1,18 +1,21 @@
-<!DOCTYPE html>
-<html{{ html_attributes }}>
-  <head>
-    <head-placeholder token="{{ placeholder_token }}">
-    <title>{{ head_title|safe_join(' | ') }}</title>
-    <css-placeholder token="{{ placeholder_token }}">
-    <js-placeholder token="{{ placeholder_token }}">
-  </head>
-  <body{{ attributes }}>
-    {#
-      page_top and page_bottom are where Drupal injects the admin toolbar,
-      contextual links, and other administrative overlays.
-    #}
-    {{ page_top }}
+{#
+  page.html.twig
+  --------------
+  This template renders ONLY the contents of <body> (the cj-app shell,
+  bottom nav, and global drawer). The surrounding <!DOCTYPE>, <html>,
+  <head>, and <body> tags — along with the head/css/js placeholders —
+  are emitted by Drupal core's html.html.twig, which Drupal renders
+  automatically around this template's output.
 
+  DO NOT re-add <!DOCTYPE>, <html>, <head>, or <body> tags here.
+  Doing so produces a nested document on the rendered page: browsers
+  silently ignore the inner doctype/html, but the inner placeholder
+  tokens (<head-placeholder>, <css-placeholder>, <js-placeholder>)
+  are NEVER replaced because Drupal's placeholder pass only runs once,
+  against the outer html.html.twig — and the inner <body> ends up
+  enclosed in a broken document fragment that confuses CSS selectors
+  scoped to body or to top-level elements.
+#}
     <!-- COFFEE_JOURNAL_PAGE_TEMPLATE_LOADED -->
     <div id="cj-app">
 
@@ -139,7 +142,3 @@
       </div>
     </div>
 
-    {{ page_bottom }}
-    <js-bottom-placeholder token="{{ placeholder_token }}">
-  </body>
-</html>
