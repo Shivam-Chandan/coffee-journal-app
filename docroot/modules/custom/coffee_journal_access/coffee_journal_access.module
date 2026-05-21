@@ -21,7 +21,10 @@ function coffee_journal_access_theme(array $existing, string $type, string $them
   return [
     'profile_page' => [
       'variables' => [
-        'user' => [],
+        'user'   => [],
+        'stats'  => ['beans' => 0, 'brews' => 0, 'hearts' => 0],
+        'tab'    => 'posts',
+        'tiles'  => [],
       ],
       'template' => 'profile-page',
       'path' => $path . '/templates',

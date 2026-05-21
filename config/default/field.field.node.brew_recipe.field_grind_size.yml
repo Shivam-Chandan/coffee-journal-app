@@ -1,0 +1,19 @@
+uuid: a1b2c3d4-e5f6-7890-abcd-ef1234567802
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_grind_size
+    - node.type.brew_recipe
+id: node.brew_recipe.field_grind_size
+field_name: field_grind_size
+entity_type: node
+bundle: brew_recipe
+label: 'Grind Size'
+description: 'e.g. Medium (18 clicks)'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

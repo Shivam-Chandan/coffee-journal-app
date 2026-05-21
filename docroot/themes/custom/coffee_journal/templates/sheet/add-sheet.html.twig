@@ -1,0 +1,53 @@
+{#
+  Add sheet — shown when the FAB is tapped.
+  Two large choice tiles: "A new bean" and "A brew recipe".
+  Tiles are wired by the MutationObserver in cjAddDrawer (data-cj-add-open).
+
+  Variables:
+    bean_url — URL for /node/add/coffee_bean
+    brew_url — URL for /brew/new (method picker)
+#}
+<div class="cj-add-sheet">
+  <p class="cj-add-sheet__hint">{{ 'What are you logging?'|t }}</p>
+
+  {# Bean tile #}
+  <button type="button"
+          class="cj-add-sheet__tile"
+          data-cj-add-open="{{ bean_url }}"
+          data-cj-add-title="{{ 'New Bean'|t }}">
+    <span class="cj-add-sheet__tile-icon" aria-hidden="true">
+      <svg viewBox="0 0 16 16" width="26" height="26" aria-hidden="true">
+        <ellipse cx="8" cy="8" rx="5" ry="6.5"
+                 stroke="currentColor" stroke-width="1.2" fill="none"
+                 transform="rotate(30 8 8)"/>
+        <path d="M5 4 Q 8 8, 11 12"
+              stroke="currentColor" stroke-width="1.2" fill="none"
+              transform="rotate(30 8 8)"/>
+      </svg>
+    </span>
+    <div>
+      <div class="cj-add-sheet__tile-title">{{ 'A new bean'|t }}</div>
+      <div class="cj-add-sheet__tile-sub">{{ 'Log a coffee you tried'|t }}</div>
+    </div>
+  </button>
+
+  {# Brew tile #}
+  <button type="button"
+          class="cj-add-sheet__tile"
+          data-cj-add-open="{{ brew_url }}"
+          data-cj-add-title="{{ 'Brew Method'|t }}">
+    <span class="cj-add-sheet__tile-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none"
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <path d="M8 2v2M12 2v2M16 2v2"/>
+        <path d="M5 6h14l-1.5 12a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 6z"/>
+        <path d="M19 8c1.5 0 3 .8 3 2.5S20.5 13 19 13"/>
+      </svg>
+    </span>
+    <div>
+      <div class="cj-add-sheet__tile-title">{{ 'A brew recipe'|t }}</div>
+      <div class="cj-add-sheet__tile-sub">{{ 'Record a brew you made'|t }}</div>
+    </div>
+  </button>
+
+</div>

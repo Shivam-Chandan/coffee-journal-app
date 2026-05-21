@@ -1,0 +1,23 @@
+uuid: a1b2c3d4-e5f6-7890-abcd-ef1234567804
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_water_temp
+    - node.type.brew_recipe
+id: node.brew_recipe.field_water_temp
+field_name: field_water_temp
+entity_type: node
+bundle: brew_recipe
+label: 'Water Temp (°C)'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 60.0
+  max: 100.0
+  prefix: ''
+  suffix: ' °C'
+field_type: decimal

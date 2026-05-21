@@ -1,0 +1,5 @@
+services:
+  coffee_journal_likes.repository:
+    class: Drupal\coffee_journal_likes\Repository\LikeRepository
+    arguments:
+      - '@database'

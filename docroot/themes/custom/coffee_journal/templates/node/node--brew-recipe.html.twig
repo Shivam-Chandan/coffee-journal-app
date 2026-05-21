@@ -1,6 +1,18 @@
 {#
-  Coffee Journal — Brew Recipe full detail page
-  node--brew-recipe.html.twig
+  Brew recipe — full detail page (wireframe layout).
+
+  Layout:
+    - Hero image stripe (full-width)
+    - Method · Ratio subtitle row
+    - Title
+    - Public/Private chip
+    - 3×2 stats grid (.cj-brew-stats-grid)
+    - Notes section
+    - "Share to feed →" CTA (owner-only, private brews, opens share sheet)
+    - Edit / Delete actions (owner-only)
+
+  Variables from preprocess:
+    user_can_edit, user_can_delete
 #}
 {% set node_id    = node.id() %}
 {% set edit_url   = path('entity.node.edit_form',   {'node': node_id}) %}
@@ -8,123 +20,142 @@
 
 {% set bean          = node.field_coffee_bean_ref.entity %}
 {% set brew_method   = node.field_brew_method.value|default('') %}
-{% set coffee_weight = node.field_coffee_weight.value|default('') %}
-{% set water_weight  = node.field_water_weight.value|default('') %}
+{% set coffee_weight = node.field_coffee_weight.value|default(0)|number_format(0) %}
+{% set water_weight  = node.field_water_weight.value|default(0)|number_format(0) %}
+{% set grind_size    = node.field_grind_size is defined ? node.field_grind_size.value|default('') : '' %}
+{% set water_temp    = node.field_water_temp is defined ? node.field_water_temp.value|default('') : '' %}
+{% set brew_time     = node.field_brew_time is defined ? node.field_brew_time.value|default('') : '' %}
 {% set notes         = node.field_community_notes.value|default('') %}
 {% set is_public     = node.field_is_public.value %}
 
-<article{{ attributes.addClass('cj-node') }}>
+{% if coffee_weight and water_weight %}
+  {% set ratio = (water_weight / coffee_weight)|round(1) %}
+{% endif %}
 
-  {# ── Back link — goes to the parent bean if known, otherwise the journal ── #}
-  {% if bean %}
-    <a class="cj-back" href="{{ path('entity.node.canonical', {'node': bean.id()}) }}">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2.5"
-           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M19 12H5M12 19l-7-7 7-7"/>
-      </svg>
-      {{ bean.title.value }}
-    </a>
-  {% else %}
-    <a class="cj-back" href="{{ path('view.coffee_journal.page_1') }}">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2.5"
-           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M19 12H5M12 19l-7-7 7-7"/>
-      </svg>
-      {{ 'My Coffee Journal'|t }}
-    </a>
-  {% endif %}
+<article{{ attributes.addClass('cj-brew-detail') }}>
 
-  {# ── Heading ── #}
-  <div class="cj-node__heading">
-    <h1>{{ label }}</h1>
-  </div>
+  {# ── Hero image stripe ── #}
+  <div class="cj-brew-detail__hero cj-image-stripe"></div>
 
-  {# ── Badges ── #}
-  <div class="cj-node__badges">
-    {% if is_public %}
-      <span class="cj-badge cj-badge--public">{{ 'Public'|t }}</span>
+  {# ── Method · Ratio subtitle ── #}
+  <div class="cj-brew-detail__meta">
+    {% if brew_method %}
+      <span class="cj-brew-detail__method">{{ brew_method }}</span>
+    {% endif %}
+    {% if ratio is defined %}
+      <span class="cj-brew-detail__ratio">1:{{ ratio }}</span>
     {% endif %}
   </div>
 
-  {# ── Recipe details ── #}
-  <div class="cj-section">
-    <div class="cj-section__label">{{ 'Recipe'|t }}</div>
-
-    {% if bean %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Coffee Bean'|t }}</span>
-        <span class="cj-field-val">
-          <a href="{{ path('entity.node.canonical', {'node': bean.id()}) }}">{{ bean.title.value }}</a>
-        </span>
+  {# ── Title + actions ── #}
+  <div class="cj-brew-detail__header">
+    <h1 class="cj-brew-detail__title">{{ label }}</h1>
+    {% if user_can_edit %}
+      <div class="cj-brew-detail__actions">
+        <a href="{{ edit_url }}" data-drawer-recipe-edit="true" aria-label="{{ 'Edit'|t }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+            <path d="m15 5 4 4"/>
+          </svg>
+        </a>
+        <a href="{{ delete_url }}" class="delete" aria-label="{{ 'Delete'|t }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+          </svg>
+        </a>
       </div>
     {% endif %}
+  </div>
+
+  {# ── Visibility chip ── #}
+  <div class="cj-brew-detail__chips">
+    {% if is_public %}
+      <span class="cj-chip cj-chip--filled">{{ 'Public'|t }}</span>
+    {% else %}
+      <span class="cj-chip">{{ 'Private'|t }}</span>
+    {% endif %}
+    {% if bean %}
+      <a href="{{ path('entity.node.canonical', {'node': bean.id()}) }}" class="cj-chip">
+        {{- bean.title.value -}}
+      </a>
+    {% endif %}
+  </div>
+
+  {# ── 3×2 Stats grid ── #}
+  <div class="cj-brew-stats-grid cj-brew-detail__stats">
 
     {% if brew_method %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Method'|t }}</span>
-        <span class="cj-field-val">{{ brew_method }}</span>
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Method'|t }}</span>
+        <span class="cj-small-field__value">{{ brew_method }}</span>
       </div>
     {% endif %}
 
     {% if coffee_weight %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Coffee'|t }}</span>
-        <span class="cj-field-val">{{ coffee_weight }}g</span>
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Coffee'|t }}</span>
+        <span class="cj-small-field__value">{{ coffee_weight }}g</span>
       </div>
     {% endif %}
 
     {% if water_weight %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Water'|t }}</span>
-        <span class="cj-field-val">{{ water_weight }}g</span>
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Water'|t }}</span>
+        <span class="cj-small-field__value">{{ water_weight }}g</span>
       </div>
     {% endif %}
 
-    {% if coffee_weight and water_weight %}
-      {% set ratio = (water_weight / coffee_weight)|round(2) %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Ratio'|t }}</span>
-        <span class="cj-field-val">1:{{ ratio }}</span>
+    {% if grind_size %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Grind'|t }}</span>
+        <span class="cj-small-field__value">{{ grind_size }}</span>
+      </div>
+    {% endif %}
+
+    {% if water_temp %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Temp'|t }}</span>
+        <span class="cj-small-field__value">{{ water_temp }}°C</span>
+      </div>
+    {% endif %}
+
+    {% if brew_time %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Time'|t }}</span>
+        <span class="cj-small-field__value">{{ brew_time }}</span>
+      </div>
+    {% elseif ratio is defined %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Ratio'|t }}</span>
+        <span class="cj-small-field__value">1:{{ ratio }}</span>
       </div>
     {% endif %}
 
   </div>
 
-  {# ── Tasting Notes ── #}
+  {# ── Notes ── #}
   {% if notes %}
-    <div class="cj-section">
-      <div class="cj-section__label">{{ 'Tasting Notes'|t }}</div>
-      <div class="cj-field-row">
-        <span class="cj-field-val">{{ notes }}</span>
-      </div>
+    <div class="cj-brew-detail__notes">
+      <div class="cj-wf-section-head">{{ 'Notes'|t }}</div>
+      <p class="cj-brew-detail__notes-text">{{ notes }}</p>
     </div>
   {% endif %}
 
-  {# ── Owner actions ── #}
-  {% if user_can_edit %}
-    <div class="cj-node__actions">
-      <a href="{{ edit_url }}" data-drawer-recipe-edit="true">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-          <path d="m15 5 4 4"/>
-        </svg>
-        {{ 'Edit'|t }}
-      </a>
-      <a href="{{ delete_url }}" class="delete">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-          <path d="M10 11v6M14 11v6"/>
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-        </svg>
-        {{ 'Delete'|t }}
-      </a>
+  {# ── Share to feed CTA (owner, private only) ── #}
+  {% if user_can_edit and not is_public %}
+    <div class="cj-brew-detail__share">
+      <button type="button"
+              class="cj-btn-share-brew"
+              data-cj-share-brew="{{ node_id }}"
+              aria-label="{{ 'Share this brew to the feed'|t }}">
+        {{ 'Share to feed →'|t }}
+      </button>
     </div>
   {% endif %}
 

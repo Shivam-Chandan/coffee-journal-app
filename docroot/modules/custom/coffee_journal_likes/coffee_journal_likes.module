@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ * Coffee Journal Likes — hook_schema.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function coffee_journal_likes_schema(): array {
+  return [
+    'coffee_journal_like' => [
+      'description' => 'Stores per-user likes for brew recipe nodes.',
+      'fields' => [
+        'id' => [
+          'type'     => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'Primary key.',
+        ],
+        'uid' => [
+          'type'     => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'User ID of the liking user.',
+        ],
+        'nid' => [
+          'type'     => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'Node ID of the liked node.',
+        ],
+        'created' => [
+          'type'     => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default'  => 0,
+          'description' => 'Unix timestamp when the like was created.',
+        ],
+      ],
+      'primary key' => ['id'],
+      'unique keys' => [
+        'uid_nid' => ['uid', 'nid'],
+      ],
+      'indexes' => [
+        'uid' => ['uid'],
+        'nid' => ['nid'],
+      ],
+    ],
+  ];
+}

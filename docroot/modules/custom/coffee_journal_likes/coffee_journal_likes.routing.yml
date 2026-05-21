@@ -1,0 +1,27 @@
+coffee_journal_likes.toggle:
+  path: '/api/likes/{node}'
+  defaults:
+    _controller: '\Drupal\coffee_journal_likes\Controller\LikeController::toggle'
+    _title: 'Toggle like'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    node: \d+
+
+coffee_journal_likes.list:
+  path: '/api/likes'
+  defaults:
+    _controller: '\Drupal\coffee_journal_likes\Controller\LikeController::listMine'
+    _title: 'My likes'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+coffee_journal_likes.counts:
+  path: '/api/likes/counts'
+  defaults:
+    _controller: '\Drupal\coffee_journal_likes\Controller\LikeController::counts'
+    _title: 'Like counts'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'

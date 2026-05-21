@@ -23,14 +23,23 @@
           <span>{{ 'Coffee Journal'|t }}</span>
         </a>
 
-        <div class="cj-topbar-actions">
-          {# Dark / light mode toggle — populated by JS #}
-          <button id="cj-theme-toggle"
-                  aria-label="{{ 'Toggle colour theme'|t }}"
-                  title="{{ 'Toggle colour theme'|t }}">
-            <span aria-hidden="true">🌙</span>
-          </button>
-        </div>
+        {% if logged_in %}
+          <div class="cj-topbar-actions">
+            <a href="{{ logout_url }}"
+               class="cj-topbar-logout"
+               aria-label="{{ 'Sign out'|t }}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round"
+                   aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              <span class="cj-topbar-logout__label">{{ 'Sign out'|t }}</span>
+            </a>
+          </div>
+        {% endif %}
       </header>
 
       {# ── STATUS MESSAGES ─────────────────────────────────────────────── #}
@@ -53,23 +62,48 @@
 
     {# ── BOTTOM NAVIGATION ──────────────────────────────────────────────── #}
     <nav id="cj-bottom-nav" class="cj-bottom-nav" role="navigation" aria-label="{{ 'Main navigation'|t }}">
-      <a href="{{ path('coffee_journal_api.global_feed') }}" class="cj-bottom-nav-item" data-cj-nav-feed>
-        <span class="cj-nav-icon" aria-hidden="true">☕</span>
-        <span class="cj-nav-label">{{ 'Feed'|t }}</span>
-        <span class="cj-nav-indicator" aria-hidden="true"></span>
-      </a>
-      <a href="{{ path('view.coffee_journal.page_1') }}" class="cj-bottom-nav-item" data-cj-nav-my-coffees>
-        <span class="cj-nav-icon" aria-hidden="true">📔</span>
-        <span class="cj-nav-label">{{ 'My Coffees'|t }}</span>
-        <span class="cj-nav-indicator" aria-hidden="true"></span>
-      </a>
-      {% if logged_in %}
-        <a href="{{ path('coffee_journal_access.profile') }}" class="cj-bottom-nav-item" data-cj-nav-profile>
-          <span class="cj-nav-icon" aria-hidden="true">👤</span>
-          <span class="cj-nav-label">{{ 'Profile'|t }}</span>
-          <span class="cj-nav-indicator" aria-hidden="true"></span>
+
+      <div class="cj-bottom-nav__group">
+        <a href="{{ path('coffee_journal_api.global_feed') }}"
+           class="cj-bottom-nav__item"
+           data-cj-nav-feed>
+          <span class="cj-nav-icon" aria-hidden="true">☕</span>
+          <span class="cj-nav-label">{{ 'Feed'|t }}</span>
         </a>
-      {% endif %}
+        <a href="{{ path('view.coffee_journal.page_1') }}"
+           class="cj-bottom-nav__item"
+           data-cj-nav-my-coffees>
+          <span class="cj-nav-icon" aria-hidden="true">📔</span>
+          <span class="cj-nav-label">{{ 'Journal'|t }}</span>
+        </a>
+      </div>
+
+      <div class="cj-bottom-nav__fab-slot">
+        {% if logged_in %}
+          <button class="cj-fab"
+                  type="button"
+                  aria-label="{{ 'Add coffee or brew'|t }}"
+                  data-cj-add>
+            <span aria-hidden="true">+</span>
+          </button>
+        {% endif %}
+      </div>
+
+      <div class="cj-bottom-nav__group">
+        <a href="{{ logged_in ? path('coffee_journal_access.profile') : path('user.login') }}"
+           class="cj-bottom-nav__item"
+           data-cj-nav-profile>
+          <span class="cj-nav-icon" aria-hidden="true">👤</span>
+          <span class="cj-nav-label">{{ logged_in ? 'Profile'|t : 'Sign in'|t }}</span>
+        </a>
+        <a href="{{ logged_in ? path('coffee_journal_access.profile') ~ '?tab=saved' : path('user.login') }}"
+           class="cj-bottom-nav__item"
+           data-cj-nav-saved>
+          <span class="cj-nav-icon" aria-hidden="true">⌑</span>
+          <span class="cj-nav-label">{{ 'Saved'|t }}</span>
+        </a>
+      </div>
+
     </nav>
 
     {# ── Add / Edit Coffee Drawer — global, available on every page ────────── #}

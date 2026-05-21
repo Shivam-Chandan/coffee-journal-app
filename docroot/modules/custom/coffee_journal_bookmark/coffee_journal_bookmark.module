@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ * Coffee Journal Bookmark — hook_schema and misc hooks.
+ */
+
+/**
+ * Implements hook_schema().
+ *
+ * Defines the `coffee_journal_bookmark` table.
+ */
+function coffee_journal_bookmark_schema(): array {
+  return [
+    'coffee_journal_bookmark' => [
+      'description' => 'Stores user bookmarks for nodes (coffee beans / brew recipes).',
+      'fields' => [
+        'id' => [
+          'type'     => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'Primary key.',
+        ],
+        'uid' => [
+          'type'     => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'User ID of the bookmarking user.',
+        ],
+        'nid' => [
+          'type'     => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'Node ID of the bookmarked node.',
+        ],
+        'created' => [
+          'type'     => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default'  => 0,
+          'description' => 'Unix timestamp when the bookmark was created.',
+        ],
+      ],
+      'primary key' => ['id'],
+      'unique keys' => [
+        'uid_nid' => ['uid', 'nid'],
+      ],
+      'indexes' => [
+        'uid' => ['uid'],
+        'nid' => ['nid'],
+      ],
+    ],
+  ];
+}

@@ -1,0 +1,5 @@
+services:
+  coffee_journal_bookmark.repository:
+    class: Drupal\coffee_journal_bookmark\Repository\BookmarkRepository
+    arguments:
+      - '@database'

@@ -1,268 +1,130 @@
 {#
-  Profile management page template.
-  
-  Provides a user interface for managing profile information including:
-  - Display name and email
-  - Profile picture upload
-  - Bio
-  - Coffee experience level
-  - Account creation and last login dates
+  Profile page — wireframe layout.
+  Variables: user, stats, tab, tiles.
 #}
-<div class="cj-profile-container">
+<div class="cj-profile-screen">
+
+  {# ── Header: avatar + name + stats ────────────────────────────────────── #}
   <div class="cj-profile-header">
-    <h1>{{ 'Manage Profile'|t }}</h1>
-    <p class="cj-profile-subtitle">{{ 'Update your profile information and preferences'|t }}</p>
+
+    <div class="cj-profile-identity">
+      {# Avatar: photo or initial #}
+      {% if user.picture_url %}
+        <img class="cj-avatar cj-avatar--lg"
+             src="{{ user.picture_url }}"
+             alt="{{ user.name }}"
+             width="52" height="52">
+      {% else %}
+        <div class="cj-avatar cj-avatar--lg" aria-hidden="true">
+          {{ user.initial|default('?') }}
+        </div>
+      {% endif %}
+
+      <div class="cj-profile-meta">
+        <span class="cj-profile-name">{{ user.name }}</span>
+        <span class="cj-profile-handle">{{ 'joined'|t }} {{ user.created|date('M Y') }}</span>
+
+        <div class="cj-profile-stats">
+          <span>
+            <strong>{{ stats.beans }}</strong>
+            {{ 'beans'|t }}
+          </span>
+          <span>
+            <strong>{{ stats.brews }}</strong>
+            {{ 'brews'|t }}
+          </span>
+          <span>
+            <strong>{{ stats.hearts }}</strong>
+            ♡
+          </span>
+        </div>
+      </div>
+    </div>
+
+    {# Theme toggle — moved here from topbar #}
+    <button id="cj-theme-toggle"
+            class="cj-profile-theme-btn"
+            aria-label="{{ 'Toggle colour theme'|t }}"
+            title="{{ 'Toggle colour theme'|t }}">
+      <span aria-hidden="true">🌙</span>
+    </button>
+
   </div>
 
-  <div class="cj-profile-content">
-    
-    {# Profile Picture Section #}
-    <section class="cj-profile-section cj-profile-picture-section">
-      <h2>{{ 'Profile Picture'|t }}</h2>
-      <div class="cj-profile-picture-wrapper">
-        <img id="cj-profile-picture-preview" 
-             src="{{ user.picture_url or 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22%3E%3Crect fill=%22%23ddd%22 width=%2240%22 height=%2240%22/%3E%3Ctext x=%2220%22 y=%2220%22 font-size=%2220%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E?%3C/text%3E%3C/svg%3E' }}"
-             alt="{{ 'Profile picture'|t }}"
-             class="cj-profile-picture">
-      </div>
-      <p class="cj-profile-picture-hint">
-        {{ 'Your profile picture is automatically set from your Google account on first login.'|t }}
-      </p>
-    </section>
+  {# ── Filter chips ──────────────────────────────────────────────────────── #}
+  <div class="cj-filter-strip" role="tablist" aria-label="{{ 'Profile sections'|t }}">
+    <a href="{{ path('coffee_journal_access.profile') }}"
+       class="cj-chip{% if tab == 'posts' %} cj-chip--filled{% endif %}"
+       role="tab"
+       aria-selected="{{ tab == 'posts' ? 'true' : 'false' }}">
+      {{ 'Public posts'|t }}
+    </a>
+    <a href="{{ path('coffee_journal_access.profile') }}?tab=beans"
+       class="cj-chip{% if tab == 'beans' %} cj-chip--filled{% endif %}"
+       role="tab"
+       aria-selected="{{ tab == 'beans' ? 'true' : 'false' }}">
+      {{ 'Beans'|t }}
+    </a>
+    <a href="{{ path('coffee_journal_access.profile') }}?tab=brews"
+       class="cj-chip{% if tab == 'brews' %} cj-chip--filled{% endif %}"
+       role="tab"
+       aria-selected="{{ tab == 'brews' ? 'true' : 'false' }}">
+      {{ 'Brews'|t }}
+    </a>
+    <a href="{{ path('coffee_journal_access.profile') }}?tab=saved"
+       class="cj-chip{% if tab == 'saved' %} cj-chip--filled{% endif %}"
+       role="tab"
+       aria-selected="{{ tab == 'saved' ? 'true' : 'false' }}">
+      {{ 'Saved'|t }}
+    </a>
+  </div>
 
-    {# Basic Information Section #}
-    <section class="cj-profile-section cj-profile-info-section">
-      <h2>{{ 'Basic Information'|t }}</h2>
-      
-      <div class="cj-profile-field">
-        <label class="cj-profile-label">{{ 'Name'|t }}</label>
-        <p class="cj-profile-value">{{ user.name }}</p>
-      </div>
-
-      <div class="cj-profile-field">
-        <label class="cj-profile-label">{{ 'Email'|t }}</label>
-        <p class="cj-profile-value">{{ user.email }}</p>
-      </div>
-
-      {% if user.bio %}
-        <div class="cj-profile-field">
-          <label class="cj-profile-label">{{ 'Bio'|t }}</label>
-          <p class="cj-profile-value">{{ user.bio }}</p>
-        </div>
+  {# ── Content grid ──────────────────────────────────────────────────────── #}
+  {% if tiles is empty %}
+    <div class="cj-wf-empty">
+      <svg class="cj-wf-empty__glyph" viewBox="0 0 16 16" aria-hidden="true">
+        <ellipse cx="8" cy="8" rx="5" ry="6.5"
+                 stroke="currentColor" stroke-width="1.2" fill="none"
+                 transform="rotate(30 8 8)"/>
+        <path d="M5 4 Q 8 8, 11 12"
+              stroke="currentColor" stroke-width="1.2" fill="none"
+              transform="rotate(30 8 8)"/>
+      </svg>
+      {% if tab == 'saved' %}
+        <p>{{ 'Nothing saved yet.'|t }}</p>
+        <p class="cj-wf-empty__sub">{{ 'Tap ⌑ on a public brew to save it.'|t }}</p>
+      {% elseif tab == 'beans' %}
+        <p>{{ 'No beans yet.'|t }}</p>
+        <p class="cj-wf-empty__sub">{{ 'Tap + to log your first bean.'|t }}</p>
+      {% elseif tab == 'brews' %}
+        <p>{{ 'No brews yet.'|t }}</p>
+        <p class="cj-wf-empty__sub">{{ 'Open a bean and tap + to add a brew recipe.'|t }}</p>
+      {% else %}
+        <p>{{ 'Nothing shared yet.'|t }}</p>
+        <p class="cj-wf-empty__sub">{{ 'Share a private brew recipe to see it here.'|t }}</p>
       {% endif %}
-
-      {% if user.experience_level %}
-        <div class="cj-profile-field">
-          <label class="cj-profile-label">{{ 'Coffee Experience Level'|t }}</label>
-          <p class="cj-profile-value">
-            {% set level_labels = {
-              'beginner': 'Beginner'|t,
-              'enthusiast': 'Enthusiast'|t,
-              'barista': 'Barista'|t,
-              'roaster': 'Roaster'|t,
-            } %}
-            {{ level_labels[user.experience_level] or user.experience_level }}
-          </p>
-        </div>
-      {% endif %}
-    </section>
-
-    {# Account Metadata Section #}
-    <section class="cj-profile-section cj-profile-metadata-section">
-      <h2>{{ 'Account Activity'|t }}</h2>
-      
-      <div class="cj-profile-field">
-        <label class="cj-profile-label">{{ 'Member Since'|t }}</label>
-        <p class="cj-profile-value">{{ user.created|date('medium') }}</p>
-      </div>
-
-      <div class="cj-profile-field">
-        <label class="cj-profile-label">{{ 'Last Login'|t }}</label>
-        <p class="cj-profile-value">
-          {% if user.last_login > 0 %}
-            {{ user.last_login|date('medium') }}
+    </div>
+  {% else %}
+    <div class="cj-profile-grid">
+      {% for tile in tiles %}
+        <a href="{{ tile.url }}"
+           class="cj-profile-tile"
+           aria-label="{{ tile.title }}">
+          {% if tile.image_url %}
+            <img src="{{ tile.image_url }}" alt="{{ tile.title }}" loading="lazy">
           {% else %}
-            {{ 'Never'|t }}
+            <div class="cj-image-stripe" aria-hidden="true"></div>
           {% endif %}
-        </p>
-      </div>
-    </section>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
 
-    {# User Roles Section #}
-    {% if user.roles %}
-      <section class="cj-profile-section cj-profile-roles-section">
-        <h2>{{ 'Roles'|t }}</h2>
-        <div class="cj-profile-roles-list">
-          {% for role in user.roles %}
-            <span class="cj-profile-role-badge">{{ role|capitalize }}</span>
-          {% else %}
-            <p>{{ 'No additional roles assigned.'|t }}</p>
-          {% endfor %}
-        </div>
-      </section>
-    {% endif %}
-
-    {# Edit Profile Link #}
-    <section class="cj-profile-section cj-profile-actions-section">
-      <a href="{{ path('user.edit') }}" class="cj-profile-edit-link">
-        {{ 'Edit Profile Details'|t }} →
-      </a>
-      <p class="cj-profile-actions-hint">
-        {{ 'To update your bio, experience level, or other profile details, visit the account settings page.'|t }}
-      </p>
-    </section>
-
+  {# ── Edit profile link ─────────────────────────────────────────────────── #}
+  <div class="cj-profile-footer">
+    <a href="{{ path('user.edit') }}" class="cj-profile-edit-btn">
+      {{ 'Edit profile'|t }}
+    </a>
   </div>
+
 </div>
-
-<style>
-  .cj-profile-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-  }
-
-  .cj-profile-header {
-    text-align: center;
-    margin-bottom: 3rem;
-  }
-
-  .cj-profile-header h1 {
-    margin: 0 0 0.5rem;
-    font-size: 2rem;
-    font-weight: 600;
-  }
-
-  .cj-profile-subtitle {
-    margin: 0;
-    font-size: 0.95rem;
-    color: var(--text-secondary, #666);
-  }
-
-  .cj-profile-content {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  .cj-profile-section {
-    padding: 1.5rem;
-    background: var(--surface, #f9f9f9);
-    border-radius: 0.5rem;
-    border: 1px solid var(--border, #e0e0e0);
-  }
-
-  .cj-profile-section h2 {
-    margin: 0 0 1rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
-
-  .cj-profile-picture-section {
-    text-align: center;
-  }
-
-  .cj-profile-picture-wrapper {
-    margin: 1rem 0;
-  }
-
-  .cj-profile-picture {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--primary, #8b6f47);
-    display: block;
-    margin: 0 auto;
-  }
-
-  .cj-profile-picture-hint {
-    margin-top: 1rem;
-    font-size: 0.85rem;
-    color: var(--text-secondary, #666);
-  }
-
-  .cj-profile-field {
-    margin-bottom: 1rem;
-  }
-
-  .cj-profile-field:last-child {
-    margin-bottom: 0;
-  }
-
-  .cj-profile-label {
-    display: block;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--text-secondary, #666);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.5rem;
-  }
-
-  .cj-profile-value {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--text-primary, #333);
-    word-break: break-word;
-  }
-
-  .cj-profile-roles-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .cj-profile-role-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    background: var(--primary-light, #d4c4a8);
-    color: var(--primary-dark, #5a4a2a);
-    border-radius: 2rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-  }
-
-  .cj-profile-actions-section {
-    text-align: center;
-  }
-
-  .cj-profile-edit-link {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    background: var(--primary, #8b6f47);
-    color: white;
-    text-decoration: none;
-    border-radius: 0.25rem;
-    font-weight: 600;
-    transition: background 200ms ease;
-  }
-
-  .cj-profile-edit-link:hover {
-    background: var(--primary-dark, #5a4a2a);
-  }
-
-  .cj-profile-actions-hint {
-    margin-top: 1rem;
-    font-size: 0.85rem;
-    color: var(--text-secondary, #666);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .cj-profile-section {
-      background: var(--surface-dark, #2a2a2a);
-      border-color: var(--border-dark, #444);
-    }
-
-    .cj-profile-subtitle,
-    .cj-profile-picture-hint,
-    .cj-profile-label,
-    .cj-profile-actions-hint {
-      color: var(--text-secondary-dark, #aaa);
-    }
-
-    .cj-profile-value {
-      color: var(--text-primary-dark, #eee);
-    }
-  }
-</style>

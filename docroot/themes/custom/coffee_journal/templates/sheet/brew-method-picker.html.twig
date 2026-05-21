@@ -1,0 +1,28 @@
+{#
+  Brew method picker — 2×3 grid of method tiles.
+  Loaded into the drawer after choosing "A brew recipe" from the add sheet,
+  or via "+ Add brew" on a bean detail page.
+
+  Variables:
+    methods  — array of { key, label, icon }
+    add_url  — base URL for /node/add/brew_recipe
+    bean_nid — optional bean node ID (0 if none)
+#}
+<div class="cj-method-picker">
+  <p class="cj-add-sheet__hint">{{ 'How did you brew it?'|t }}</p>
+
+  <div class="cj-method-grid">
+    {% for method in methods %}
+      {% set form_url = add_url
+        ~ '?field_brew_method=' ~ method.key
+        ~ (bean_nid ? '&field_coffee_bean_ref_target_id=' ~ bean_nid : '') %}
+      <button type="button"
+              class="cj-method-tile"
+              data-cj-add-open="{{ form_url }}"
+              data-cj-add-title="{{ method.label }}">
+        <span class="cj-method-tile__icon" aria-hidden="true">{{ method.icon }}</span>
+        <span class="cj-method-tile__name">{{ method.label }}</span>
+      </button>
+    {% endfor %}
+  </div>
+</div>

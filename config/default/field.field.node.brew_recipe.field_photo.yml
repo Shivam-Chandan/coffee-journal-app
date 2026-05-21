@@ -1,0 +1,38 @@
+uuid: bc783452-e476-41a7-8afc-1d170a2eba08
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_photo
+    - node.type.brew_recipe
+  module:
+    - image
+id: node.brew_recipe.field_photo
+field_name: field_photo
+entity_type: node
+bundle: brew_recipe
+label: 'Photo'
+description: 'An optional photo for this brew, shown on feed cards and the detail page.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  file_directory: brew-photos
+  file_extensions: 'png jpg jpeg webp heic'
+  max_filesize: '5 MB'
+  max_resolution: ''
+  min_resolution: ''
+  alt_field: false
+  alt_field_required: true
+  title_field: false
+  title_field_required: false
+  handler: 'default:file'
+  handler_settings: {  }
+  default_image:
+    uuid: null
+    alt: ''
+    title: ''
+    width: null
+    height: null
+field_type: image

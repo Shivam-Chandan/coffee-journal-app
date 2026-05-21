@@ -1,0 +1,63 @@
+{#
+  Share sheet — loaded into the drawer when owner taps "Share to feed →".
+  Allows adding an optional caption before publishing to the public feed.
+
+  Variables:
+    node_id     — brew recipe NID
+    brew_title  — node title
+    brew_method — method string (e.g. "V60")
+    brew_ratio  — ratio string (e.g. "1:16.0") or empty
+    publish_url — POST endpoint /api/brew/{nid}/publish
+#}
+<div class="cj-share-sheet" data-cj-share-sheet="{{ node_id }}">
+
+  {# Brew preview row #}
+  <div class="cj-share-sheet__preview">
+    <div class="cj-share-sheet__preview-info">
+      <div class="cj-share-sheet__preview-title">{{ brew_title }}</div>
+      {% if brew_method or brew_ratio %}
+        <div class="cj-share-sheet__preview-sub">
+          {{- [brew_method, brew_ratio]|filter(v => v is not empty)|join(' · ') -}}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Photo upload #}
+  <div class="cj-field-wrap">
+    <label class="cj-field-label" for="cj-share-photo">{{ 'Add a photo (optional)'|t }}</label>
+    <input id="cj-share-photo"
+           type="file"
+           accept="image/png,image/jpeg,image/webp,image/heic"
+           class="cj-share-sheet__photo-input"
+           data-cj-share-photo>
+    <img class="cj-share-photo-preview" src="" alt="{{ 'Photo preview'|t }}" hidden style="max-width:100%;border-radius:8px;margin-top:.5rem;">
+    <p class="cj-share-photo-status" style="font-size:.8rem;color:var(--cj-text-muted)"></p>
+  </div>
+
+  {# Caption field #}
+  <div class="cj-field-wrap">
+    <label class="cj-field-label" for="cj-share-caption">{{ 'Caption (optional)'|t }}</label>
+    <textarea id="cj-share-caption"
+              class="cj-share-sheet__caption"
+              rows="3"
+              placeholder="{{ 'Add a note about this brew…'|t }}"></textarea>
+  </div>
+
+  {# Visibility indicator #}
+  <div class="cj-share-sheet__visibility">
+    <span class="cj-share-sheet__visibility-label">{{ 'Visibility'|t }}</span>
+    <div class="cj-share-sheet__visibility-chips">
+      <span class="cj-chip cj-chip--filled">{{ 'Public'|t }}</span>
+    </div>
+  </div>
+
+  {# Publish CTA #}
+  <button type="button"
+          class="cj-share-cta"
+          data-cj-publish-btn
+          data-publish-url="{{ publish_url }}">
+    {{ 'Publish to feed'|t }}
+  </button>
+
+</div>

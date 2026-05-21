@@ -1,0 +1,8 @@
+name: 'Coffee Journal Likes'
+type: module
+description: 'REST endpoints for liking brew recipe nodes. Tracks public like counts per node.'
+package: Custom
+core_version_requirement: ^10.1 || ^11
+dependencies:
+  - drupal:node
+  - drupal:user

@@ -1,99 +1,68 @@
 {#
-  Coffee Journal — Brew Recipe card (teaser view mode).
+  Brew recipe teaser — used in the bean detail "Brews" list and in the feed card.
 
-  Used both on the community feed and inside the coffee bean detail page.
-  user_can_edit / user_can_delete are pre-computed in coffee_journal_preprocess_node().
+  Layout:
+    - Method chip + ratio
+    - Title link
+    - Compact stat row (coffee·water·time)
+    - Public/Private chip
+    - Owner-only edit icon
 #}
-{% set node_id = node.id() %}
+{% set node_id       = node.id() %}
+{% set brew_method   = node.field_brew_method.value|default('') %}
+{% set coffee_weight = node.field_coffee_weight.value|default(0)|number_format(0) %}
+{% set water_weight  = node.field_water_weight.value|default(0)|number_format(0) %}
+{% set brew_time     = node.field_brew_time is defined ? node.field_brew_time.value|default('') : '' %}
+{% set is_public     = node.field_is_public.value %}
 
-<article{{ attributes.addClass('cj-recipe-card') }}>
+{% if coffee_weight and water_weight %}
+  {% set ratio = (water_weight / coffee_weight)|round(1) %}
+{% endif %}
 
-  {# ── Header: title + owner-only actions ── #}
-  <div class="cj-recipe-card__header">
-    <h3 class="cj-recipe-card__title">
-      <a href="{{ url }}" data-drawer-view-recipe="true">{{ label }}</a>
-    </h3>
+<article{{ attributes.addClass('cj-card', 'cj-brew-card') }}>
 
-    {% if user_can_edit %}
-      <div class="cj-recipe-card__actions">
-        <a href="{{ path('entity.node.edit_form', {'node': node_id}) }}"
-           class="cj-recipe-action-btn cj-recipe-action-btn--edit"
-           data-drawer-recipe-edit="true"
-           title="{{ 'Edit'|t }} {{ label }}"
-           aria-label="{{ 'Edit'|t }} {{ label }}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-            <path d="m15 5 4 4"/>
-          </svg>
-          <span>{{ 'Edit'|t }}</span>
-        </a>
-        <a href="{{ path('entity.node.delete_form', {'node': node_id}) }}"
-           class="cj-recipe-action-btn cj-recipe-action-btn--delete"
-           title="{{ 'Delete'|t }} {{ label }}"
-           aria-label="{{ 'Delete'|t }} {{ label }}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-            <path d="M10 11v6M14 11v6"/>
-            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-          </svg>
-          <span>{{ 'Delete'|t }}</span>
-        </a>
-      </div>
+  {# Method + ratio header #}
+  <div class="cj-brew-card__head">
+    {% if brew_method %}
+      <span class="cj-chip cj-chip--filled">{{ brew_method }}</span>
+    {% endif %}
+    {% if ratio is defined %}
+      <span class="cj-brew-card__ratio">1:{{ ratio }}</span>
+    {% endif %}
+    {% if is_public %}
+      <span class="cj-chip" style="margin-left:auto">{{ 'Public'|t }}</span>
     {% endif %}
   </div>
 
-  <div class="cj-recipe-card__body">
-    <div class="cj-recipe-info">
+  {# Title #}
+  <a href="{{ url }}" class="cj-brew-card__title" data-drawer-view-recipe="true">{{ label }}</a>
 
-      {% if node.field_brew_method.value %}
-        <div class="cj-recipe-field">
-          <strong class="cj-recipe-label">{{ 'Method'|t }}:</strong>
-          <span class="cj-recipe-value">{{ node.field_brew_method.value }}</span>
-        </div>
-      {% endif %}
-
-      {% if node.field_coffee_weight.value %}
-        <div class="cj-recipe-field">
-          <strong class="cj-recipe-label">{{ 'Coffee'|t }}:</strong>
-          <span class="cj-recipe-value">{{ node.field_coffee_weight.value }}g</span>
-        </div>
-      {% endif %}
-
-      {% if node.field_water_weight.value %}
-        <div class="cj-recipe-field">
-          <strong class="cj-recipe-label">{{ 'Water'|t }}:</strong>
-          <span class="cj-recipe-value">{{ node.field_water_weight.value }}g</span>
-        </div>
-      {% endif %}
-
-      {% if node.field_coffee_weight.value and node.field_water_weight.value %}
-        {% set ratio = (node.field_water_weight.value / node.field_coffee_weight.value)|round(2) %}
-        <div class="cj-recipe-field">
-          <strong class="cj-recipe-label">{{ 'Ratio'|t }}:</strong>
-          <span class="cj-recipe-value">1:{{ ratio }}</span>
-        </div>
-      {% endif %}
-
-      {% if node.field_community_notes.value %}
-        <div class="cj-recipe-field">
-          <strong class="cj-recipe-label">{{ 'Notes'|t }}:</strong>
-          <span class="cj-recipe-value">{{ node.field_community_notes.value }}</span>
-        </div>
-      {% endif %}
-
-    </div>
-  </div>
-
-  <div class="cj-recipe-card__footer">
-    <a href="{{ url }}" class="cj-recipe-card__link" data-drawer-view-recipe="true">{{ 'View Recipe'|t }}</a>
-    {% if node.field_is_public.value %}
-      <span class="cj-badge cj-badge--public">{{ 'Public'|t }}</span>
+  {# Compact stats row #}
+  <div class="cj-brew-card__stats">
+    {% if coffee_weight %}
+      <span>{{ coffee_weight }}g</span>
+    {% endif %}
+    {% if water_weight %}
+      <span>{{ water_weight }}g water</span>
+    {% endif %}
+    {% if brew_time %}
+      <span>{{ brew_time }}</span>
     {% endif %}
   </div>
+
+  {# Owner-only edit #}
+  {% if user_can_edit %}
+    <a href="{{ path('entity.node.edit_form', {'node': node_id}) }}"
+       class="cj-brew-card__edit"
+       data-drawer-recipe-edit="true"
+       aria-label="{{ 'Edit'|t }} {{ label }}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+        <path d="m15 5 4 4"/>
+      </svg>
+    </a>
+  {% endif %}
 
 </article>

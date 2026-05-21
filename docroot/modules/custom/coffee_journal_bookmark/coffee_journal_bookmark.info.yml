@@ -1,0 +1,8 @@
+name: 'Coffee Journal Bookmark'
+type: module
+description: 'Bookmark/heart mechanic for coffee beans and brew recipes. Provides toggle endpoint and Saved tab.'
+package: 'Coffee Journal'
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node
+  - drupal:user

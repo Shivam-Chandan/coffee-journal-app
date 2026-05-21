@@ -57,14 +57,19 @@
     {% endif %}
 
     {% if rows %}
-      <div class="cj-grid view-content" id="cj-grid">{{ rows }}</div>
+      <div class="cj-journal-grid view-content" id="cj-grid">{{ rows }}</div>
     {% elseif empty %}
-      <div class="cj-empty view-empty">
-        <span class="cj-empty-icon" aria-hidden="true">☕</span>
-        <p>{{ 'Your coffee journal is empty.'|t }}</p>
-        <a href="{{ path('node.add', {'node_type': 'coffee_bean'}) }}" class="button">
-          {{ 'Add your first coffee'|t }}
-        </a>
+      <div class="cj-wf-empty view-empty">
+        <svg class="cj-wf-empty__glyph" viewBox="0 0 16 16" aria-hidden="true">
+          <ellipse cx="8" cy="8" rx="5" ry="6.5"
+                   stroke="currentColor" stroke-width="1.2" fill="none"
+                   transform="rotate(30 8 8)"/>
+          <path d="M5 4 Q 8 8, 11 12"
+                stroke="currentColor" stroke-width="1.2" fill="none"
+                transform="rotate(30 8 8)"/>
+        </svg>
+        <p class="cj-wf-empty__title">{{ 'No beans yet.'|t }}</p>
+        <p class="cj-wf-empty__sub">{{ 'Tap + to log the first one.'|t }}</p>
       </div>
     {% endif %}
 
@@ -81,14 +86,6 @@
     {% endif %}
 
   </div>
-
-  {# ── FAB — button (not link) — opens the add-coffee drawer ── #}
-  <button type="button"
-          class="cj-fab"
-          aria-label="{{ 'Add a Coffee Bean'|t }}"
-          title="{{ 'Add a Coffee Bean'|t }}">
-    <span aria-hidden="true">+</span>
-  </button>
 
 {% else %}
   {{ rows }}

@@ -14,55 +14,78 @@
    ============================================================================= */
 @layer base {
   :root {
-    /* Dark theme (default) */
-    --cj-bg:             hsl(28, 4%, 8%);
-    --cj-surface:        hsl(28, 5%, 10%);
-    --cj-elevated:       hsl(28, 5%, 13%);
-    --cj-muted:          hsl(28, 6%, 18%);
-    --cj-border:         hsl(28, 4%, 18%);
-    --cj-border-card:    hsl(28, 5%, 14%);
-    --cj-text:           hsl(30, 5%, 95%);
-    --cj-text-muted:     hsl(30, 5%, 65%);
-    --cj-text-faint:     hsl(30, 4%, 45%);
+    /* ── Wireframe dark palette (default) ── */
+    --cj-bg:             #121110;
+    --cj-surface:        #1c1a17;
+    --cj-elevated:       #23211f;
+    --cj-muted:          rgba(243, 238, 228, 0.08);
+    --cj-border:         rgba(243, 238, 228, 0.18);
+    --cj-border-card:    rgba(243, 238, 228, 0.12);
+    --cj-text:           #f3eee4;
+    --cj-text-muted:     #a8a097;
+    --cj-text-faint:     #6e6760;
+
+    /* ── Accent — keep existing orange ── */
     --cj-primary:        hsl(25, 85%, 42%);
     --cj-primary-hover:  hsl(25, 85%, 50%);
     --cj-primary-fg:     hsl(25, 10%, 98%);
     --cj-star:           #f59e0b;
-    --cj-radius:         0.5rem;
-    --cj-radius-lg:      0.75rem;
+    --cj-accent-soft:    hsla(25, 85%, 42%, 0.14);
+
+    /* ── Wireframe alias tokens ── */
+    --cj-hair:           rgba(243, 238, 228, 0.18);
+    --cj-ink:            #f3eee4;
+    --cj-ink-2:          #a8a097;
+    --cj-ink-3:          #6e6760;
+    --cj-paper:          #121110;
+    --cj-panel:          #1c1a17;
+
+    /* ── Geometry ── */
+    --cj-radius:         4px;
+    --cj-radius-lg:      8px;
     --cj-topbar-height:  56px;
 
-    /* Roast badge colours — dark */
-    --cj-roast-light-text: hsl(45, 70%, 65%);
-    --cj-roast-light-bg:   hsl(45, 60%, 14%);
-    --cj-roast-medium-text: hsl(30, 70%, 60%);
-    --cj-roast-medium-bg:  hsl(30, 60%, 14%);
-    --cj-roast-dark-text:  hsl(20, 55%, 55%);
-    --cj-roast-dark-bg:    hsl(20, 50%, 12%);
+    /* ── Roast badge colours — dark ── */
+    --cj-roast-light-text:    hsl(45, 70%, 65%);
+    --cj-roast-light-bg:      hsl(45, 60%, 14%);
+    --cj-roast-medium-text:   hsl(30, 70%, 60%);
+    --cj-roast-medium-bg:     hsl(30, 60%, 14%);
+    --cj-roast-dark-text:     hsl(20, 55%, 55%);
+    --cj-roast-dark-bg:       hsl(20, 50%, 12%);
     --cj-roast-espresso-text: hsl(10, 45%, 50%);
     --cj-roast-espresso-bg:   hsl(10, 40%, 10%);
   }
 
+  /* ── Wireframe paper / light mode ── */
   .light-mode {
-    --cj-bg:             hsl(30, 5%, 97%);
-    --cj-surface:        hsl(30, 6%, 95%);
-    --cj-elevated:       hsl(30, 5%, 92%);
-    --cj-muted:          hsl(32, 8%, 88%);
-    --cj-border:         hsl(30, 5%, 85%);
-    --cj-border-card:    hsl(30, 6%, 90%);
-    --cj-text:           hsl(28, 8%, 15%);
-    --cj-text-muted:     hsl(28, 6%, 35%);
-    --cj-text-faint:     hsl(28, 4%, 55%);
+    --cj-bg:             #faf8f4;
+    --cj-surface:        #ffffff;
+    --cj-elevated:       #f5f3ef;
+    --cj-muted:          rgba(28, 26, 23, 0.08);
+    --cj-border:         rgba(28, 26, 23, 0.18);
+    --cj-border-card:    rgba(28, 26, 23, 0.12);
+    --cj-text:           #1c1a17;
+    --cj-text-muted:     #5a534b;
+    --cj-text-faint:     #8a8278;
+
     --cj-primary:        hsl(25, 85%, 42%);
     --cj-primary-hover:  hsl(25, 85%, 35%);
     --cj-primary-fg:     #fff;
+    --cj-accent-soft:    hsla(25, 85%, 42%, 0.14);
 
-    --cj-roast-light-text: hsl(45, 65%, 32%);
-    --cj-roast-light-bg:   hsl(45, 65%, 92%);
-    --cj-roast-medium-text: hsl(30, 65%, 35%);
-    --cj-roast-medium-bg:  hsl(30, 65%, 92%);
-    --cj-roast-dark-text:  hsl(20, 50%, 28%);
-    --cj-roast-dark-bg:    hsl(20, 50%, 90%);
+    --cj-hair:           rgba(28, 26, 23, 0.18);
+    --cj-ink:            #1c1a17;
+    --cj-ink-2:          #5a534b;
+    --cj-ink-3:          #8a8278;
+    --cj-paper:          #faf8f4;
+    --cj-panel:          #ffffff;
+
+    --cj-roast-light-text:    hsl(45, 65%, 32%);
+    --cj-roast-light-bg:      hsl(45, 65%, 92%);
+    --cj-roast-medium-text:   hsl(30, 65%, 35%);
+    --cj-roast-medium-bg:     hsl(30, 65%, 92%);
+    --cj-roast-dark-text:     hsl(20, 50%, 28%);
+    --cj-roast-dark-bg:       hsl(20, 50%, 90%);
     --cj-roast-espresso-text: hsl(10, 40%, 22%);
     --cj-roast-espresso-bg:   hsl(10, 40%, 90%);
   }
@@ -175,25 +198,33 @@
   }
 
   /* Dark/light toggle button */
-  #cj-theme-toggle {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    border: 1px solid var(--cj-border);
-    background: transparent;
-    color: var(--cj-text-muted);
-    font-size: 0.9rem;
+  .cj-topbar-logout {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: var(--cj-radius);
+    border: 1px solid var(--cj-hair);
+    background: transparent;
+    color: var(--cj-ink-2);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
     cursor: pointer;
-    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    transition: background 0.15s, color 0.15s;
     flex-shrink: 0;
   }
-  #cj-theme-toggle:hover {
-    background: var(--cj-muted);
-    color: var(--cj-text);
-    border-color: var(--cj-text-faint);
+  .cj-topbar-logout:hover {
+    background: var(--cj-hair);
+    color: var(--cj-ink);
+  }
+  .cj-topbar-logout__label {
+    /* hide label on very narrow screens, keep icon */
+    display: none;
+  }
+  @media (min-width: 360px) {
+    .cj-topbar-logout__label { display: inline; }
   }
 
   /* User account menu in topbar — override Drupal defaults */
@@ -897,85 +928,92 @@
   }
 
   /* ── LOGIN PAGE ─────────────────────────────────────────────────────────── */
-  /* Full-page centred layout for page--user--login.html.twig */
   .cj-login-shell {
-    min-height: 100vh;
+    min-height: 100svh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--cj-bg);
-    padding: 2rem 1rem;
+    background: var(--cj-paper);
+    padding: 40px 24px max(28px, env(safe-area-inset-bottom));
   }
-  .cj-login-card {
-    width: 100%;
-    max-width: 400px;
-    background: var(--cj-surface);
-    border: 1px solid var(--cj-border-card);
-    border-radius: var(--cj-radius-lg);
-    padding: 2.5rem 2rem;
-    text-align: center;
+  #cj-login {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
-  .cj-login-brand {
-    font-size: 3rem;
-    line-height: 1;
-    margin-bottom: 0.75rem;
+  .cj-login-top {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cj-login-glyph {
+    width: 32px;
+    height: 32px;
+    color: var(--cj-ink);
+    flex-shrink: 0;
   }
   .cj-login-title {
-    font-size: 1.75rem;
+    font-size: 22px;
     font-weight: 700;
-    color: var(--cj-text);
-    letter-spacing: -0.02em;
-    margin-bottom: 0.5rem;
+    line-height: 1.1;
+    color: var(--cj-ink);
+    letter-spacing: -0.01em;
   }
   .cj-login-tagline {
-    font-size: 0.9rem;
-    color: var(--cj-text-muted);
-    margin-bottom: 2rem;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--cj-ink-2);
+    max-width: 220px;
   }
-  /* Google Sign-In button — follows Google Branding Guidelines */
+  .cj-login-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  /* Google Sign-In button — wireframe bordered row style */
   .cj-btn-google {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 10px;
+    height: 44px;
     width: 100%;
-    background: #fff;
-    color: #3c4043 !important;
-    border: 1px solid #dadce0;
-    border-radius: 4px;
-    padding: 0.7rem 1.5rem;
-    font-size: 0.95rem;
-    font-weight: 500;
-    font-family: 'Google Sans', Inter, sans-serif;
+    background: var(--cj-panel);
+    color: var(--cj-ink) !important;
+    border: 1.5px solid var(--cj-ink);
+    border-radius: var(--cj-radius);
+    padding: 0 20px;
+    font-size: 12px;
+    font-weight: 600;
     text-decoration: none !important;
     cursor: pointer;
-    transition: background-color 0.18s ease, box-shadow 0.18s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    transition: background 0.15s;
   }
   .cj-btn-google:hover {
-    background: #f8f8f8 !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
-    color: #3c4043 !important;
+    background: var(--cj-accent-soft) !important;
   }
   .cj-google-icon { flex-shrink: 0; }
-  /* Admin login fallback — hidden by default, revealed via <details> */
+  .cj-login-legal {
+    font-size: 9px;
+    line-height: 1.4;
+    color: var(--cj-ink-2);
+    text-align: center;
+  }
+  /* Admin login fallback */
   .cj-admin-login {
-    margin-top: 1.5rem;
+    margin-top: 8px;
     text-align: left;
   }
   .cj-admin-login summary {
-    font-size: 0.72rem;
-    color: var(--cj-text-faint);
+    font-size: 10px;
+    color: var(--cj-ink-3);
     cursor: pointer;
     text-align: center;
     letter-spacing: 0.04em;
     list-style: none;
-    margin-bottom: 0.75rem;
   }
   .cj-admin-login summary::-webkit-details-marker { display: none; }
-  .cj-admin-login[open] summary { color: var(--cj-text-muted); }
+  .cj-admin-login[open] summary { color: var(--cj-ink-2); }
 
   /* Rating bars for node detail page */
   .cj-rating-bar-wrap {
@@ -1672,5 +1710,1250 @@
   .cj-drawer__body .form-actions input[type="submit"] {
     width: 100%;
     justify-content: center;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     WIREFRAME PRIMITIVES
+     Low-fi components drawn from the Coffee Journal wireframes.
+     All use var(--cj-*) tokens so dark/light mode works automatically.
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* ── CHIP / PILL ─────────────────────────────────────────────────────── */
+  /* Feed filter chips, kind labels, visibility toggles */
+  .cj-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border: 1px solid var(--cj-ink);
+    background: transparent;
+    color: var(--cj-ink);
+    border-radius: 999px;
+    font-size: 0.69rem;
+    font-weight: 500;
+    white-space: nowrap;
+    line-height: 1.4;
+    cursor: default;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .cj-chip--filled {
+    background: var(--cj-primary);
+    border-color: var(--cj-primary);
+    color: var(--cj-primary-fg);
+  }
+  a.cj-chip:hover,
+  button.cj-chip:hover {
+    background: var(--cj-muted);
+    text-decoration: none !important;
+  }
+  a.cj-chip--filled:hover,
+  button.cj-chip--filled:hover {
+    background: var(--cj-primary-hover);
+    border-color: var(--cj-primary-hover);
+  }
+
+  /* ── IMAGE STRIPE ────────────────────────────────────────────────────── */
+  /* Diagonal-hatched placeholder when no bean/brew photo is uploaded */
+  .cj-image-stripe {
+    width: 100%;
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(28, 26, 23, 0.05) 0 6px,
+      transparent 6px 12px
+    );
+    border: 1px solid var(--cj-border);
+    border-radius: var(--cj-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.56rem;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color: var(--cj-text-faint);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .light-mode .cj-image-stripe {
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(28, 26, 23, 0.05) 0 6px,
+      transparent 6px 12px
+    );
+  }
+  /* When actual img is inside the stripe, fill it */
+  .cj-image-stripe img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── AVATAR ──────────────────────────────────────────────────────────── */
+  .cj-avatar {
+    border-radius: 50%;
+    border: 1px solid var(--cj-border);
+    background: var(--cj-accent-soft);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    color: var(--cj-text);
+    flex-shrink: 0;
+    overflow: hidden;
+    line-height: 1;
+  }
+  .cj-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ── WIREFRAME FIELD (bottom-underlined row) ─────────────────────────── */
+  .cj-wf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cj-wf-field__label {
+    font-size: 0.56rem;
+    font-weight: 500;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color: var(--cj-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cj-wf-field__value {
+    border-bottom: 1px solid var(--cj-border);
+    padding: 4px 0 6px;
+    font-size: 0.875rem;
+    color: var(--cj-text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .cj-wf-field__value--placeholder {
+    color: var(--cj-text-faint);
+  }
+  .cj-wf-field__select-arrow {
+    color: var(--cj-text-faint);
+    font-size: 0.75rem;
+  }
+
+  /* ── SMALL FIELD TILE (brew stat box) ────────────────────────────────── */
+  .cj-small-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border: 1px solid var(--cj-border);
+    border-radius: var(--cj-radius);
+    padding: 6px 8px;
+    background: var(--cj-surface);
+  }
+  .cj-small-field__label {
+    font-size: 0.5rem;
+    font-weight: 500;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color: var(--cj-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cj-small-field__value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--cj-text);
+    line-height: 1.15;
+  }
+
+  /* ── WIREFRAME SECTION HEAD ──────────────────────────────────────────── */
+  .cj-wf-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 0 6px;
+    font-size: 0.69rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cj-text-muted);
+    border-top: 1px solid var(--cj-border);
+    margin-top: 4px;
+  }
+  .cj-wf-section-head__right {
+    font-size: 0.625rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--cj-text-faint);
+  }
+
+  /* ── RATING RADAR CHART ──────────────────────────────────────────────── */
+  .cj-rating-radar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cj-rating-radar svg {
+    overflow: visible;
+    flex-shrink: 0;
+  }
+  .cj-rating-radar__score {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .cj-rating-radar__score-label {
+    font-size: 0.56rem;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color: var(--cj-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cj-rating-radar__score-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cj-text);
+    line-height: 1;
+  }
+  .cj-rating-radar__score-max {
+    font-size: 0.56rem;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color: var(--cj-text-faint);
+  }
+
+  /* ── BOTTOM NAV (center-FAB pattern) ─────────────────────────────────── */
+  /* Will be wired to the HTML in Phase 2. Defined here so tokens compile. */
+  #cj-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: var(--cj-surface);
+    border-top: 1px solid var(--cj-border);
+    display: flex;
+    align-items: stretch;
+    height: 56px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .cj-bottom-nav__group {
+    display: flex;
+    flex: 1;
+  }
+  .cj-bottom-nav__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 0.56rem;
+    font-weight: 500;
+    color: var(--cj-text-faint);
+    text-decoration: none !important;
+    transition: color 0.18s ease;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+  }
+  .cj-bottom-nav__item.is-active,
+  .cj-bottom-nav__item:hover {
+    color: var(--cj-primary);
+  }
+  .cj-bottom-nav__icon {
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  /* Center FAB slot — creates negative-space pocket for the raised button */
+  .cj-bottom-nav__fab-slot {
+    width: 64px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  /* FAB inside the nav — raised above the bar */
+  .cj-bottom-nav__fab-slot .cj-fab {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 48px;
+    font-size: 1.4rem;
+    font-weight: 300;
+    line-height: 1;
+    /* reset the old floating position */
+    bottom: auto;
+    right: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--cj-border);
+  }
+  .cj-bottom-nav__fab-slot .cj-fab:hover {
+    transform: translateX(-50%) scale(1.07);
+  }
+  .cj-bottom-nav__fab-slot .cj-fab::after {
+    display: none; /* no tooltip in the nav */
+  }
+
+  /* ── FORM FIELD PRIMITIVE (.cj-field-wrap) ──────────────────────────── */
+  /* Wireframe "Field" — uppercase mono label + input with bottom border */
+  .cj-field-wrap {
+    border-bottom: var(--cj-stroke) solid var(--cj-hair);
+    padding: 6px 0 8px;
+  }
+  .cj-field-wrap + .cj-field-wrap {
+    margin-top: 2px;
+  }
+  /* Drupal renders labels inside the field widget — inherit the style */
+  .cj-field-wrap label,
+  .cj-field-label {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cj-ink-2);
+    margin-bottom: 4px;
+  }
+  .cj-field-wrap input[type="text"],
+  .cj-field-wrap input[type="email"],
+  .cj-field-wrap input[type="url"],
+  .cj-field-wrap input[type="number"],
+  .cj-field-wrap input[type="date"],
+  .cj-field-wrap textarea,
+  .cj-field-wrap select {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    width: 100%;
+    font-size: 0.8rem;
+    color: var(--cj-ink);
+    padding: 2px 0;
+  }
+  .cj-field-wrap input:focus,
+  .cj-field-wrap textarea:focus,
+  .cj-field-wrap select:focus {
+    outline: none;
+    box-shadow: none;
+    border-bottom: var(--cj-stroke) solid var(--cj-primary);
+  }
+  .cj-field-wrap--half {
+    flex: 1;
+    min-width: 0;
+  }
+  .cj-field-wrap--check {
+    border-bottom: none;
+    padding: 4px 0;
+  }
+  .cj-form-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 4px 0;
+  }
+
+  /* ── FORM SECTION DIVIDER (.cj-form-section-head) ───────────────────── */
+  .cj-form-section-head {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cj-ink-2);
+    padding: 14px 0 6px;
+    border-top: var(--cj-stroke) solid var(--cj-hair);
+    margin-top: 4px;
+  }
+
+  /* ── SAVE BAR (.cj-save-bar) ─────────────────────────────────────────── */
+  /* Full-width accent bar at the bottom of the bean/brew form drawer */
+  .cj-save-bar {
+    position: sticky;
+    bottom: 0;
+    margin: 16px -16px 0;
+    padding: 10px 16px max(12px, env(safe-area-inset-bottom));
+    background: var(--cj-panel);
+    border-top: var(--cj-stroke) solid var(--cj-hair);
+    display: flex;
+    gap: 10px;
+  }
+  .cj-save-bar .form-submit,
+  .cj-save-bar input[type="submit"],
+  .cj-save-bar button[type="submit"] {
+    flex: 1;
+    height: 44px;
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg);
+    border: none;
+    border-radius: var(--cj-radius);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+  }
+  .cj-save-bar .form-submit:hover,
+  .cj-save-bar input[type="submit"]:hover {
+    background: var(--cj-primary-hover);
+  }
+  .cj-save-bar__delete {
+    height: 44px;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--cj-ink-2);
+    border: var(--cj-stroke) solid var(--cj-hair);
+    border-radius: var(--cj-radius);
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  /* Override the old .form-actions styles inside drawer when cj-save-bar is used */
+  .cj-save-bar ~ .cj-save-bar { display: none; }
+
+  /* ── FORM FIELD PRIMITIVE — .cj-method-picker wrapper ───────────────── */
+  .cj-method-picker {
+    padding: 0 0 8px;
+  }
+
+  /* ── ADD SHEET (bean vs brew choice) ─────────────────────────────────── */
+  .cj-add-sheet {
+    padding: 16px 0 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cj-add-sheet__hint {
+    font-size: 0.69rem;
+    color: var(--cj-text-muted);
+    margin-bottom: 4px;
+  }
+  .cj-add-sheet__tile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--cj-border);
+    border-radius: var(--cj-radius);
+    padding: 14px 16px;
+    background: var(--cj-surface);
+    cursor: pointer;
+    text-decoration: none !important;
+    color: var(--cj-text) !important;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+  }
+  .cj-add-sheet__tile:hover,
+  .cj-add-sheet__tile--active {
+    border-color: var(--cj-primary);
+    background: var(--cj-accent-soft);
+  }
+  .cj-add-sheet__tile-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .cj-add-sheet__tile-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .cj-add-sheet__tile-sub {
+    font-size: 0.69rem;
+    color: var(--cj-text-muted);
+    margin-top: 2px;
+  }
+
+  /* ── BREW METHOD PICKER ──────────────────────────────────────────────── */
+  .cj-method-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 16px 0;
+  }
+  .cj-method-tile {
+    border: 1px solid var(--cj-border);
+    border-radius: var(--cj-radius);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--cj-surface);
+    cursor: pointer;
+    text-decoration: none !important;
+    color: var(--cj-text) !important;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+    aspect-ratio: 1 / 0.9;
+  }
+  .cj-method-tile:hover,
+  .cj-method-tile--active {
+    border-color: var(--cj-primary);
+    border-width: 2px;
+    background: var(--cj-accent-soft);
+  }
+  .cj-method-tile__icon {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+  .cj-method-tile__name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: auto;
+    line-height: 1.15;
+  }
+  .cj-method-tile__sub {
+    font-size: 0.56rem;
+    color: var(--cj-text-muted);
+  }
+
+  /* ── SHARE SHEET ─────────────────────────────────────────────────────── */
+  .cj-share-sheet {
+    padding: 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cj-share-sheet__preview {
+    border: 1px solid var(--cj-border);
+    border-radius: var(--cj-radius);
+    padding: 10px 12px;
+    display: flex;
+    gap: 10px;
+    background: var(--cj-surface);
+  }
+  .cj-share-sheet__preview-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  .cj-share-sheet__preview-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cj-text);
+  }
+  .cj-share-sheet__preview-sub {
+    font-size: 0.56rem;
+    color: var(--cj-text-muted);
+  }
+  .cj-share-sheet__visibility {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .cj-share-sheet__visibility-label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color: var(--cj-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cj-share-sheet__visibility-chips {
+    display: flex;
+    gap: 4px;
+  }
+  .cj-share-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 44px;
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg) !important;
+    border: none;
+    border-radius: var(--cj-radius);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+    text-decoration: none !important;
+  }
+  .cj-share-cta:hover { background: var(--cj-primary-hover); }
+  .cj-share-sheet__caption {
+    width: 100%;
+    background: transparent;
+    border: none;
+    resize: none;
+    font-size: 0.8rem;
+    color: var(--cj-ink);
+    line-height: 1.5;
+    padding: 2px 0;
+  }
+  .cj-share-sheet__caption:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /* ── FEED CARD (Feed A — card stream) ────────────────────────────────── */
+  .cj-feed-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cj-feed-card {
+    border: 1px solid var(--cj-border);
+    border-radius: var(--cj-radius);
+    background: var(--cj-surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .cj-feed-card__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .cj-feed-card__author-block {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .cj-feed-card__author-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cj-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cj-feed-card__author-handle {
+    font-weight: 400;
+    color: var(--cj-text-muted);
+  }
+  .cj-feed-card__timestamp {
+    font-size: 0.56rem;
+    color: var(--cj-text-faint);
+  }
+  .cj-feed-card__hero {
+    /* Full-bleed image — no side borders */
+    border-top: 1px solid var(--cj-border);
+    border-bottom: 1px solid var(--cj-border);
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    /* .cj-image-stripe border is overridden above */
+  }
+  .cj-feed-card__body {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cj-feed-card__title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cj-text);
+    line-height: 1.25;
+  }
+  .cj-feed-card__title a {
+    color: var(--cj-text) !important;
+    text-decoration: none !important;
+  }
+  .cj-feed-card__title a:hover {
+    color: var(--cj-primary) !important;
+  }
+  .cj-feed-card__sub {
+    font-size: 0.69rem;
+    color: var(--cj-text-muted);
+    line-height: 1.3;
+  }
+  .cj-feed-card__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+  }
+  .cj-feed-card__engagement {
+    display: flex;
+    gap: 10px;
+    font-size: 0.75rem;
+    color: var(--cj-text-muted);
+    align-items: center;
+  }
+  .cj-feed-card__engagement-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--cj-text-muted);
+    font-size: 0.75rem;
+    line-height: 1;
+    transition: color 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .cj-feed-card__engagement-btn:hover,
+  .cj-feed-card__engagement-btn.is-bookmarked {
+    color: var(--cj-primary);
+  }
+  .cj-feed-card__method-chips {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  /* Generic engagement button (.cj-engage-btn) — used in feed-page.html.twig */
+  .cj-feed-card__engage {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .cj-engage-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--cj-ink-2);
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: color 0.15s ease, transform 0.12s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .cj-engage-btn:hover {
+    color: var(--cj-primary);
+    transform: scale(1.12);
+  }
+  .cj-engage-btn.active {
+    color: var(--cj-primary);
+  }
+
+  /* ── FILTER CHIP STRIP (feed + profile tabs) ─────────────────────────── */
+  .cj-filter-strip {
+    display: flex;
+    gap: 6px;
+    padding: 10px 0 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-shrink: 0;
+  }
+  .cj-filter-strip::-webkit-scrollbar { display: none; }
+
+  /* ── PROFILE SCREEN ──────────────────────────────────────────────────── */
+  .cj-profile-screen {
+    padding: 0 16px;
+  }
+  .cj-profile-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 8px 0 12px;
+  }
+  .cj-profile-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cj-profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .cj-profile-name {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--cj-ink);
+  }
+  .cj-profile-handle {
+    font-size: 10px;
+    color: var(--cj-ink-2);
+  }
+  .cj-profile-stats {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--cj-ink-2);
+  }
+  .cj-profile-stats strong {
+    font-weight: 700;
+    color: var(--cj-ink);
+  }
+  .cj-profile-theme-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--cj-ink-2);
+    padding: 4px;
+    margin-top: -2px;
+  }
+  .cj-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    margin-top: 8px;
+  }
+  .cj-profile-tile {
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: var(--cj-radius);
+    border: var(--cj-stroke) solid var(--cj-hair);
+    background: var(--cj-panel);
+    display: block;
+  }
+  .cj-profile-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .cj-profile-tile .cj-image-stripe {
+    height: 100%;
+  }
+  .cj-profile-footer {
+    padding: 16px 0 8px;
+    text-align: center;
+  }
+  .cj-profile-edit-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    border: var(--cj-stroke) solid var(--cj-hair);
+    border-radius: var(--cj-radius);
+    font-size: 12px;
+    color: var(--cj-ink-2);
+    text-decoration: none;
+  }
+  /* Large avatar variant */
+  .cj-avatar--lg {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+
+  /* ── BEAN DETAIL (wireframe layout) ─────────────────────────────────── */
+  .cj-bean-detail {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 5rem;
+  }
+  .cj-bean-detail__hero {
+    width: 100%;
+    min-height: 160px;
+  }
+  .cj-bean-detail__meta {
+    padding: 12px 16px 4px;
+  }
+  .cj-bean-detail__origin {
+    font-size: 10px;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color: var(--cj-ink-2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cj-bean-detail__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 16px 8px;
+  }
+  .cj-bean-detail__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cj-ink);
+    line-height: 1.2;
+    flex: 1;
+  }
+  .cj-bean-detail__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .cj-bean-detail__actions a {
+    color: var(--cj-ink-2);
+    text-decoration: none;
+  }
+  .cj-bean-detail__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 16px 12px;
+  }
+  .cj-bean-detail__radar {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-top: var(--cj-stroke) solid var(--cj-hair);
+  }
+  .cj-rating-radar__labels {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--cj-ink-2);
+  }
+  .cj-bean-detail__notes {
+    padding: 0 16px 12px;
+    border-top: var(--cj-stroke) solid var(--cj-hair);
+    margin-top: 4px;
+  }
+  .cj-bean-detail__notes-text {
+    font-size: 13px;
+    color: var(--cj-ink);
+    line-height: 1.5;
+    margin-top: 6px;
+  }
+  .cj-bean-detail__brews {
+    padding: 0 16px 12px;
+    border-top: var(--cj-stroke) solid var(--cj-hair);
+    margin-top: 4px;
+  }
+  .cj-wf-empty--inline {
+    padding: 1.5rem 0;
+  }
+  .cj-btn-add-brew {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 16px;
+    border: var(--cj-stroke) solid var(--cj-primary);
+    border-radius: var(--cj-radius);
+    color: var(--cj-primary);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .cj-bean-detail__brew-row {
+    border: var(--cj-stroke) solid var(--cj-hair);
+    border-radius: var(--cj-radius);
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    background: var(--cj-panel);
+    text-decoration: none !important;
+    color: var(--cj-ink) !important;
+  }
+  .cj-bean-detail__brew-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--cj-ink);
+  }
+
+  /* ── BREW DETAIL (wireframe layout) ─────────────────────────────────── */
+  .cj-brew-detail {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 5rem;
+  }
+  .cj-brew-detail__hero {
+    width: 100%;
+    min-height: 120px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+  }
+  .cj-brew-detail__title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 16px 6px;
+  }
+  .cj-brew-detail__name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--cj-text);
+  }
+  .cj-brew-detail__stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 6px 16px;
+  }
+  .cj-brew-detail__notes {
+    padding: 0 16px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--cj-text-muted);
+  }
+  .cj-brew-detail__share-cta {
+    margin: 14px 16px 0;
+  }
+
+  /* ── BREW DETAIL — new wireframe classes ─────────────────────────────── */
+  .cj-brew-detail {
+    padding-bottom: 6rem;
+  }
+  .cj-brew-detail__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px 4px;
+    font-size: 0.69rem;
+    color: var(--cj-ink-2);
+  }
+  .cj-brew-detail__method {
+    font-weight: 600;
+    color: var(--cj-ink);
+  }
+  .cj-brew-detail__ratio {
+    color: var(--cj-ink-2);
+  }
+  .cj-brew-detail__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 2px 16px 8px;
+  }
+  .cj-brew-detail__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cj-ink);
+  }
+  .cj-brew-detail__actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+    padding-top: 4px;
+  }
+  .cj-brew-detail__actions a {
+    color: var(--cj-ink-2);
+    text-decoration: none;
+  }
+  .cj-brew-detail__actions a:hover,
+  .cj-brew-detail__actions a.delete:hover {
+    color: var(--cj-primary);
+  }
+  .cj-brew-detail__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 16px 12px;
+  }
+  .cj-brew-detail__notes {
+    padding: 0 16px 12px;
+  }
+  .cj-brew-detail__notes-text {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: var(--cj-ink);
+    margin: 6px 0 0;
+  }
+  .cj-brew-detail__share {
+    padding: 12px 16px;
+    border-top: var(--cj-stroke) solid var(--cj-hair);
+  }
+  .cj-btn-share-brew {
+    display: block;
+    width: 100%;
+    height: 44px;
+    background: var(--cj-primary);
+    color: var(--cj-primary-fg);
+    border: none;
+    border-radius: var(--cj-radius);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+  }
+  .cj-btn-share-brew:hover {
+    background: var(--cj-primary-hover);
+  }
+
+  /* ── BREW STATS GRID (used in form + detail) ─────────────────────────── */
+  .cj-brew-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 6px 16px 12px;
+  }
+  /* Inside form: no horizontal padding (inherits drawer padding) */
+  form .cj-brew-stats-grid {
+    padding: 8px 0 12px;
+  }
+  /* small-field inside form: borderless input */
+  .cj-brew-stats-grid .cj-small-field input[type="text"],
+  .cj-brew-stats-grid .cj-small-field input[type="number"],
+  .cj-brew-stats-grid .cj-small-field input[type="decimal"],
+  .cj-brew-stats-grid .cj-small-field select {
+    background: transparent;
+    border: none;
+    width: 100%;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cj-ink);
+    padding: 0;
+  }
+  .cj-brew-stats-grid .cj-small-field input:focus,
+  .cj-brew-stats-grid .cj-small-field select:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /* ── BREW TEASER CARD ────────────────────────────────────────────────── */
+  .cj-brew-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    position: relative;
+  }
+  .cj-brew-card__head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .cj-brew-card__ratio {
+    font-size: 0.69rem;
+    color: var(--cj-ink-2);
+  }
+  .cj-brew-card__title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cj-ink) !important;
+    text-decoration: none;
+  }
+  .cj-brew-card__title:hover {
+    text-decoration: underline;
+  }
+  .cj-brew-card__stats {
+    display: flex;
+    gap: 8px;
+    font-size: 0.69rem;
+    color: var(--cj-ink-2);
+  }
+  .cj-brew-card__edit {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    color: var(--cj-ink-2);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .cj-brew-card:hover .cj-brew-card__edit {
+    opacity: 1;
+  }
+
+  /* ── VISIBILITY ROW ──────────────────────────────────────────────────── */
+  .cj-visibility-row {
+    padding: 10px 0;
+    border-top: var(--cj-stroke) solid var(--cj-hair);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cj-visibility-row .cj-field-label {
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  /* ── JOURNAL 2-COL GRID ──────────────────────────────────────────────── */
+  .cj-journal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding-bottom: 5rem;
+  }
+  .cj-journal-tile {
+    border: 1px solid var(--cj-border);
+    border-radius: var(--cj-radius);
+    background: var(--cj-surface);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+    text-decoration: none !important;
+    color: var(--cj-text) !important;
+    transition: border-color 0.18s ease;
+  }
+  .cj-journal-tile:hover {
+    border-color: var(--cj-primary);
+  }
+  .cj-journal-tile__info {
+    padding: 6px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .cj-journal-tile__name {
+    font-size: 0.69rem;
+    font-weight: 600;
+    color: var(--cj-text);
+    line-height: 1.2;
+  }
+  .cj-journal-tile__rating {
+    font-size: 0.56rem;
+    color: var(--cj-star);
+    letter-spacing: 1px;
+  }
+  .cj-journal-tile__name {
+    text-decoration: none;
+    color: var(--cj-ink) !important;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .cj-journal-tile__brand,
+  .cj-journal-tile__roast {
+    font-size: 8px;
+    color: var(--cj-ink-2);
+    line-height: 1;
+  }
+  .cj-journal-tile__img-link {
+    display: block;
+    text-decoration: none;
+  }
+  .cj-journal-tile__image {
+    width: 100%;
+    height: 70px;
+  }
+  .cj-journal-tile__edit {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    color: var(--cj-ink-2);
+    opacity: 0;
+    transition: opacity 0.15s;
+    text-decoration: none;
+  }
+  .cj-journal-tile {
+    position: relative;
+  }
+  .cj-journal-tile:hover .cj-journal-tile__edit {
+    opacity: 1;
+  }
+
+  /* ── EMPTY STATE (wireframe style) ──────────────────────────────────── */
+  .cj-wf-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 5rem 2rem;
+    text-align: center;
+  }
+  .cj-wf-empty__icon {
+    font-size: 2.5rem;
+    opacity: 0.4;
+  }
+  .cj-wf-empty__glyph {
+    width: 32px;
+    height: 32px;
+    color: var(--cj-ink-3);
+    opacity: 0.6;
+  }
+  .cj-wf-empty__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--cj-text);
+  }
+  .cj-wf-empty__sub {
+    font-size: 0.75rem;
+    color: var(--cj-text-muted);
+    line-height: 1.4;
+  }
+
+  /* ── MOBILE MAIN PADDING (account for fixed bottom nav) ─────────────── */
+  #cj-main {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0) + 1rem);
   }
 }

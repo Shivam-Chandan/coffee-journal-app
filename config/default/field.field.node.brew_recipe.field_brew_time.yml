@@ -1,0 +1,19 @@
+uuid: a1b2c3d4-e5f6-7890-abcd-ef1234567806
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_brew_time
+    - node.type.brew_recipe
+id: node.brew_recipe.field_brew_time
+field_name: field_brew_time
+entity_type: node
+bundle: brew_recipe
+label: 'Brew Time'
+description: 'e.g. 3:30'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

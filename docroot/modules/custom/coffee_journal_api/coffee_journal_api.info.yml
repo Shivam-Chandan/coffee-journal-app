@@ -7,3 +7,4 @@ dependencies:
   - drupal:user
   - drupal:jsonapi
   - social_auth:social_auth
+  - custom:coffee_journal_likes

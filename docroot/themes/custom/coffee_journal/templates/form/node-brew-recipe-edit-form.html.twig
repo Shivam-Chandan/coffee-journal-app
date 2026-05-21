@@ -1,0 +1,80 @@
+{#
+  Brew recipe edit form — same wireframe layout as the add form.
+#}
+
+<form{{ attributes }}>
+
+  {% if form.field_coffee_bean_ref is defined %}
+    <div class="cj-field-wrap">{{ form.field_coffee_bean_ref }}</div>
+  {% endif %}
+
+  <div class="cj-field-wrap">{{ form.title }}</div>
+
+  <div class="cj-brew-stats-grid">
+
+    <div class="cj-small-field">
+      <span class="cj-small-field__label">{{ 'Method'|t }}</span>
+      {{ form.field_brew_method }}
+    </div>
+
+    <div class="cj-small-field">
+      <span class="cj-small-field__label">{{ 'Coffee (g)'|t }}</span>
+      {{ form.field_coffee_weight }}
+    </div>
+
+    <div class="cj-small-field">
+      <span class="cj-small-field__label">{{ 'Water (g)'|t }}</span>
+      {{ form.field_water_weight }}
+    </div>
+
+    {% if form.field_grind_size is defined %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Grind'|t }}</span>
+        {{ form.field_grind_size }}
+      </div>
+    {% endif %}
+
+    {% if form.field_water_temp is defined %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Temp (°C)'|t }}</span>
+        {{ form.field_water_temp }}
+      </div>
+    {% endif %}
+
+    {% if form.field_brew_time is defined %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Time'|t }}</span>
+        {{ form.field_brew_time }}
+      </div>
+    {% endif %}
+
+  </div>
+
+  {% if form.field_community_notes is defined %}
+    <div class="cj-field-wrap">{{ form.field_community_notes }}</div>
+  {% endif %}
+
+  {% if form.field_is_public is defined %}
+    <div class="cj-visibility-row">
+      <span class="cj-field-label">{{ 'Visibility'|t }}</span>
+      {{ form.field_is_public }}
+    </div>
+  {% endif %}
+
+  {% if form.actions is defined %}
+    <div class="cj-save-bar">
+      {{ form.actions.submit }}
+      {% if form.actions.delete is defined %}
+        {{ form.actions.delete }}
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {{ form|without(
+    'title', 'field_coffee_bean_ref', 'field_brew_method',
+    'field_coffee_weight', 'field_water_weight',
+    'field_grind_size', 'field_water_temp', 'field_brew_time',
+    'field_community_notes', 'field_is_public', 'actions'
+  ) }}
+
+</form>

@@ -1,0 +1,22 @@
+uuid: c3d172f4-71e5-403c-99e2-1e654c0dde77
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_share_caption
+    - node.type.brew_recipe
+  module:
+    - text
+id: node.brew_recipe.field_share_caption
+field_name: field_share_caption
+entity_type: node
+bundle: brew_recipe
+label: 'Share Caption'
+description: 'Optional caption added when publishing to the community feed.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

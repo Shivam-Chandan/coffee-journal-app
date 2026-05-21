@@ -8,6 +8,50 @@
 use Drupal\node\NodeInterface;
 
 /**
+ * Implements hook_theme().
+ */
+function coffee_journal_theme(array $existing, string $type, string $theme, string $path): array {
+  return [
+    'feed_page' => [
+      'variables' => [
+        'cards'  => [],
+        'offset' => 0,
+      ],
+      'template' => 'feed-page',
+      'path'     => $path . '/templates/feed',
+    ],
+    'add_sheet' => [
+      'variables' => [
+        'bean_url' => '',
+        'brew_url' => '',
+      ],
+      'template' => 'add-sheet',
+      'path'     => $path . '/templates/sheet',
+    ],
+    'brew_method_picker' => [
+      'variables' => [
+        'methods'  => [],
+        'add_url'  => '',
+        'bean_nid' => 0,
+      ],
+      'template' => 'brew-method-picker',
+      'path'     => $path . '/templates/sheet',
+    ],
+    'share_sheet' => [
+      'variables' => [
+        'node_id'     => 0,
+        'brew_title'  => '',
+        'brew_method' => '',
+        'brew_ratio'  => '',
+        'publish_url' => '',
+      ],
+      'template' => 'share-sheet',
+      'path'     => $path . '/templates/sheet',
+    ],
+  ];
+}
+
+/**
  * Implements hook_preprocess_html().
  *
  * Adds body classes for path-based styling.
@@ -44,6 +88,13 @@ function coffee_journal_preprocess_html(&$variables) {
 function coffee_journal_preprocess_page(&$variables) {
   $variables['is_front']  = \Drupal::service('path.matcher')->isFrontPage();
   $variables['logged_in'] = \Drupal::currentUser()->isAuthenticated();
+
+  if ($variables['logged_in']) {
+    $token = \Drupal::csrfToken()->get('logout');
+    $variables['logout_url'] = \Drupal\Core\Url::fromRoute('user.logout', [], [
+      'query' => ['token' => $token],
+    ])->toString();
+  }
 }
 
 /**
@@ -64,6 +115,35 @@ function coffee_journal_preprocess_node(&$variables) {
     $roastValue = $node->get('field_roast_level')->value;
     $variables['roast_label'] = $roastValue ? _coffee_journal_roast_label($roastValue) : '';
     $variables['roast_key']   = $roastValue ? str_replace('-', '_', strtolower($roastValue)) : '';
+
+    // Compute radar polygon points for the 4-axis rating SVG.
+    // Axes: body (top), acidity (right), aroma (bottom), sweetness (left).
+    // Mapping: body←bitterness/2, acidity←acidity/2, aroma←note_clarity/2, sweet←overall_taste.
+    $bitterness   = (float) ($node->field_bitterness_rating->value ?? 0);
+    $acidity_val  = (float) ($node->field_acidity_rating->value ?? 0);
+    $note_clarity = (float) ($node->field_note_clarity_rating->value ?? 0);
+    $overall      = (float) ($node->field_overall_taste_rating->value ?? 0);
+    $radar_vals   = [
+      'body'      => min(5, $bitterness / 2),
+      'acidity'   => min(5, $acidity_val / 2),
+      'aroma'     => min(5, $note_clarity / 2),
+      'sweetness' => min(5, $overall),
+    ];
+    $r  = 24; $cx = 28; $cy = 28; $maxVal = 5;
+    $radar_axes = [
+      ['angle' => -90, 'key' => 'body'],
+      ['angle' =>   0, 'key' => 'acidity'],
+      ['angle' =>  90, 'key' => 'aroma'],
+      ['angle' => 180, 'key' => 'sweetness'],
+    ];
+    $pts = [];
+    foreach ($radar_axes as $axis) {
+      $rad   = ($axis['angle'] - 90) * M_PI / 180;
+      $dist  = $maxVal > 0 ? ($radar_vals[$axis['key']] / $maxVal) * $r : 0;
+      $pts[] = round($cx + $dist * cos($rad), 1) . ',' . round($cy + $dist * sin($rad), 1);
+    }
+    $variables['radar_polygon'] = implode(' ', $pts);
+    $variables['radar_vals']    = $radar_vals;
 
     $ffValue = $node->get('field_form_factor')->value;
     $variables['form_factor_label'] = $ffValue ? _coffee_journal_form_factor_label($ffValue) : '';
@@ -124,6 +204,45 @@ function coffee_journal_preprocess_form(&$variables) {
     'placesEndpoint'  => \Drupal\Core\Url::fromRoute('coffee_journal_api.places_search')->toString(),
     'addCoffeePath'   => \Drupal\Core\Url::fromRoute('node.add', ['node_type' => 'coffee_bean'])->toString(),
   ];
+}
+
+/**
+ * Implements hook_theme_suggestions_form_alter().
+ *
+ * Adds template suggestions for brew recipe add/edit forms so we can provide
+ * custom layouts via node-brew-recipe-form.html.twig.
+ */
+function coffee_journal_theme_suggestions_form_alter(array &$suggestions, array $variables): void {
+  $form_id = $variables['element']['#form_id'] ?? '';
+  if ($form_id === 'node_brew_recipe_form') {
+    $suggestions[] = 'form__node_brew_recipe_form';
+  }
+  if ($form_id === 'node_brew_recipe_edit_form') {
+    $suggestions[] = 'form__node_brew_recipe_edit_form';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the brew_recipe add form.
+ *
+ * Pre-fills field_brew_method and field_coffee_bean_ref from query parameters
+ * set by the brew method picker: ?field_brew_method=v60&field_coffee_bean_ref_target_id=42
+ */
+function coffee_journal_form_node_brew_recipe_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state): void {
+  $request = \Drupal::request();
+
+  $method = $request->query->get('field_brew_method', '');
+  if ($method && isset($form['field_brew_method']['widget'][0]['value'])) {
+    $form['field_brew_method']['widget'][0]['value']['#default_value'] = htmlspecialchars_decode((string) $method, ENT_QUOTES);
+  }
+
+  $bean_nid = (int) $request->query->get('field_coffee_bean_ref_target_id', 0);
+  if ($bean_nid > 0 && isset($form['field_coffee_bean_ref']['widget'][0]['target_id'])) {
+    $node = \Drupal::entityTypeManager()->getStorage('node')->load($bean_nid);
+    if ($node) {
+      $form['field_coffee_bean_ref']['widget'][0]['target_id']['#default_value'] = $node;
+    }
+  }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

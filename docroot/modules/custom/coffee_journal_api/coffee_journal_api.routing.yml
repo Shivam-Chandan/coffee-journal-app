@@ -33,3 +33,51 @@ coffee_journal_api.user_me:
   requirements:
     _user_is_logged_in: 'TRUE'
   methods: [GET]
+
+coffee_journal_api.add_sheet:
+  path: '/add'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\AddSheetController::sheet'
+    _title: 'Add'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+coffee_journal_api.brew_method_picker:
+  path: '/brew/new'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\AddSheetController::methodPicker'
+    _title: 'Choose brew method'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+coffee_journal_api.brew_share_sheet:
+  path: '/brew/{node}/share'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\BrewShareController::sheet'
+    _title: 'Share brew'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    node: \d+
+
+coffee_journal_api.brew_publish:
+  path: '/api/brew/{node}/publish'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\BrewShareController::publish'
+    _title: 'Publish brew'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    node: \d+
+
+coffee_journal_api.brew_photo:
+  path: '/api/brew/{node}/photo'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\BrewShareController::uploadPhoto'
+    _title: 'Upload brew photo'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    node: \d+

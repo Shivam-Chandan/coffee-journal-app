@@ -1,185 +1,129 @@
 {#
-  Coffee Journal — Coffee Bean full detail page
-  node--coffee-bean.html.twig
-  Updated Phase 1: new field schema (field_overall_taste_rating, field_bitterness_rating,
-  field_acidity_rating, field_note_clarity_rating, field_quantity, field_quantity_unit,
-  field_form_factor, field_estate, field_worth_reordering, field_is_finished).
-  Removed: field_rating, field_notes_review.
+  Coffee bean — full detail page (wireframe layout).
+  Variables from preprocess: roast_label, roast_key, form_factor_label, brew_recipes,
+  add_recipe_path, user_can_edit, user_can_delete, recipe_count, radar_polygon, radar_vals.
 #}
-{% set node_id    = node.id() %}
-{% set edit_url   = path('entity.node.edit_form', {'node': node_id}) %}
-{% set delete_url = path('entity.node.delete_form', {'node': node_id}) %}
+{% set node_id        = node.id() %}
+{% set edit_url       = path('entity.node.edit_form', {'node': node_id}) %}
+{% set delete_url     = path('entity.node.delete_form', {'node': node_id}) %}
+{% set brand_val      = node.field_brand_roaster.value|default('') %}
+{% set estate_val     = node.field_estate.value|default('') %}
+{% set date_val       = node.field_purchase_date.value|default('') %}
+{% set tasting_notes  = node.field_flavour_notes.value|default('') %}
+{% set is_finished    = node.field_is_finished.value %}
+{% set worth_reorder  = node.field_worth_reordering.value %}
 
-{% set overall_rating  = node.field_overall_taste_rating.value|default(0)|round %}
-{% set bitterness      = node.field_bitterness_rating.value|default(0) %}
-{% set acidity         = node.field_acidity_rating.value|default(0) %}
-{% set note_clarity    = node.field_note_clarity_rating.value|default(0) %}
-{% set roast_val       = node.field_roast_level.value|default('')|lower|replace({'-': '_', ' ': '_'}) %}
-{% set brand_val       = node.field_brand_roaster.value|default('') %}
-{% set estate_val      = node.field_estate.value|default('') %}
-{% set date_val        = node.field_purchase_date.value|default('') %}
-{% set quantity_val    = node.field_quantity.value|default('') %}
-{% set unit_val        = node.field_quantity_unit.value|default('g') %}
-{% set form_factor_val = node.field_form_factor.value|default('') %}
-{% set tasting_notes   = node.field_flavour_notes.value|default('') %}
-{% set worth_reorder   = node.field_worth_reordering.value %}
-{% set is_finished     = node.field_is_finished.value %}
+<article{{ attributes.addClass('cj-bean-detail') }}>
 
-{% set roast_labels = {
-  'light':        'Light',
-  'light_medium': 'Light-Medium',
-  'medium':       'Medium',
-  'medium_dark':  'Medium-Dark',
-  'dark':         'Dark'
-} %}
+  {# ── Hero image stripe (full-width, no horizontal padding) ── #}
+  <div class="cj-bean-detail__hero cj-image-stripe"></div>
 
-{% set form_factor_labels = {
-  'whole_bean': 'Whole Bean',
-  'ground':     'Ground',
-  'pods':       'Pods',
-  'capsule':    'Capsule',
-  'other':      'Other'
-} %}
+  {# ── Caption: Roaster · Origin ── #}
+  {% if brand_val or estate_val %}
+    <div class="cj-bean-detail__meta">
+      <span class="cj-bean-detail__origin">
+        {{- [brand_val, estate_val]|filter(v => v is not empty)|join(' · ') -}}
+      </span>
+    </div>
+  {% endif %}
 
-<article{{ attributes.addClass('cj-node') }}>
-
-  {# ── Back link ── #}
-  <a class="cj-back" href="{{ path('view.coffee_journal.page_1') }}">
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-         fill="none" stroke="currentColor" stroke-width="2.5"
-         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M19 12H5M12 19l-7-7 7-7"/>
-    </svg>
-    {{ 'My Coffee Journal'|t }}
-  </a>
-
-  {# ── Heading + overall rating ── #}
-  <div class="cj-node__heading">
-    <h1>{{ label }}</h1>
-    {% if overall_rating > 0 %}
-      <div class="cj-stars" aria-label="{{ 'Overall rating: %d out of 5'|format(overall_rating)|t }}">
-        {%- for i in 1..5 -%}
-          <span class="star{{ i <= overall_rating ? ' filled' : '' }}" aria-hidden="true">★</span>
-        {%- endfor -%}
-        <span class="cj-rating-num" style="font-size:0.9rem;">{{ overall_rating }}/5</span>
+  {# ── Title + edit actions ── #}
+  <div class="cj-bean-detail__header">
+    <h1 class="cj-bean-detail__title">{{ label }}</h1>
+    {% if user_can_edit %}
+      <div class="cj-bean-detail__actions">
+        <a href="{{ edit_url }}" data-drawer-edit="true" aria-label="{{ 'Edit'|t }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+            <path d="m15 5 4 4"/>
+          </svg>
+        </a>
+        <a href="{{ delete_url }}" class="delete" aria-label="{{ 'Delete'|t }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+          </svg>
+        </a>
       </div>
     {% endif %}
   </div>
 
-  {# ── Status badges ── #}
-  <div class="cj-node__badges">
+  {# ── Roast · Date meta chips ── #}
+  <div class="cj-bean-detail__chips">
+    {% if roast_label %}
+      <span class="cj-chip cj-chip--filled">{{ roast_label }}</span>
+    {% endif %}
+    {% if date_val %}
+      <span class="cj-chip">{{ date_val|date('d M Y') }}</span>
+    {% endif %}
     {% if is_finished %}
-      <span class="cj-badge cj-badge--finished">{{ 'Finished'|t }}</span>
+      <span class="cj-chip">{{ 'Finished'|t }}</span>
     {% endif %}
     {% if worth_reorder %}
-      <span class="cj-badge cj-badge--reorder">{{ 'Would Reorder'|t }}</span>
-    {% endif %}
-    {% if recipe_count is defined and recipe_count and recipe_count > 0 %}
-      <span class="cj-badge cj-badge--recipe">{{ recipe_count }} {{ recipe_count == 1 ? 'recipe'|t : 'recipes'|t }}</span>
+      <span class="cj-chip">{{ 'Would Reorder'|t }}</span>
     {% endif %}
   </div>
 
-  {# ── Details section ── #}
-  <div class="cj-section">
-    <div class="cj-section__label">{{ 'Details'|t }}</div>
-
-    {% if brand_val %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Brand / Roaster'|t }}</span>
-        <span class="cj-field-val">{{ brand_val }}</span>
+  {# ── Rating radar ── #}
+  {% if radar_polygon %}
+    <div class="cj-rating-radar cj-bean-detail__radar">
+      <svg width="80" height="80" viewBox="0 0 56 56"
+           aria-label="{{ 'Rating chart'|t }}"
+           role="img">
+        {# Grid rings #}
+        {% for i in [1, 2, 3, 4, 5] %}
+          <circle cx="28" cy="28" r="{{ (i / 5 * 24)|round(1) }}"
+                  fill="none" stroke="var(--cj-hair)" stroke-width="0.5"/>
+        {% endfor %}
+        {# Axes: top, right, bottom, left #}
+        <line x1="28" y1="28" x2="28" y2="4"  stroke="var(--cj-hair)" stroke-width="0.5"/>
+        <line x1="28" y1="28" x2="52" y2="28" stroke="var(--cj-hair)" stroke-width="0.5"/>
+        <line x1="28" y1="28" x2="28" y2="52" stroke="var(--cj-hair)" stroke-width="0.5"/>
+        <line x1="28" y1="28" x2="4"  y2="28" stroke="var(--cj-hair)" stroke-width="0.5"/>
+        {# Data polygon #}
+        <polygon points="{{ radar_polygon }}"
+                 fill="var(--cj-accent-soft)"
+                 stroke="var(--cj-primary)"
+                 stroke-width="1.2"
+                 stroke-linejoin="round"/>
+        {# Labels #}
+        <text x="28" y="3"  text-anchor="middle" font-size="4" fill="var(--cj-ink-2)">{{ 'Body'|t }}</text>
+        <text x="55" y="29" text-anchor="start"  font-size="4" fill="var(--cj-ink-2)">{{ 'Acidity'|t }}</text>
+        <text x="28" y="56" text-anchor="middle" font-size="4" fill="var(--cj-ink-2)">{{ 'Aroma'|t }}</text>
+        <text x="1"  y="29" text-anchor="start"  font-size="4" fill="var(--cj-ink-2)">{{ 'Sweet'|t }}</text>
+      </svg>
+      <div class="cj-rating-radar__labels">
+        {% if radar_vals %}
+          <span>{{ 'Body'|t }} {{ (radar_vals.body * 2)|round }}/10</span>
+          <span>{{ 'Acidity'|t }} {{ (radar_vals.acidity * 2)|round }}/10</span>
+          <span>{{ 'Aroma'|t }} {{ (radar_vals.aroma * 2)|round }}/10</span>
+          <span>{{ 'Sweet'|t }} {{ radar_vals.sweetness|round }}/5</span>
+        {% endif %}
       </div>
-    {% endif %}
-
-    {% if estate_val %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Estate'|t }}</span>
-        <span class="cj-field-val">{{ estate_val }}</span>
-      </div>
-    {% endif %}
-
-    {% if roast_val %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Roast'|t }}</span>
-        <span class="cj-field-val">
-          <span class="cj-badge cj-badge--{{ roast_val }}">
-            {{- roast_labels[roast_val]|default(roast_val|capitalize) -}}
-          </span>
-        </span>
-      </div>
-    {% endif %}
-
-    {% if form_factor_val %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Form Factor'|t }}</span>
-        <span class="cj-field-val">{{ form_factor_labels[form_factor_val]|default(form_factor_val) }}</span>
-      </div>
-    {% endif %}
-
-    {% if quantity_val %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Quantity'|t }}</span>
-        <span class="cj-field-val">{{ quantity_val }} {{ unit_val }}</span>
-      </div>
-    {% endif %}
-
-    {% if date_val %}
-      <div class="cj-field-row">
-        <span class="cj-field-key">{{ 'Order Date'|t }}</span>
-        <span class="cj-field-val">{{ date_val|date('d F Y') }}</span>
-      </div>
-    {% endif %}
-  </div>
+    </div>
+  {% endif %}
 
   {# ── Tasting Notes ── #}
   {% if tasting_notes %}
-    <div class="cj-section">
-      <div class="cj-section__label">{{ 'Tasting Notes'|t }}</div>
-      <div class="cj-field-row">
-        <span class="cj-field-val">{{ tasting_notes }}</span>
-      </div>
+    <div class="cj-bean-detail__notes">
+      <div class="cj-wf-section-head">{{ 'Tasting Notes'|t }}</div>
+      <p class="cj-bean-detail__notes-text">{{ tasting_notes }}</p>
     </div>
   {% endif %}
 
-  {# ── Ratings breakdown ── #}
-  {% if bitterness or acidity or note_clarity %}
-    <div class="cj-section">
-      <div class="cj-section__label">{{ 'Ratings'|t }}</div>
-
-      {% if bitterness %}
-        <div class="cj-field-row cj-rating-row">
-          <span class="cj-field-key">{{ 'Bitterness'|t }}</span>
-          <span class="cj-field-val cj-rating-bar-wrap">
-            <span class="cj-rating-bar" style="--pct: {{ (bitterness / 10 * 100)|round }}%"></span>
-            <span class="cj-rating-num">{{ bitterness }}/10</span>
-          </span>
-        </div>
-      {% endif %}
-
-      {% if acidity %}
-        <div class="cj-field-row cj-rating-row">
-          <span class="cj-field-key">{{ 'Acidity'|t }}</span>
-          <span class="cj-field-val cj-rating-bar-wrap">
-            <span class="cj-rating-bar" style="--pct: {{ (acidity / 10 * 100)|round }}%"></span>
-            <span class="cj-rating-num">{{ acidity }}/10</span>
-          </span>
-        </div>
-      {% endif %}
-
-      {% if note_clarity %}
-        <div class="cj-field-row cj-rating-row">
-          <span class="cj-field-key">{{ 'Note Clarity'|t }}</span>
-          <span class="cj-field-val cj-rating-bar-wrap">
-            <span class="cj-rating-bar" style="--pct: {{ (note_clarity / 10 * 100)|round }}%"></span>
-            <span class="cj-rating-num">{{ note_clarity }}/10</span>
-          </span>
-        </div>
+  {# ── Brew Recipes ── #}
+  <div class="cj-bean-detail__brews">
+    <div class="cj-wf-section-head">
+      {{ 'Brews'|t }}
+      {% if recipe_count is defined and recipe_count > 0 %}
+        <span class="cj-chip">{{ recipe_count }}</span>
       {% endif %}
     </div>
-  {% endif %}
-
-  {# ── Brew Recipes section ── #}
-  <div class="cj-section cj-recipes-section">
-    <div class="cj-section__label">{{ 'Brew Recipes'|t }}</div>
 
     {% if brew_recipes is defined and brew_recipes|length > 0 %}
       <div class="cj-recipes-list">
@@ -188,43 +132,19 @@
         {% endfor %}
       </div>
     {% else %}
-      <p class="cj-recipes-empty">{{ 'No recipes yet.'|t }}</p>
+      <div class="cj-wf-empty cj-wf-empty--inline">
+        <p class="cj-wf-empty__sub">{{ 'No brews yet.'|t }}</p>
+      </div>
     {% endif %}
 
     {% if user_can_edit %}
-      <div class="cj-recipes-add">
-        <a href="{{ add_recipe_path }}"
-           class="button button--primary"
-           data-cj-add-recipe
-           data-bean-nid="{{ node_id }}">{{ '+ Add Recipe'|t }}</a>
-      </div>
+      <a href="{{ add_recipe_path }}"
+         class="cj-btn-add-brew"
+         data-cj-add-recipe
+         data-bean-nid="{{ node_id }}">
+        {{ '+ Add brew'|t }}
+      </a>
     {% endif %}
   </div>
-
-  {# ── Action links — shown only to the node owner ── #}
-  {% if user_can_edit %}
-    <div class="cj-node__actions">
-      <a href="{{ edit_url }}" data-drawer-edit="true">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-          <path d="m15 5 4 4"/>
-        </svg>
-        {{ 'Edit'|t }}
-      </a>
-      <a href="{{ delete_url }}" class="delete">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-          <path d="M10 11v6M14 11v6"/>
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-        </svg>
-        {{ 'Delete'|t }}
-      </a>
-    </div>
-  {% endif %}
 
 </article>

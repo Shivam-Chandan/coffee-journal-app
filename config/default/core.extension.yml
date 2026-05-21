@@ -11,6 +11,8 @@ module:
   ckeditor5: 0
   coffee_journal_access: 0
   coffee_journal_api: 0
+  coffee_journal_bookmark: 0
+  coffee_journal_likes: 0
   comment: 0
   config: 0
   contact: 0

@@ -1,0 +1,123 @@
+{#
+  Feed page — Variant A card stream.
+  Variables: cards (array of card data), offset (integer for JS load-more).
+  Note: cj-page-inner wrapper is provided by page.html.twig's main content area.
+#}
+<div class="cj-feed-stack"
+     id="cj-global-feed"
+     data-cj-feed-offset="{{ offset }}">
+
+    {% if cards is empty %}
+
+      <div class="cj-wf-empty">
+        <svg class="cj-wf-empty__glyph" viewBox="0 0 16 16" aria-hidden="true">
+          <ellipse cx="8" cy="8" rx="5" ry="6.5"
+                   stroke="currentColor" stroke-width="1.2" fill="none"
+                   transform="rotate(30 8 8)"/>
+          <path d="M5 4 Q 8 8, 11 12"
+                stroke="currentColor" stroke-width="1.2" fill="none"
+                transform="rotate(30 8 8)"/>
+        </svg>
+        <p>{{ 'No recipes shared yet.'|t }}</p>
+        <p class="cj-wf-empty__sub">{{ 'Be the first to share your brew method!'|t }}</p>
+      </div>
+
+    {% else %}
+
+      {% for card in cards %}
+        <article class="cj-feed-card" data-nid="{{ card.nid }}">
+
+          {# Header row: avatar · name · time · kind chip #}
+          <div class="cj-feed-card__header">
+            {% if card.author_picture %}
+              <img class="cj-avatar cj-avatar--sm"
+                   src="{{ card.author_picture }}"
+                   alt="{{ card.author_name }}"
+                   width="22" height="22">
+            {% else %}
+              <div class="cj-avatar cj-avatar--sm" aria-hidden="true">
+                {{ card.author_initial }}
+              </div>
+            {% endif %}
+
+            <div class="cj-feed-card__byline">
+              <span class="cj-feed-card__author">{{ card.author_name }}</span>
+              <span class="cj-feed-card__time">{{ card.age }} · {{ 'added a brew'|t }}</span>
+            </div>
+
+            <span class="cj-chip">{{ 'Brew'|t }}</span>
+          </div>
+
+          {# Hero image #}
+          <a href="{{ card.url }}" class="cj-feed-card__hero-link" tabindex="-1" aria-hidden="true">
+            {% if card.image_url %}
+              <img class="cj-feed-card__hero"
+                   src="{{ card.image_url }}"
+                   alt="{{ card.title }}"
+                   loading="lazy">
+            {% else %}
+              <div class="cj-feed-card__hero cj-image-stripe"></div>
+            {% endif %}
+          </a>
+
+          {# Body: title + method/ratio chips + engagement #}
+          <div class="cj-feed-card__body">
+            <h3 class="cj-feed-card__title">
+              <a href="{{ card.url }}">{{ card.title }}</a>
+            </h3>
+
+            {% if card.share_caption %}
+              <p class="cj-feed-card__caption">{{ card.share_caption }}</p>
+            {% endif %}
+
+            {% if card.bean_name %}
+              <p class="cj-feed-card__sub">{{ card.bean_name }}</p>
+            {% endif %}
+
+            <div class="cj-feed-card__footer">
+              <div class="cj-feed-card__chips">
+                {% if card.method %}
+                  <span class="cj-chip cj-chip--filled">{{ card.method }}</span>
+                {% endif %}
+                {% if card.ratio %}
+                  <span class="cj-chip">1:{{ card.ratio }}</span>
+                {% endif %}
+              </div>
+              <div class="cj-feed-card__engage">
+                <button class="cj-engage-btn"
+                        type="button"
+                        aria-label="{{ 'Like'|t }}"
+                        data-cj-like="{{ card.nid }}">
+                  ♡ <span class="cj-engage-count">{{ card.like_count ?: '' }}</span>
+                </button>
+                <button class="cj-engage-btn"
+                        type="button"
+                        aria-label="{{ 'Comment'|t }}">
+                  ◌
+                </button>
+                <button class="cj-engage-btn"
+                        type="button"
+                        aria-label="{{ 'Save'|t }}"
+                        data-cj-save="{{ card.nid }}">
+                  ⌑
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </article>
+      {% endfor %}
+
+      {# Load-more sentinel #}
+      <div id="cj-load-more-wrap" class="cj-feed-load-more">
+        <button id="cj-load-more"
+                class="cj-load-more-btn"
+                type="button"
+                aria-label="{{ 'Load more'|t }}">
+          {{ 'Load more'|t }}
+        </button>
+      </div>
+
+    {% endif %}
+
+</div>

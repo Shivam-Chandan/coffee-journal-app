@@ -1,0 +1,18 @@
+coffee_journal_bookmark.toggle:
+  path: '/api/bookmarks/{node}'
+  defaults:
+    _controller: '\Drupal\coffee_journal_bookmark\Controller\BookmarkController::toggle'
+    _title: 'Toggle bookmark'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    node: \d+
+
+coffee_journal_bookmark.list:
+  path: '/api/bookmarks'
+  defaults:
+    _controller: '\Drupal\coffee_journal_bookmark\Controller\BookmarkController::list'
+    _title: 'My bookmarks'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'

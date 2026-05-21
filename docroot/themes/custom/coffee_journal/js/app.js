@@ -323,17 +323,17 @@
         });
       });
 
-      // ── FAB: open drawer for "Add Coffee" ────────────────────────────────
+      // ── FAB: open add-sheet (bean vs brew choice) ────────────────────────
 
       once('cj-fab', '.cj-fab', context).forEach(function (fab) {
         fab.addEventListener('click', function (e) {
           e.preventDefault();
-          openDrawer('/node/add/coffee_bean', Drupal.t('Add Coffee'), false);
+          openDrawer('/add', Drupal.t('Add'), false);
         });
       });
 
-      // ── "Import from URL" button: open drawer with scraper focused ────────
-      // Same as FAB but scraper input gets focus
+      // ── "Import from URL" button: open bean form directly with scraper ────
+      // Bypasses the add-sheet and opens the bean form with scraper focused.
 
       once('cj-import-url-btn', '#cj-import-url-btn', context).forEach(function (btn) {
         btn.addEventListener('click', function (e) {
@@ -341,6 +341,31 @@
           openDrawer('/node/add/coffee_bean', Drupal.t('Add Coffee'), true);
         });
       });
+
+      // ── Add-sheet tiles: [data-cj-add-open] buttons ──────────────────────
+      // The add-sheet and brew method picker both use this pattern.
+      // data-cj-add-open="<url>" data-cj-add-title="<drawer title>"
+
+      function wireAddTiles(root) {
+        (root || document).querySelectorAll('[data-cj-add-open]').forEach(function (btn) {
+          once('cj-add-tile', btn).forEach(function (el) {
+            el.addEventListener('click', function () {
+              var url   = el.getAttribute('data-cj-add-open');
+              var title = el.getAttribute('data-cj-add-title') || Drupal.t('Add');
+              openDrawer(url, title, false);
+            });
+          });
+        });
+      }
+      wireAddTiles(context);
+
+      // Re-wire tiles whenever the drawer content changes (e.g. after loading add-sheet).
+      if (drawerBody) {
+        once('cj-drawer-body-observer', drawerBody).forEach(function (body) {
+          var obs = new MutationObserver(function () { wireAddTiles(body); });
+          obs.observe(body, { childList: true, subtree: true });
+        });
+      }
 
       // ── Edit links on cards: open drawer for edit form ───────────────────
       // Intercepts <a data-drawer-edit="true" href="/node/{nid}/edit"> clicks
@@ -807,182 +832,145 @@
     }
   };
 
-  // ── 7. GLOBAL FEED (Community Recipes) ───────────────────────────────────
+  // ── 7. GLOBAL FEED — load-more via JSON:API ──────────────────────────────
 
   Drupal.behaviors.cjGlobalFeed = {
     attach: function (context) {
-      // Find feed container manually without once()
-      var feedContainer = (context || document).getElementById ? (context || document).getElementById('cj-global-feed') : document.getElementById('cj-global-feed');
-      
-      if (!feedContainer || feedContainer.getAttribute('data-cj-initialized')) {
-        return;
-      }
+      var feedContainer = document.getElementById('cj-global-feed');
+      if (!feedContainer || feedContainer.getAttribute('data-cj-initialized')) return;
       feedContainer.setAttribute('data-cj-initialized', 'true');
-      
-      console.log('DEBUG: cjGlobalFeed behavior attached, feedContainer found:', feedContainer.id);
-      
-      var offset = 0;
-      var isLoading = false;
-      var hasMore = true;
 
-      /**
-       * Fetch recipes from JSON:API with optional filters.
-       */
-      function fetchRecipes(pageOffset) {
-        console.log('DEBUG: fetchRecipes called with offset:', pageOffset, 'isLoading:', isLoading);
-        if (isLoading) return Promise.resolve([]);
+      var offset    = parseInt(feedContainer.getAttribute('data-cj-feed-offset') || '0', 10);
+      var isLoading = false;
+      var hasMore   = true;
+
+      function esc(str) {
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function timeAgo(isoStr) {
+        var diff = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
+        if (diff < 3600) return Math.floor(diff / 60) + Drupal.t('m');
+        if (diff < 86400) return Math.floor(diff / 3600) + Drupal.t('h');
+        return Math.floor(diff / 86400) + Drupal.t('d');
+      }
+
+      function buildFeedCardHTML(node, included) {
+        var attrs = node.attributes || {};
+        var nid   = attrs.drupal_internal__nid || node.id;
+        var title = esc(attrs.title || 'Untitled');
+        var url   = '/node/' + nid;
+        var method = esc(attrs.field_brew_method || '');
+        var age   = attrs.created ? timeAgo(attrs.created) : '';
+
+        var coffee = parseFloat(attrs.field_coffee_weight) || 0;
+        var water  = parseFloat(attrs.field_water_weight)  || 0;
+        var ratio  = (coffee > 0 && water > 0) ? (water / coffee).toFixed(1) : '';
+
+        // Author from included.
+        var authorName    = '';
+        var authorInitial = '?';
+        var authorPicture = '';
+        var uidRel = node.relationships && node.relationships.uid && node.relationships.uid.data;
+        if (uidRel && included) {
+          for (var i = 0; i < included.length; i++) {
+            if (included[i].type === 'user--user' && included[i].id === uidRel.id) {
+              authorName    = esc(included[i].attributes.display_name || '');
+              authorInitial = authorName.charAt(0).toUpperCase() || '?';
+              break;
+            }
+          }
+        }
+
+        var avatar = authorPicture
+          ? '<img class="cj-avatar cj-avatar--sm" src="' + authorPicture + '" alt="' + authorName + '" width="22" height="22">'
+          : '<div class="cj-avatar cj-avatar--sm" aria-hidden="true">' + authorInitial + '</div>';
+
+        var heroHTML = '<div class="cj-feed-card__hero cj-image-stripe"></div>';
+
+        var chips = '';
+        if (method) chips += '<span class="cj-chip cj-chip--filled">' + method + '</span>';
+        if (ratio)  chips += '<span class="cj-chip">1:' + ratio + '</span>';
+
+        return '<article class="cj-feed-card" data-nid="' + nid + '">' +
+          '<div class="cj-feed-card__header">' +
+            avatar +
+            '<div class="cj-feed-card__byline">' +
+              '<span class="cj-feed-card__author">' + authorName + '</span>' +
+              '<span class="cj-feed-card__time">' + age + ' · ' + Drupal.t('added a brew') + '</span>' +
+            '</div>' +
+            '<span class="cj-chip">Brew</span>' +
+          '</div>' +
+          '<a href="' + url + '" class="cj-feed-card__hero-link" tabindex="-1" aria-hidden="true">' +
+            heroHTML +
+          '</a>' +
+          '<div class="cj-feed-card__body">' +
+            '<h3 class="cj-feed-card__title"><a href="' + url + '">' + title + '</a></h3>' +
+            '<div class="cj-feed-card__footer">' +
+              '<div class="cj-feed-card__chips">' + chips + '</div>' +
+              '<div class="cj-feed-card__engage">' +
+                '<button class="cj-engage-btn" type="button" aria-label="' + Drupal.t('Like') + '" data-cj-like="' + nid + '">♡ <span class="cj-engage-count"></span></button>' +
+                '<button class="cj-engage-btn" type="button" aria-label="' + Drupal.t('Comment') + '">◌</button>' +
+                '<button class="cj-engage-btn" type="button" aria-label="' + Drupal.t('Save') + '" data-cj-save="' + nid + '">⌑</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</article>';
+      }
+
+      function loadMore() {
+        if (!hasMore || isLoading) return;
         isLoading = true;
 
-        var url = '/jsonapi/node/brew_recipe?' +
-          'filter[field_is_public]=1' +
+        var loadBtn = document.getElementById('cj-load-more');
+        if (loadBtn) { loadBtn.disabled = true; loadBtn.textContent = Drupal.t('Loading…'); }
+
+        var url = '/jsonapi/node/brew_recipe' +
+          '?filter[field_is_public]=1' +
           '&sort=-created' +
-          '&include=uid,field_coffee_bean_ref' +
+          '&include=uid' +
           '&page[limit]=20' +
-          '&page[offset]=' + pageOffset;
+          '&page[offset]=' + offset;
 
-        console.log('DEBUG: Fetching from URL:', url);
-
-        return fetch(url, {
-          method: 'GET',
+        fetch(url, {
           credentials: 'same-origin',
-          headers: {
-            'Accept': 'application/vnd.api+json',
-            'X-Requested-With': 'XMLHttpRequest',
-          },
+          headers: { 'Accept': 'application/vnd.api+json' },
         })
-          .then(function (response) {
-            console.log('DEBUG: Fetch response status:', response.status, response.ok);
-            if (!response.ok) throw new Error('Failed to fetch recipes');
-            return response.json();
-          })
-          .then(function (data) {
-            console.log('DEBUG: Recipes data received:', data.data.length, 'recipes');
-            isLoading = false;
-            return data.data || [];
-          })
-          .catch(function (error) {
-            console.error('ERROR fetching recipes:', error);
-            isLoading = false;
-            return [];
-          });
-      }
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (data) {
+          isLoading = false;
+          var nodes    = data.data || [];
+          var included = data.included || [];
 
-      /**
-       * Render a single recipe card.
-       */
-      function renderRecipeCard(recipe) {
-        var attrs = recipe.attributes || {};
-        var nid = attrs.drupal_internal__nid || recipe.id;
-        var uid = recipe.relationships && recipe.relationships.uid
-          ? recipe.relationships.uid.data
-          : null;
-
-        var html = '<article class="cj-recipe-card" data-recipe-id="' + recipe.id + '">' +
-          '<div class="cj-recipe-card__header">' +
-          '<h3 class="cj-recipe-card__title">' +
-          '<a href="/node/' + nid + '">' + 
-          (attrs.title || 'Untitled Recipe') +
-          '</a></h3>';
-
-        if (uid) {
-          html += '<p class="cj-recipe-card__author">by ' + uid.id + '</p>';
-        }
-
-        html += '</div>' +
-          '<div class="cj-recipe-card__body">' +
-          '<div class="cj-recipe-info">';
-
-        if (attrs.field_brew_method) {
-          html += '<div class="cj-recipe-field">' +
-            '<strong class="cj-recipe-label">Method:</strong> ' +
-            '<span class="cj-recipe-value">' + attrs.field_brew_method + '</span>' +
-            '</div>';
-        }
-
-        if (attrs.field_coffee_weight) {
-          html += '<div class="cj-recipe-field">' +
-            '<strong class="cj-recipe-label">Coffee:</strong> ' +
-            '<span class="cj-recipe-value">' + attrs.field_coffee_weight + 'g</span>' +
-            '</div>';
-        }
-
-        if (attrs.field_water_weight) {
-          html += '<div class="cj-recipe-field">' +
-            '<strong class="cj-recipe-label">Water:</strong> ' +
-            '<span class="cj-recipe-value">' + attrs.field_water_weight + 'g</span>' +
-            '</div>';
-        }
-
-        if (attrs.field_coffee_weight && attrs.field_water_weight) {
-          var ratio = (attrs.field_water_weight / attrs.field_coffee_weight).toFixed(2);
-          html += '<div class="cj-recipe-field">' +
-            '<strong class="cj-recipe-label">Ratio:</strong> ' +
-            '<span class="cj-recipe-value">1:' + ratio + '</span>' +
-            '</div>';
-        }
-
-        if (attrs.field_community_notes && attrs.field_community_notes.value) {
-          html += '<div class="cj-recipe-field">' +
-            '<strong class="cj-recipe-label">Notes:</strong> ' +
-            '<span class="cj-recipe-value">' + attrs.field_community_notes.value + '</span>' +
-            '</div>';
-        }
-
-        html += '</div>' +
-          '<div class="cj-recipe-card__meta">' +
-          '<p class="cj-recipe-comments">💬 0</p>' +
-          '</div>' +
-          '</div>' +
-          '<div class="cj-recipe-card__footer">' +
-          '<a href="/node/' + nid + '" class="cj-recipe-card__link">View Recipe</a>' +
-          '</div>' +
-          '</article>';
-
-        return html;
-      }
-
-      /**
-       * Load and render recipes.
-       */
-      function loadRecipes(pageOffset) {
-        console.log('DEBUG: loadRecipes called with offset:', pageOffset, 'hasMore:', hasMore);
-        if (!hasMore) {
-          console.log('DEBUG: hasMore is false, returning');
-          return;
-        }
-
-        fetchRecipes(pageOffset).then(function (recipes) {
-          console.log('DEBUG: loadRecipes received', recipes.length, 'recipes from fetch');
-          if (recipes.length === 0) {
-            console.log('DEBUG: No recipes, setting hasMore to false');
+          if (nodes.length === 0) {
             hasMore = false;
-            if (offset === 0) {
-              feedContainer.innerHTML = '<p class="cj-feed-empty">No recipes shared yet.</p>';
-            }
+            var wrap = document.getElementById('cj-load-more-wrap');
+            if (wrap) wrap.style.display = 'none';
             return;
           }
 
-          console.log('DEBUG: Rendering', recipes.length, 'recipe cards');
-          recipes.forEach(function (recipe) {
-            var card = document.createElement('div');
-            card.innerHTML = renderRecipeCard(recipe);
-            feedContainer.appendChild(card.firstChild);
+          // Insert cards before the load-more sentinel.
+          var sentinel = document.getElementById('cj-load-more-wrap');
+          nodes.forEach(function (node) {
+            var temp = document.createElement('div');
+            temp.innerHTML = buildFeedCardHTML(node, included);
+            if (temp.firstChild && sentinel) {
+              feedContainer.insertBefore(temp.firstChild, sentinel);
+            }
           });
 
-          offset += recipes.length;
+          offset += nodes.length;
+          if (loadBtn) { loadBtn.disabled = false; loadBtn.textContent = Drupal.t('Load more'); }
+        })
+        .catch(function () {
+          isLoading = false;
+          if (loadBtn) { loadBtn.disabled = false; loadBtn.textContent = Drupal.t('Load more'); }
         });
       }
 
-      // Initial load - disabled, server-side rendering provides recipes
-      // loadRecipes(0);
-
-      // Load more button handler
-      var loadMoreBtn = document.getElementById('cj-load-more');
-      if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function () {
-          loadRecipes(offset);
-        });
-      }
+      once('cj-load-more', '#cj-load-more', context).forEach(function (btn) {
+        btn.addEventListener('click', loadMore);
+      });
     }
   };
 
@@ -1203,110 +1191,268 @@
     }
   };
 
-  // ── 8. SEGMENTED ROAST CONTROL ──────────────────────────────────────────
+  // ── 9. BOTTOM NAVIGATION — active state ──────────────────────────────────
 
-  Drupal.behaviors.cjSegmentedRoast = {
+  Drupal.behaviors.cjBottomNav = {
     attach: function (context) {
-      // Find all segmented roast controls
-      once('cj-roast-seg', '[data-cj-roast-control]', context).forEach(function (container) {
-        var select = container.querySelector('select');
-        if (!select) return;
+      once('cj-bottom-nav-init', '#cj-bottom-nav', context).forEach(updateActiveNav);
 
-        var currentValue = select.value;
-        var roastLabels = {
-          'light':        'Light',
-          'light_medium': 'Lt-Med',
-          'medium':       'Medium',
-          'medium_dark':  'Med-Dark',
-          'dark':         'Dark'
-        };
+      function updateActiveNav() {
+        var path   = window.location.pathname;
+        var search = window.location.search;
+        var isSaved = search.indexOf('tab=saved') !== -1;
 
-        // Create buttons for each roast option
-        select.style.display = 'none';
-        var segmented = document.createElement('div');
-        segmented.className = 'cj-segmented-buttons';
+        document.querySelectorAll('[data-cj-nav-feed]').forEach(function (el) {
+          var href = el.getAttribute('href') || '';
+          el.classList.toggle('active', !!href && path.startsWith(href));
+        });
+        document.querySelectorAll('[data-cj-nav-my-coffees]').forEach(function (el) {
+          var href = el.getAttribute('href') || '';
+          el.classList.toggle('active', !!href && path.startsWith(href));
+        });
+        document.querySelectorAll('[data-cj-nav-saved]').forEach(function (el) {
+          el.classList.toggle('active', path.indexOf('/user/') === 0 && isSaved);
+        });
+        document.querySelectorAll('[data-cj-nav-profile]').forEach(function (el) {
+          el.classList.toggle('active', path.indexOf('/user/') === 0 && !isSaved);
+        });
+      }
 
-        Array.from(select.options).forEach(function (option) {
-          if (!option.value) return; // Skip empty option
-          
-          var btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'cj-seg-btn';
-          btn.dataset.value = option.value;
-          btn.textContent = roastLabels[option.value] || option.text;
-          
-          if (option.value === currentValue) {
-            btn.classList.add('active');
-          }
-          
-          btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            // Update select value
-            select.value = option.value;
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-            
-            // Update button states
-            segmented.querySelectorAll('.cj-seg-btn').forEach(function (b) {
-              b.classList.toggle('active', b.dataset.value === option.value);
+      window.addEventListener('popstate', updateActiveNav);
+    }
+  };
+
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // cjBookmark — ⌑ save toggle on feed cards → POST /api/bookmarks/{nid}
+  // ══════════════════════════════════════════════════════════════════════════
+  // cjLike — ♡ heart button → POST /api/likes/{nid}
+  // ══════════════════════════════════════════════════════════════════════════
+  Drupal.behaviors.cjLike = {
+    attach: function (context) {
+      // Pre-fill liked state from server on first attach.
+      once('cj-like-init', 'body').forEach(function () {
+        fetch('/api/likes', {
+          credentials: 'same-origin',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (data) {
+            if (!data || !data.nids) return;
+            data.nids.forEach(function (nid) {
+              document.querySelectorAll('[data-cj-like="' + nid + '"]')
+                .forEach(function (btn) { btn.classList.add('active'); });
             });
-          });
-          
-          segmented.appendChild(btn);
-        });
+          })
+          .catch(function () {});
+      });
 
-        // Listen to select changes (for programmatic updates)
-        select.addEventListener('change', function () {
-          segmented.querySelectorAll('.cj-seg-btn').forEach(function (b) {
-            b.classList.toggle('active', b.dataset.value === select.value);
+      function wireBtn(btn) {
+        var nid = btn.getAttribute('data-cj-like');
+        if (!nid) return;
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          var isActive = btn.classList.contains('active');
+          btn.classList.toggle('active', !isActive);
+
+          // Optimistically update the count span.
+          var countEl = btn.querySelector('.cj-engage-count');
+          if (countEl) {
+            var cur = parseInt(countEl.textContent, 10) || 0;
+            countEl.textContent = isActive ? (cur > 0 ? cur - 1 : '') : cur + 1;
+          }
+
+          fetch('/api/likes/' + nid, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (data) {
+              if (!data) {
+                btn.classList.toggle('active', isActive);
+                if (countEl) {
+                  var cur2 = parseInt(countEl.textContent, 10) || 0;
+                  countEl.textContent = isActive ? cur2 + 1 : (cur2 > 0 ? cur2 - 1 : '');
+                }
+              }
+            })
+            .catch(function () {});
+        });
+      }
+
+      context.querySelectorAll && context.querySelectorAll('[data-cj-like]').forEach(function (btn) {
+        once('cj-like-btn', btn).forEach(wireBtn);
+      });
+    }
+  };
+
+  Drupal.behaviors.cjBookmark = {
+    attach: function (context) {
+      // Pre-fill bookmark state from server on first attach.
+      once('cj-bookmark-init', 'body').forEach(function () {
+        fetch('/api/bookmarks', {
+          credentials: 'same-origin',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (data) {
+            if (!data || !data.nids) return;
+            data.nids.forEach(function (nid) {
+              document.querySelectorAll('[data-cj-save="' + nid + '"]')
+                .forEach(function (btn) { btn.classList.add('active'); });
+            });
+          })
+          .catch(function () {});
+      });
+
+      function wireBtn(btn) {
+        var nid = btn.getAttribute('data-cj-save');
+        if (!nid) return;
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          var isActive = btn.classList.contains('active');
+          btn.classList.toggle('active', !isActive);
+
+          fetch('/api/bookmarks/' + nid, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (data) {
+              if (!data) {
+                btn.classList.toggle('active', isActive);
+              }
+            })
+            .catch(function () {});
+        });
+      }
+
+      context.querySelectorAll && context.querySelectorAll('[data-cj-save]').forEach(function (btn) {
+        once('cj-bookmark-btn', btn).forEach(wireBtn);
+      });
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // cjSharePhoto — photo file input inside the share sheet
+  // ══════════════════════════════════════════════════════════════════════════
+  Drupal.behaviors.cjSharePhoto = {
+    attach: function (context) {
+      context.querySelectorAll && context.querySelectorAll('[data-cj-share-photo]').forEach(function (input) {
+        once('cj-share-photo', input).forEach(function (el) {
+          el.addEventListener('change', function () {
+            var file = el.files && el.files[0];
+            if (!file) return;
+
+            var sheet = el.closest('[data-cj-share-sheet]');
+            var nid   = sheet ? sheet.getAttribute('data-cj-share-sheet') : null;
+            if (!nid) return;
+
+            var preview = sheet.querySelector('.cj-share-photo-preview');
+            var status  = sheet.querySelector('.cj-share-photo-status');
+
+            if (status) status.textContent = Drupal.t('Uploading…');
+
+            var formData = new FormData();
+            formData.append('photo', file);
+
+            fetch('/api/brew/' + nid + '/photo', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'X-Requested-With': 'XMLHttpRequest' },
+              body: formData,
+            })
+              .then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data.url) {
+                  if (preview) {
+                    preview.src = data.url;
+                    preview.hidden = false;
+                  }
+                  if (status) status.textContent = '';
+                } else {
+                  if (status) status.textContent = data.error || Drupal.t('Upload failed.');
+                }
+              })
+              .catch(function () {
+                if (status) status.textContent = Drupal.t('Upload failed.');
+              });
           });
         });
+      });
+    }
+  };
 
-        select.parentNode.insertBefore(segmented, select);
+  // ══════════════════════════════════════════════════════════════════════════
+  // cjShareBrew — "Share to feed →" button + share-sheet Publish action
+  // ══════════════════════════════════════════════════════════════════════════
+  /**
+   * Behavior: wires the "Share to feed →" button on a private brew detail page
+   * to open the share sheet in the drawer, then handles the Publish CTA inside
+   * the sheet to POST to /api/brew/{nid}/publish and refresh the page.
+   */
+  Drupal.behaviors.cjShareBrew = {
+    attach: function (context) {
+      // ── "Share to feed →" button on brew detail ──────────────────────────
+      context.querySelectorAll && context.querySelectorAll('[data-cj-share-brew]').forEach(function (btn) {
+        once('cj-share-brew-btn', btn).forEach(function (el) {
+          el.addEventListener('click', function () {
+            var nid = el.getAttribute('data-cj-share-brew');
+            var url = '/brew/' + nid + '/share';
+            var openFn = Drupal.behaviors.cjAddDrawer && Drupal.behaviors.cjAddDrawer.openDrawer;
+            if (openFn) {
+              openFn(url, Drupal.t('Share brew'), false);
+            }
+          });
+        });
+      });
+
+      // ── "Publish to feed" CTA inside the share sheet ─────────────────────
+      context.querySelectorAll && context.querySelectorAll('[data-cj-publish-btn]').forEach(function (btn) {
+        once('cj-publish-btn', btn).forEach(function (el) {
+          el.addEventListener('click', function () {
+            var publishUrl = el.getAttribute('data-publish-url');
+            if (!publishUrl) return;
+
+            var sheet   = el.closest('[data-cj-share-sheet]');
+            var caption = sheet ? (sheet.querySelector('.cj-share-sheet__caption') || {}).value || '' : '';
+
+            el.disabled = true;
+            el.textContent = Drupal.t('Publishing…');
+
+            fetch(publishUrl, {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+              body: JSON.stringify({ caption: caption }),
+            })
+              .then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data.status === 'published' || data.status === 'already_public') {
+                  // Close drawer then navigate to the brew (or just reload).
+                  var closeBtn = document.querySelector('[data-cj-drawer-close], #cj-drawer-close');
+                  if (closeBtn) closeBtn.click();
+                  window.location.href = data.url || window.location.pathname;
+                } else {
+                  el.disabled = false;
+                  el.textContent = Drupal.t('Publish to feed');
+                  alert(data.error || Drupal.t('Something went wrong. Please try again.'));
+                }
+              })
+              .catch(function () {
+                el.disabled = false;
+                el.textContent = Drupal.t('Publish to feed');
+              });
+          });
+        });
       });
     }
   };
 
 })(Drupal, drupalSettings);
-
-  // ── 9. BOTTOM NAVIGATION — Active state management ─────────────────────────
-
-  Drupal.behaviors.cjBottomNav = {
-    attach: function (context) {
-      // Set active nav item based on current route
-      var navItems = [
-        { selector: '[data-cj-nav-feed]', routes: ['coffee_journal_api.global_feed'] },
-        { selector: '[data-cj-nav-my-coffees]', routes: ['view.coffee_journal.page_1'] },
-        { selector: '[data-cj-nav-profile]', routes: ['coffee_journal_access.profile'] }
-      ];
-
-      function updateActiveNav() {
-        // Get current route/path
-        var currentPath = window.location.pathname;
-        var isHomepage = currentPath === '/' || currentPath === '/feed';
-        
-        navItems.forEach(function (item) {
-          var element = document.querySelector(item.selector);
-          if (!element) return;
-          
-          var href = element.getAttribute('href');
-          var isActive = false;
-          
-          // Check if link href matches current path
-          if (href && (currentPath.startsWith(href) || (isHomepage && (href.includes('/feed') || href === '/')))) {
-            isActive = true;
-          }
-          
-          element.classList.toggle('active', isActive);
-        });
-      }
-
-      // Update on initial page load
-      once('cj-bottom-nav', '#cj-bottom-nav', context).forEach(function () {
-        updateActiveNav();
-      });
-
-      // Update when navigation occurs (for SPAs or page transitions)
-      window.addEventListener('popstate', updateActiveNav);
-    }
-  };
 

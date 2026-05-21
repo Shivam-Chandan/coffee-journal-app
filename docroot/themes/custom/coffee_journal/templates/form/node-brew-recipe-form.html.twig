@@ -1,0 +1,93 @@
+{#
+  Brew recipe add form — wireframe layout.
+
+  Layout:
+    - 2×3 stats grid (.cj-brew-stats-grid) for the six key numbers
+    - Linked bean reference (auto-populated from ?field_coffee_bean_ref_target_id)
+    - Notes textarea
+    - Visibility chip pair (Private / Public bound to field_is_public)
+    - Full-width accent save bar
+
+  JS behaviors: cjRatingInputs (sliders), cjAddDrawer (drawer submit)
+#}
+
+<form{{ attributes }}>
+
+  {# ── Bean reference ────────────────────────────────────────────────── #}
+  {% if form.field_coffee_bean_ref is defined %}
+    <div class="cj-field-wrap">{{ form.field_coffee_bean_ref }}</div>
+  {% endif %}
+
+  {# ── Title (auto-generated from method, or manual) ────────────────── #}
+  <div class="cj-field-wrap">{{ form.title }}</div>
+
+  {# ── 2×3 stats grid ───────────────────────────────────────────────── #}
+  <div class="cj-brew-stats-grid">
+
+    <div class="cj-small-field">
+      <span class="cj-small-field__label">{{ 'Method'|t }}</span>
+      {{ form.field_brew_method }}
+    </div>
+
+    <div class="cj-small-field">
+      <span class="cj-small-field__label">{{ 'Coffee (g)'|t }}</span>
+      {{ form.field_coffee_weight }}
+    </div>
+
+    <div class="cj-small-field">
+      <span class="cj-small-field__label">{{ 'Water (g)'|t }}</span>
+      {{ form.field_water_weight }}
+    </div>
+
+    {% if form.field_grind_size is defined %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Grind'|t }}</span>
+        {{ form.field_grind_size }}
+      </div>
+    {% endif %}
+
+    {% if form.field_water_temp is defined %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Temp (°C)'|t }}</span>
+        {{ form.field_water_temp }}
+      </div>
+    {% endif %}
+
+    {% if form.field_brew_time is defined %}
+      <div class="cj-small-field">
+        <span class="cj-small-field__label">{{ 'Time'|t }}</span>
+        {{ form.field_brew_time }}
+      </div>
+    {% endif %}
+
+  </div>
+
+  {# ── Notes ────────────────────────────────────────────────────────── #}
+  {% if form.field_community_notes is defined %}
+    <div class="cj-field-wrap">{{ form.field_community_notes }}</div>
+  {% endif %}
+
+  {# ── Visibility chips ─────────────────────────────────────────────── #}
+  {% if form.field_is_public is defined %}
+    <div class="cj-visibility-row">
+      <span class="cj-field-label">{{ 'Visibility'|t }}</span>
+      {{ form.field_is_public }}
+    </div>
+  {% endif %}
+
+  {# ── Save bar ─────────────────────────────────────────────────────── #}
+  {% if form.actions is defined %}
+    <div class="cj-save-bar">
+      {{ form.actions.submit }}
+    </div>
+  {% endif %}
+
+  {# Remaining system fields #}
+  {{ form|without(
+    'title', 'field_coffee_bean_ref', 'field_brew_method',
+    'field_coffee_weight', 'field_water_weight',
+    'field_grind_size', 'field_water_temp', 'field_brew_time',
+    'field_community_notes', 'field_is_public', 'actions'
+  ) }}
+
+</form>
