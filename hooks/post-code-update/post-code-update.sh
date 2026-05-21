@@ -39,6 +39,22 @@ fi
 
 cd "${DOCROOT}"
 
+# Enable all custom modules before config import (idempotent — already-enabled
+# modules are silently skipped). This prevents bootstrap failures when new
+# custom modules exist in the codebase but haven't been installed in the DB yet.
+log "Enabling all custom modules..."
+CUSTOM_MODS=$(ls -d "${DOCROOT}/modules/custom/"*/ 2>/dev/null \
+  | xargs -I{} basename {} \
+  | tr '\n' ' ')
+if [[ -n "${CUSTOM_MODS}" ]]; then
+  log "Custom modules found: ${CUSTOM_MODS}"
+  "${DRUSH}" pm:enable --yes ${CUSTOM_MODS} 2>&1 \
+    && log "Custom modules enabled (or already enabled)" \
+    || log "WARNING: Some custom modules could not be enabled — check logs"
+else
+  log "No custom modules found in ${DOCROOT}/modules/custom/"
+fi
+
 log "Running drush config:import..."
 "${DRUSH}" config:import --yes 2>&1 && log "config:import OK" \
   || log "WARNING: config:import had issues"

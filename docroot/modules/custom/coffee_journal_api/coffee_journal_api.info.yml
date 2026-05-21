@@ -7,4 +7,9 @@ dependencies:
   - drupal:user
   - drupal:jsonapi
   - social_auth:social_auth
-  - custom:coffee_journal_likes
+# coffee_journal_likes is used by FeedController but is NOT listed as a hard
+# dependency here. A hard dependency causes a Drupal bootstrap failure when
+# coffee_journal_api is already installed but coffee_journal_likes is not yet
+# (which happens mid-deploy before drush cim runs). The deploy hook ensures
+# all custom modules are installed before drush cim, so the service is always
+# available at runtime.

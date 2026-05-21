@@ -95,6 +95,27 @@ else
   log "WARNING: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set — social auth will not work"
 fi
 
+# ── Step 2.5: Enable all custom modules before config import ─────────────────
+# drush pm:enable is idempotent — already-enabled modules are silently skipped.
+# Running this BEFORE drush cim is critical: if a new module is added to
+# core.extension.yml but not yet installed in the DB, Drupal's bootstrap will
+# fail when it tries to load the service container during cim (because an
+# already-installed module declares the new one as a hard dependency). Enabling
+# custom modules first ensures hook_schema tables are created and the service
+# container can compile cleanly before cim runs.
+log "Enabling all custom modules..."
+CUSTOM_MODS=$(ls -d "${DOCROOT}/modules/custom/"*/ 2>/dev/null \
+  | xargs -I{} basename {} \
+  | tr '\n' ' ')
+if [[ -n "${CUSTOM_MODS}" ]]; then
+  log "Custom modules found: ${CUSTOM_MODS}"
+  "${DRUSH}" pm:enable --yes ${CUSTOM_MODS} 2>&1 \
+    && log "Custom modules enabled (or already enabled)" \
+    || log "WARNING: Some custom modules could not be enabled — check logs"
+else
+  log "No custom modules found in ${DOCROOT}/modules/custom/"
+fi
+
 # ── Step 3: Config import ────────────────────────────────────────────────────
 log "Running drush config:import..."
 cd "${DOCROOT}"
