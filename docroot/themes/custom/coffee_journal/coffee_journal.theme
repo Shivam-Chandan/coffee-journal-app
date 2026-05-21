@@ -116,30 +116,43 @@ function coffee_journal_preprocess_node(&$variables) {
     $variables['roast_label'] = $roastValue ? _coffee_journal_roast_label($roastValue) : '';
     $variables['roast_key']   = $roastValue ? str_replace('-', '_', strtolower($roastValue)) : '';
 
-    // Compute radar polygon points for the 4-axis rating SVG.
-    // Axes: body (top), acidity (right), aroma (bottom), sweetness (left).
-    // Mapping: body←bitterness/2, acidity←acidity/2, aroma←note_clarity/2, sweet←overall_taste.
+    // Compute radar polygon points from the four actual rating fields.
+    // Each field has a different max scale, so we normalise to a 0–1 fraction
+    // before multiplying by the SVG radius — keeping the polygon consistent.
+    // Axis order (clockwise from top): Overall Taste → Bitterness → Acidity → Note Clarity.
     $bitterness   = (float) ($node->field_bitterness_rating->value ?? 0);
     $acidity_val  = (float) ($node->field_acidity_rating->value ?? 0);
     $note_clarity = (float) ($node->field_note_clarity_rating->value ?? 0);
     $overall      = (float) ($node->field_overall_taste_rating->value ?? 0);
-    $radar_vals   = [
-      'body'      => min(5, $bitterness / 2),
-      'acidity'   => min(5, $acidity_val / 2),
-      'aroma'     => min(5, $note_clarity / 2),
-      'sweetness' => min(5, $overall),
+
+    // Raw values passed to the template for display (show actual scores).
+    $radar_vals = [
+      'overall_taste' => $overall,      // 1–5
+      'bitterness'    => $bitterness,   // 0–10
+      'acidity'       => $acidity_val,  // 0–10
+      'note_clarity'  => $note_clarity, // 0–10
     ];
-    $r  = 24; $cx = 28; $cy = 28; $maxVal = 5;
+
+    // Normalised fractions (0–1) used only for polygon radius calculation.
+    $radar_fractions = [
+      'overall_taste' => $overall / 5,
+      'bitterness'    => $bitterness / 10,
+      'acidity'       => $acidity_val / 10,
+      'note_clarity'  => $note_clarity / 10,
+    ];
+
+    // Grid: viewBox="0 0 100 100", centre (50,50), max-radius 34.
+    $r = 34; $cx = 50; $cy = 50;
     $radar_axes = [
-      ['angle' => -90, 'key' => 'body'],
-      ['angle' =>   0, 'key' => 'acidity'],
-      ['angle' =>  90, 'key' => 'aroma'],
-      ['angle' => 180, 'key' => 'sweetness'],
+      ['angle' => -90, 'key' => 'overall_taste'],  // top
+      ['angle' =>   0, 'key' => 'bitterness'],     // right
+      ['angle' =>  90, 'key' => 'acidity'],        // bottom
+      ['angle' => 180, 'key' => 'note_clarity'],   // left
     ];
     $pts = [];
     foreach ($radar_axes as $axis) {
-      $rad   = ($axis['angle'] - 90) * M_PI / 180;
-      $dist  = $maxVal > 0 ? ($radar_vals[$axis['key']] / $maxVal) * $r : 0;
+      $rad   = $axis['angle'] * M_PI / 180;
+      $dist  = $radar_fractions[$axis['key']] * $r;
       $pts[] = round($cx + $dist * cos($rad), 1) . ',' . round($cy + $dist * sin($rad), 1);
     }
     $variables['radar_polygon'] = implode(' ', $pts);

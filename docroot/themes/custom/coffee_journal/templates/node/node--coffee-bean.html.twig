@@ -70,40 +70,86 @@
   </div>
 
   {# ── Rating radar ── #}
+  {#
+    Grid: viewBox 0 0 100 100, centre (50,50), max-radius 34.
+    Axes (clockwise from top): Overall Taste=(50,16) · Bitterness=(84,50) · Acidity=(50,84) · Note Clarity=(16,50)
+    Labels sit just beyond each tip. SVG has overflow:visible so text doesn't clip.
+  #}
   {% if radar_polygon %}
-    <div class="cj-rating-radar cj-bean-detail__radar">
-      <svg width="80" height="80" viewBox="0 0 56 56"
-           aria-label="{{ 'Rating chart'|t }}"
-           role="img">
-        {# Grid rings #}
-        {% for i in [1, 2, 3, 4, 5] %}
-          <circle cx="28" cy="28" r="{{ (i / 5 * 24)|round(1) }}"
-                  fill="none" stroke="var(--cj-hair)" stroke-width="0.5"/>
-        {% endfor %}
-        {# Axes: top, right, bottom, left #}
-        <line x1="28" y1="28" x2="28" y2="4"  stroke="var(--cj-hair)" stroke-width="0.5"/>
-        <line x1="28" y1="28" x2="52" y2="28" stroke="var(--cj-hair)" stroke-width="0.5"/>
-        <line x1="28" y1="28" x2="28" y2="52" stroke="var(--cj-hair)" stroke-width="0.5"/>
-        <line x1="28" y1="28" x2="4"  y2="28" stroke="var(--cj-hair)" stroke-width="0.5"/>
-        {# Data polygon #}
-        <polygon points="{{ radar_polygon }}"
-                 fill="var(--cj-accent-soft)"
-                 stroke="var(--cj-primary)"
-                 stroke-width="1.2"
-                 stroke-linejoin="round"/>
-        {# Labels #}
-        <text x="28" y="3"  text-anchor="middle" font-size="4" fill="var(--cj-ink-2)">{{ 'Body'|t }}</text>
-        <text x="55" y="29" text-anchor="start"  font-size="4" fill="var(--cj-ink-2)">{{ 'Acidity'|t }}</text>
-        <text x="28" y="56" text-anchor="middle" font-size="4" fill="var(--cj-ink-2)">{{ 'Aroma'|t }}</text>
-        <text x="1"  y="29" text-anchor="start"  font-size="4" fill="var(--cj-ink-2)">{{ 'Sweet'|t }}</text>
-      </svg>
-      <div class="cj-rating-radar__labels">
+    <div class="cj-bean-detail__radar-wrap">
+      <div class="cj-wf-section-head">{{ 'Taste Profile'|t }}</div>
+      <div class="cj-rating-radar">
+
+        <svg class="cj-rating-radar__svg"
+             viewBox="0 0 100 100"
+             overflow="visible"
+             aria-label="{{ 'Taste profile radar'|t }}"
+             role="img">
+
+          {# ── Background grid rings (5 steps) ── #}
+          {% for i in [1, 2, 3, 4, 5] %}
+            <circle cx="50" cy="50" r="{{ (i / 5 * 34)|round(1) }}"
+                    fill="{% if i == 5 %}var(--cj-hair){% else %}none{% endif %}"
+                    fill-opacity="0.25"
+                    stroke="var(--cj-hair)"
+                    stroke-width="0.6"/>
+          {% endfor %}
+
+          {# ── Axis spokes ── #}
+          <line x1="50" y1="50" x2="50" y2="16" stroke="var(--cj-hair)" stroke-width="0.6"/>
+          <line x1="50" y1="50" x2="84" y2="50" stroke="var(--cj-hair)" stroke-width="0.6"/>
+          <line x1="50" y1="50" x2="50" y2="84" stroke="var(--cj-hair)" stroke-width="0.6"/>
+          <line x1="50" y1="50" x2="16" y2="50" stroke="var(--cj-hair)" stroke-width="0.6"/>
+
+          {# ── Data polygon ── #}
+          <polygon points="{{ radar_polygon }}"
+                   fill="var(--cj-accent-soft)"
+                   stroke="var(--cj-primary)"
+                   stroke-width="1.5"
+                   stroke-linejoin="round"/>
+
+          {# ── Vertex dots ── #}
+          {% set pts = radar_polygon|split(' ') %}
+          {% for pt in pts %}
+            {% set xy = pt|split(',') %}
+            <circle cx="{{ xy[0] }}" cy="{{ xy[1] }}" r="2"
+                    fill="var(--cj-primary)"/>
+          {% endfor %}
+
+          {# ── Axis labels — actual field names ── #}
+          <text x="50"  y="10"  text-anchor="middle" dominant-baseline="middle"
+                font-size="5.5" fill="var(--cj-ink-2)" font-weight="600">{{ 'Overall'|t }}</text>
+          <text x="90"  y="50"  text-anchor="start"  dominant-baseline="middle"
+                font-size="5.5" fill="var(--cj-ink-2)" font-weight="600">{{ 'Bitter'|t }}</text>
+          <text x="50"  y="92"  text-anchor="middle" dominant-baseline="middle"
+                font-size="5.5" fill="var(--cj-ink-2)" font-weight="600">{{ 'Acidity'|t }}</text>
+          <text x="10"  y="50"  text-anchor="end"    dominant-baseline="middle"
+                font-size="5.5" fill="var(--cj-ink-2)" font-weight="600">{{ 'Clarity'|t }}</text>
+
+        </svg>
+
+        {# ── Score row — actual field values with correct denominators ── #}
         {% if radar_vals %}
-          <span>{{ 'Body'|t }} {{ (radar_vals.body * 2)|round }}/10</span>
-          <span>{{ 'Acidity'|t }} {{ (radar_vals.acidity * 2)|round }}/10</span>
-          <span>{{ 'Aroma'|t }} {{ (radar_vals.aroma * 2)|round }}/10</span>
-          <span>{{ 'Sweet'|t }} {{ radar_vals.sweetness|round }}/5</span>
+          <div class="cj-rating-radar__scores">
+            <div class="cj-rating-radar__score-item">
+              <span class="cj-rating-radar__score-name">{{ 'Overall'|t }}</span>
+              <span class="cj-rating-radar__score-val">{{ radar_vals.overall_taste|round }}<span class="cj-rating-radar__score-max">/5</span></span>
+            </div>
+            <div class="cj-rating-radar__score-item">
+              <span class="cj-rating-radar__score-name">{{ 'Bitter'|t }}</span>
+              <span class="cj-rating-radar__score-val">{{ radar_vals.bitterness|round }}<span class="cj-rating-radar__score-max">/10</span></span>
+            </div>
+            <div class="cj-rating-radar__score-item">
+              <span class="cj-rating-radar__score-name">{{ 'Acidity'|t }}</span>
+              <span class="cj-rating-radar__score-val">{{ radar_vals.acidity|round }}<span class="cj-rating-radar__score-max">/10</span></span>
+            </div>
+            <div class="cj-rating-radar__score-item">
+              <span class="cj-rating-radar__score-name">{{ 'Clarity'|t }}</span>
+              <span class="cj-rating-radar__score-val">{{ radar_vals.note_clarity|round }}<span class="cj-rating-radar__score-max">/10</span></span>
+            </div>
+          </div>
         {% endif %}
+
       </div>
     </div>
   {% endif %}
