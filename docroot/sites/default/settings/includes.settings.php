@@ -9,7 +9,7 @@
  */
 
 $additionalSettingsFiles = [
-  DRUPAL_ROOT . "/sites/$site_dir/settings/coffee_journal.settings.php",
+  DRUPAL_ROOT . "/$site_path/settings/coffee_journal.settings.php",
 ];
 
 foreach ($additionalSettingsFiles as $settingsFile) {
