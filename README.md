@@ -1,4 +1,4 @@
-Acquia Drupal Recommended Projects
+Acquia Drupal Recommended Projectssss
 ====
 
 This is a project template providing a great out-of-the-box experience for new
