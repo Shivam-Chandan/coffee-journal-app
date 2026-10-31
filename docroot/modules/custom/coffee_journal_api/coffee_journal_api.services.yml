@@ -1,5 +1,10 @@
 services:
 
+  coffee_journal_api.headless_session_configuration:
+    class: Drupal\coffee_journal_api\Session\HeadlessSessionConfiguration
+    decorates: session_configuration
+    arguments: ['@coffee_journal_api.headless_session_configuration.inner']
+
   coffee_journal_api.paid_api_limiter:
     class: Drupal\coffee_journal_api\Service\PaidApiLimiter
     arguments: ['@flood', '@config.factory', '@lock']
