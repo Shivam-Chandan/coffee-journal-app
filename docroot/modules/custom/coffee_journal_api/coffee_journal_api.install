@@ -15,7 +15,7 @@ function coffee_journal_api_update_9001() {
   ];
 
   // Grant permissions to the authenticated role.
-  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, $perms);
+  user_role_grant_permissions(\Drupal\user\RoleInterface::AUTHENTICATED_ID, $perms);
 
   return t('Granted brew_recipe create/edit permissions to authenticated role.');
 }

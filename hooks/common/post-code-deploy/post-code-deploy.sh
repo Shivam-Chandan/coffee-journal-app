@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Acquia post-code-deploy: update the deployed application without changing
+# Acquia common post-code-deploy: update the deployed application without changing
 # account policy or enabling optional modules merely because they are present.
 set -euo pipefail
 

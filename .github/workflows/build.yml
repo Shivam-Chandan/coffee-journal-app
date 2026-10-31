@@ -198,8 +198,8 @@ jobs:
           fi
           test -f artifacts/deploy/vendor/autoload.php
           test -f artifacts/deploy/docroot/.htaccess
-          test -f artifacts/deploy/hooks/post-code-deploy/post-code-deploy.sh
-          test -x artifacts/deploy/hooks/post-code-deploy/post-code-deploy.sh
+          test -f artifacts/deploy/hooks/common/post-code-deploy/post-code-deploy.sh
+          test -x artifacts/deploy/hooks/common/post-code-deploy/post-code-deploy.sh
           test -f artifacts/deploy/docroot/sites/default/settings/includes.settings.php
           test -f artifacts/deploy/config/default/core.extension.yml
 
