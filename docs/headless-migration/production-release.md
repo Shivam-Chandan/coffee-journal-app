@@ -7,6 +7,8 @@ Status: release checks passed; deployment in progress.
 - Drupal source: `Shivam-Chandan/coffee-journal-app`, branch `master` on GitHub.
 - Drupal production: `https://eeschandan1.prod.acquia-sites.com`.
 - Frontend Vercel project: `brewtal/coffee-journal` (Vercel requires lowercase project names).
+- Frontend production URL: `https://coffee-journal-vert.vercel.app`.
+- Vercel Git integration: GitHub `master`, root directory `frontend`, Node 22.
 - Production frontend build variable: `DRUPAL_ORIGIN=https://eeschandan1.prod.acquia-sites.com`.
 
 The frontend is a separate static deployment. Backend and frontend continue to
