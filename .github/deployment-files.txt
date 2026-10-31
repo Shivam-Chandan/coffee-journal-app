@@ -16,7 +16,6 @@ docroot/modules/contrib/
 docroot/profiles/custom/
 docroot/profiles/contrib/
 docroot/themes/custom/
-docroot/themes/contrib/
 docroot/sites/default/settings.php
 docroot/sites/default/default.services.yml
 docroot/sites/default/settings/includes.settings.php
