@@ -119,6 +119,7 @@ export const profileSchema = z.object({
     email: z.string(),
     initial: z.string(),
     member_since: z.number().int().nonnegative(),
+    chatgpt_app_url: z.string().url().nullable().optional(),
     stats: z.object({
       beans: z.number().int().nonnegative(),
       brews: z.number().int().nonnegative(),

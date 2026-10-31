@@ -37,6 +37,20 @@ identifies the registered connection, not cryptographic proof of an AI model.
 
 ## Configure ChatGPT
 
+The personal ChatGPT app has been created at:
+
+https://chatgpt.com/plugins/plugins_6ae669f6c27081919016002e9934f120
+
+The React profile screen provides a **Connect ChatGPT** launcher for the enabled
+pilot account. It opens this URL in a new tab without sending profile data or
+credentials in the link. It does not start OAuth, issue credentials, or mark the
+account as connected. Configure the app's credential settings separately using
+the supported plugin setup flow. Automatic account linking requires a future
+OAuth integration and a verified platform-supported authorization entry point.
+
+The following instructions describe the Actions-based setup contract delivered
+with the API. Use the current plugin UI's equivalent where applicable:
+
 1. Open the GPT editor in ChatGPT on the web and create a **private** GPT.
 2. Copy `openapi.yml`, replacing `https://YOUR-DRUPAL-HOST` with the target Drupal
    HTTPS origin. Import it in Actions. Drupal must be publicly reachable over HTTPS.

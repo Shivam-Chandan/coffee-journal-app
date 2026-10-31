@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\coffee_journal_api\Kernel;
 
 use Drupal\coffee_journal_api\Controller\ConnectorController;
+use Drupal\coffee_journal_api\Controller\HeadlessReadController;
 use Drupal\coffee_journal_api\Controller\McpController;
 use Drupal\coffee_journal_api\Service\CreationProvenance;
 use Drupal\Core\Site\Settings;
@@ -270,6 +271,23 @@ final class ConnectorJournalTest extends KernelTestBase {
     sort($fields);
     sort($expected);
     $this->assertSame($expected, $fields);
+  }
+
+  public function testChatgptLauncherIsOnlyExposedForTheEnabledPilot(): void {
+    $connections = $this->container->get('coffee_journal_api.connections');
+    $url = 'https://chatgpt.com/plugins/plugins_6ae669f6c27081919016002e9934f120';
+    $this->assertSame($url, $connections->chatgptAppUrl($this->owner));
+    $this->assertNull($connections->chatgptAppUrl($this->other));
+    $this->assertNull($connections->chatgptAppUrl(new \Drupal\Core\Session\AnonymousUserSession()));
+    $read = HeadlessReadController::create($this->container);
+    $this->assertSame($url, $this->body($read->profile())['data']['chatgpt_app_url']);
+    $this->container->get('current_user')->setAccount($this->other);
+    $this->assertNull($this->body($read->profile())['data']['chatgpt_app_url']);
+    $this->owner->block()->save();
+    $this->assertNull($connections->chatgptAppUrl($this->owner));
+    $this->owner->activate()->save();
+    new Settings(['hash_salt' => 'kernel-only']);
+    $this->assertNull($connections->chatgptAppUrl($this->owner));
   }
 
   private function mcpBody(\Symfony\Component\HttpFoundation\Response $response): array {

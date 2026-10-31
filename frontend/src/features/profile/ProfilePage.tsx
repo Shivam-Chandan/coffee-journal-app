@@ -71,17 +71,31 @@ export function ProfilePage() {
 function ProfileHeader({ uid, name, email }: { uid: number; name: string; email: string }) {
   const query = useQuery(profileQuery(uid))
   const stats = query.data?.data.stats
+  const chatgptAppUrl = query.data?.data.chatgpt_app_url
   return (
-    <header className="cj-profile">
-      <span className="cj-profile__avatar" aria-hidden="true">{name.slice(0, 1).toUpperCase()}</span>
-      <h1 className="cj-profile__name">{name}</h1>
-      <p className="cj-profile__meta">{email}</p>
-      <dl className="cj-stat-row">
-        <Stat label="Coffees" value={stats?.beans} />
-        <Stat label="Brews" value={stats?.brews} />
-        <Stat label="Likes" value={stats?.likes} />
-      </dl>
-    </header>
+    <>
+      <header className="cj-profile">
+        <span className="cj-profile__avatar" aria-hidden="true">{name.slice(0, 1).toUpperCase()}</span>
+        <h1 className="cj-profile__name">{name}</h1>
+        <p className="cj-profile__meta">{email}</p>
+        <dl className="cj-stat-row">
+          <Stat label="Coffees" value={stats?.beans} />
+          <Stat label="Brews" value={stats?.brews} />
+          <Stat label="Likes" value={stats?.likes} />
+        </dl>
+      </header>
+      {chatgptAppUrl && (
+        <section className="cj-profile-connection" aria-labelledby="chatgpt-connection-title">
+          <div className="cj-profile-connection__text">
+            <h2 id="chatgpt-connection-title"><Icon name="sparkles" />Coffee Journal in ChatGPT</h2>
+            <p>Open your ChatGPT app to read and add coffees. First-time setup uses your personal connection token in the plugin’s credential settings.</p>
+          </div>
+          <a href={chatgptAppUrl} target="_blank" rel="noopener noreferrer" className="cj-button cj-button--primary">
+            <Icon name="link" />Connect ChatGPT<span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        </section>
+      )}
+    </>
   )
 }
 

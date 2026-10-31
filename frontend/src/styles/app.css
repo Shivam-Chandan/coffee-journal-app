@@ -237,6 +237,12 @@
   .cj-auth .cj-form { margin-top: 14px; }
   .cj-auth__note { margin-top: 10px; font-size: 12px; color: var(--cj-text-muted); line-height: 1.7; }
 
+  .cj-profile-connection { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px; margin-bottom: 24px; border: 1px solid var(--cj-border); border-radius: 20px; background: var(--cj-surface); }
+  .cj-profile-connection__text { flex: 1 1 240px; min-width: 0; }
+  .cj-profile-connection h2 { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 650; }
+  .cj-profile-connection h2 svg { flex: none; width: 18px; height: 18px; color: var(--cj-primary); }
+  .cj-profile-connection p { margin-top: 8px; color: var(--cj-text-muted); font-size: 13px; line-height: 1.6; }
+
   /* ── Sheets ──────────────────────────────────────────────────────────── */
   .cj-sheet-root { position: fixed; inset: 0; z-index: 400; display: flex; align-items: flex-end; justify-content: center; }
   .cj-sheet__backdrop { position: absolute; inset: 0; background: #00000073; backdrop-filter: blur(3px); }

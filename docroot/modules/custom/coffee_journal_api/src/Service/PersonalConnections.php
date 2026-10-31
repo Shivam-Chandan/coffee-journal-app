@@ -7,6 +7,7 @@ namespace Drupal\coffee_journal_api\Service;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Site\Settings;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\user\UserInterface;
 
@@ -14,6 +15,8 @@ use Drupal\user\UserInterface;
  * Personal connector credentials. Neither tokens nor account IDs enter config.
  */
 final class PersonalConnections {
+
+  private const CHATGPT_APP_URL = 'https://chatgpt.com/plugins/plugins_6ae669f6c27081919016002e9934f120';
 
   public function __construct(
     private readonly Connection $database,
@@ -29,6 +32,17 @@ final class PersonalConnections {
     $users = $this->entities->getStorage('user')->loadByProperties(['uuid' => $uuid]);
     $user = reset($users);
     return $user instanceof UserInterface && $user->isActive() && !$user->isAnonymous() ? $user : NULL;
+  }
+
+  /**
+   * Returns the app launcher only for the explicitly enabled personal account.
+   */
+  public function chatgptAppUrl(AccountInterface $account): ?string {
+    if ($account->isAnonymous()) {
+      return NULL;
+    }
+    $pilot = $this->pilot();
+    return $pilot && (int) $pilot->id() === (int) $account->id() ? self::CHATGPT_APP_URL : NULL;
   }
 
   public function issue(string $provider = 'chatgpt', int $days = 90, array $scopes = ['beans:read', 'beans:create']): array {
