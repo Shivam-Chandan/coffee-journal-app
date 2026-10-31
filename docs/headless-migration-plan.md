@@ -2,7 +2,10 @@
 
 Date: 2026-10-30
 
-Status: implementation started; local read-only foundation verified. See [execution evidence](headless-migration/execution.md) for completed work and outstanding release gates.
+Status: initial headless application deployed to production and smoke-tested.
+See the [production release record](headless-migration/production-release.md)
+and [execution evidence](headless-migration/execution.md) for verification and
+remaining migration work.
 
 Change ID: `migrate-headless-frontend`
 

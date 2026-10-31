@@ -82,8 +82,11 @@ These tests use temporary database fixtures, not the running site's users/conten
 5. Verify external rewrites, cookies, API headers, and the deployed Functions
    inventory in a preview before routing production traffic here.
 
-No Vercel project has been linked or deployed by this increment. `.vercel` is
-generated/ignored and must not be committed. If using Vercel CLI `--prebuilt`,
+Production is deployed at <https://coffee-journal-vert.vercel.app> in
+`brewtal/coffee-journal`. GitHub `master` builds `frontend/` with Node 22;
+production proxies to Drupal prod and previews proxy to Drupal dev. See the
+[production release record](../docs/headless-migration/production-release.md).
+`.vercel` is generated/ignored and must not be committed. If using Vercel CLI `--prebuilt`,
 link/pull project configuration first and rebuild with the correct environment.
 The build output check does not replace the deployed-inventory acceptance check.
 

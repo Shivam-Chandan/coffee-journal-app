@@ -13,8 +13,10 @@ Status: implementation in progress. All primary screens now exist in the React f
 - [x] Implement email/username login, password-reset request and logout against Drupal sessions.
 - [x] Implement bean/brew detail, create and edit screens, add sheet, method picker, profile and saved tabs.
 - [x] Fix the `brew_privacy` bean-save failure found while probing the write path.
+- [x] Commit/push the release to GitHub and promote Drupal through Dev, Test and Prod.
+- [x] Create the Coffee-Journal Vercel project and verify production username login, private save/reload and logout through external rewrites.
 - [ ] Capture/approve stable visual baselines and finish remaining Phase 0 decisions.
-- [ ] Link/deploy a Vercel preview and prove the slice through real external rewrites.
+- [ ] Complete separate preview-origin acceptance and the camera-upload probe.
 - [ ] Implement photo upload, public share HTML, legacy link resolution and PWA/offline behavior.
 
 ### Full migration tasks
