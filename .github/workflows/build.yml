@@ -210,7 +210,7 @@ jobs:
           docker run --rm --network none --read-only --cap-drop ALL \
             --security-opt no-new-privileges --pids-limit 64 --memory 512m --cpus 1 \
             -v "$GITHUB_WORKSPACE/artifacts/deploy:/artifact:ro" \
-            ghcr.io/gitleaks/gitleaks:v8.30.0 dir /artifact --redact --exit-code 1 --no-banner
+            ghcr.io/gitleaks/gitleaks:v8.30.0 dir /artifact --redact --verbose --exit-code 1 --no-banner
 
       - name: Archive inspected tree with executable modes and internal links
         run: tar -cf artifacts/deploy.tar -C artifacts/deploy .
