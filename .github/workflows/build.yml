@@ -187,6 +187,7 @@ jobs:
             --exclude='.git' --exclude='node_modules' --exclude='tests' \
             --exclude='.env*' --exclude='*.key' --exclude='*.pem' \
             --exclude='salt.txt' --exclude='ssh-keys-github*' \
+            --exclude='/vendor/drush/drush/examples/' \
             --exclude='settings.local.php' --exclude='local.settings.php' \
             ./ artifacts/deploy/
           if [ -d docroot/libraries ]; then
@@ -210,7 +211,8 @@ jobs:
           docker run --rm --network none --read-only --cap-drop ALL \
             --security-opt no-new-privileges --pids-limit 64 --memory 512m --cpus 1 \
             -v "$GITHUB_WORKSPACE/artifacts/deploy:/artifact:ro" \
-            ghcr.io/gitleaks/gitleaks:v8.30.0 dir /artifact --redact --verbose --exit-code 1 --no-banner
+            -v "$GITHUB_WORKSPACE/.github/gitleaks-artifact.toml:/gitleaks.toml:ro" \
+            ghcr.io/gitleaks/gitleaks:v8.30.0 dir /artifact --config /gitleaks.toml --redact --verbose --exit-code 1 --no-banner
 
       - name: Archive inspected tree with executable modes and internal links
         run: tar -cf artifacts/deploy.tar -C artifacts/deploy .

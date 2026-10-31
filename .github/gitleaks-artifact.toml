@@ -1,0 +1,28 @@
+# Keep every default detector. These exceptions cover only reviewed false
+# positives in Composer-pinned upstream code, not application credentials.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "CKEditor minified JavaScript property initialization is not a credential"
+condition = "AND"
+paths = ['''/docroot/core/assets/vendor/ckeditor5/(find-and-replace/find-and-replace|emoji/emoji|image/image|special-characters/special-characters)\.js$''']
+regexTarget = "secret"
+regexes = ['''^this\.[A-Za-z_$][A-Za-z0-9_$]*=new$''']
+
+[[rules.allowlists]]
+description = "Symfony's literal MIME type is not a database/API credential"
+condition = "AND"
+paths = ['''/vendor/symfony/mime/MimeTypes\.php$''']
+regexTarget = "secret"
+regexes = ['''^application/mdb$''']
+
+[[rules.allowlists]]
+description = "Symfony's public validation error UUID is not a password"
+condition = "AND"
+paths = ['''/vendor/symfony/validator/Constraints/PasswordStrength\.php$''']
+regexTarget = "secret"
+regexes = ['''^4234df00-45dd-49a4-b303-a75dbf8b10d8$''']
