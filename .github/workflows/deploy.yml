@@ -99,7 +99,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}
-          path: artifact
+          path: artifact-download
+
+      - name: Extract inspected deployment tree
+        run: |
+          mkdir artifact
+          tar --extract --file artifact-download/deploy.tar --directory artifact --no-same-owner
 
       # ── Compute the Acquia deploy branch name ─────────────────────────────
       - name: Compute deploy branch name
@@ -117,41 +122,40 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: Push artifact to Acquia git
-        working-directory: artifact
         run: |
           DEPLOY_BRANCH="${{ steps.branch.outputs.deploy_branch }}"
           ACQUIA_GIT_URL="${{ secrets.ACQUIA_GIT_URL }}"
 
-          echo "==> Initialising git in artifact directory"
-          git init
-          git remote add acquia "${ACQUIA_GIT_URL}"
+          echo "==> Initialising a separate deploy checkout"
+          git init deploy-repo
+          git -C deploy-repo remote add acquia "${ACQUIA_GIT_URL}"
 
           echo "==> Fetching existing deploy branch (to preserve history if it exists)"
-          git fetch acquia "${DEPLOY_BRANCH}" 2>/dev/null \
-            && git checkout -b "${DEPLOY_BRANCH}" "acquia/${DEPLOY_BRANCH}" \
-            || git checkout -b "${DEPLOY_BRANCH}"
+          if git -C deploy-repo ls-remote --exit-code --heads acquia "${DEPLOY_BRANCH}"; then
+            git -C deploy-repo fetch acquia "${DEPLOY_BRANCH}"
+            git -C deploy-repo checkout -b "${DEPLOY_BRANCH}" FETCH_HEAD
+          else
+            git -C deploy-repo checkout -b "${DEPLOY_BRANCH}"
+          fi
 
-          echo "==> Removing all .gitignore files so all artifact files (vendor/, .htaccess etc.) are committed"
-          # The source repo has .gitignore files that exclude vendor/, docroot/.htaccess etc.
-          # These are correct for source control but wrong for a deploy artifact — we need
-          # every file in the artifact to reach Acquia Cloud.
-          find . -name ".gitignore" -not -path "./.git/*" -delete
+          # Mirror the inspected artifact AFTER checkout. --delete removes old
+          # deployed files (including removed secrets), rather than restoring them.
+          rsync -ar --delete --exclude='.git/' artifact/ deploy-repo/
 
           echo "==> Staging all artifact files"
-          git add -A
+          git -C deploy-repo add --force --all
 
           # Only commit if there are changes (idempotent on re-runs)
-          if git diff --cached --quiet; then
+          if git -C deploy-repo diff --cached --quiet; then
             echo "==> No changes in artifact — skipping commit"
           else
             COMMIT_MSG="deploy: GitHub Actions run ${{ github.run_id }} from ${{ inputs.source-branch }} @ ${{ github.sha }}"
-            git commit -m "${COMMIT_MSG}"
+            git -C deploy-repo commit -m "${COMMIT_MSG}"
             echo "==> Committed: ${COMMIT_MSG}"
           fi
 
           echo "==> Pushing to Acquia git remote"
-          git push acquia "${DEPLOY_BRANCH}:${DEPLOY_BRANCH}" --force-with-lease 2>&1 \
-            || git push acquia "${DEPLOY_BRANCH}:${DEPLOY_BRANCH}" --force
+          git -C deploy-repo push acquia "${DEPLOY_BRANCH}:${DEPLOY_BRANCH}"
           echo "==> Push complete"
 
       # ── Switch Acquia environment to the new branch via Cloud API ─────────

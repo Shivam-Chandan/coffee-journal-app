@@ -18,6 +18,57 @@
 (function (Drupal, drupalSettings) {
   'use strict';
 
+  // Shared session-aware helper for custom API mutations (including FormData).
+  var csrfTokenPromise;
+  function apiRequest(url, options) {
+    var target = new URL(url, window.location.href);
+    if (target.origin !== window.location.origin) {
+      return Promise.reject(new Error(Drupal.t('API requests must stay on this site.')));
+    }
+    if (!csrfTokenPromise) {
+      csrfTokenPromise = fetch(Drupal.url('session/token'), {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        redirect: 'error'
+      }).then(function (response) {
+        if (!response.ok) throw new Error(Drupal.t('Please refresh the page and sign in again.'));
+        return response.text();
+      }).then(function (token) {
+        if (!token || /\s|</.test(token)) throw new Error(Drupal.t('Please refresh the page and sign in again.'));
+        return token;
+      }).catch(function (error) {
+        csrfTokenPromise = null;
+        throw error;
+      });
+    }
+    return csrfTokenPromise.then(function (token) {
+      var request = Object.assign({}, options);
+      request.headers = new Headers(request.headers || {});
+      request.headers.set('X-CSRF-Token', token);
+      request.credentials = 'same-origin';
+      request.redirect = 'error';
+      // Do not set Content-Type here: FormData needs the browser's boundary.
+      return fetch(target.href, request);
+    }).then(function (response) {
+      if (response.status === 401 || response.status === 403) {
+        csrfTokenPromise = null;
+        throw new Error(Drupal.t('Request denied. Refresh the page and check that you are signed in.'));
+      }
+      if (response.status === 429) {
+        throw new Error(Drupal.t('Too many requests. Please wait @seconds seconds before trying again.', {
+          '@seconds': response.headers.get('Retry-After') || '60'
+        }));
+      }
+      if (!response.ok) {
+        return response.json().catch(function () { return {}; }).then(function (data) {
+          throw new Error(data.error || Drupal.t('The request failed. Please try again later.'));
+        });
+      }
+      return response;
+    });
+  }
+  Drupal.coffeeJournalApiRequest = apiRequest;
+
   // ── Shared fill helpers ──────────────────────────────────────────────────
 
   function _fillText(selector, value, root) {
@@ -598,7 +649,7 @@
         setLoading(true);
         setStatus(Drupal.t('Analysing page with AI…'), 'info');
 
-        fetch(endpoint, {
+        apiRequest(endpoint, {
           method:      'POST',
           credentials: 'same-origin',
           headers:     { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -1252,32 +1303,34 @@
         if (!nid) return;
         btn.addEventListener('click', function (e) {
           e.preventDefault();
+          if (btn.disabled) return;
+          btn.disabled = true;
           var isActive = btn.classList.contains('active');
           btn.classList.toggle('active', !isActive);
 
           // Optimistically update the count span.
           var countEl = btn.querySelector('.cj-engage-count');
+          var previousCount = countEl ? countEl.textContent : '';
           if (countEl) {
             var cur = parseInt(countEl.textContent, 10) || 0;
             countEl.textContent = isActive ? (cur > 0 ? cur - 1 : '') : cur + 1;
           }
 
-          fetch('/api/likes/' + nid, {
+          apiRequest('/api/likes/' + nid, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
           })
-            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (res) { return res.json(); })
             .then(function (data) {
-              if (!data) {
-                btn.classList.toggle('active', isActive);
-                if (countEl) {
-                  var cur2 = parseInt(countEl.textContent, 10) || 0;
-                  countEl.textContent = isActive ? cur2 + 1 : (cur2 > 0 ? cur2 - 1 : '');
-                }
-              }
+              btn.classList.toggle('active', data.liked);
             })
-            .catch(function () {});
+            .catch(function (error) {
+              btn.classList.toggle('active', isActive);
+              if (countEl) countEl.textContent = previousCount;
+              alert(error.message);
+            })
+            .finally(function () { btn.disabled = false; });
         });
       }
 
@@ -1311,21 +1364,25 @@
         if (!nid) return;
         btn.addEventListener('click', function (e) {
           e.preventDefault();
+          if (btn.disabled) return;
+          btn.disabled = true;
           var isActive = btn.classList.contains('active');
           btn.classList.toggle('active', !isActive);
 
-          fetch('/api/bookmarks/' + nid, {
+          apiRequest('/api/bookmarks/' + nid, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
           })
-            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (res) { return res.json(); })
             .then(function (data) {
-              if (!data) {
-                btn.classList.toggle('active', isActive);
-              }
+              btn.classList.toggle('active', data.bookmarked);
             })
-            .catch(function () {});
+            .catch(function (error) {
+              btn.classList.toggle('active', isActive);
+              alert(error.message);
+            })
+            .finally(function () { btn.disabled = false; });
         });
       }
 
@@ -1358,7 +1415,7 @@
             var formData = new FormData();
             formData.append('photo', file);
 
-            fetch('/api/brew/' + nid + '/photo', {
+            apiRequest('/api/brew/' + nid + '/photo', {
               method: 'POST',
               credentials: 'same-origin',
               headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -1376,8 +1433,8 @@
                   if (status) status.textContent = data.error || Drupal.t('Upload failed.');
                 }
               })
-              .catch(function () {
-                if (status) status.textContent = Drupal.t('Upload failed.');
+              .catch(function (error) {
+                if (status) status.textContent = error.message;
               });
           });
         });
@@ -1422,7 +1479,7 @@
             el.disabled = true;
             el.textContent = Drupal.t('Publishing…');
 
-            fetch(publishUrl, {
+            apiRequest(publishUrl, {
               method: 'POST',
               credentials: 'same-origin',
               headers: {
@@ -1444,9 +1501,10 @@
                   alert(data.error || Drupal.t('Something went wrong. Please try again.'));
                 }
               })
-              .catch(function () {
+              .catch(function (error) {
                 el.disabled = false;
                 el.textContent = Drupal.t('Publish to feed');
+                alert(error.message);
               });
           });
         });
@@ -1455,4 +1513,3 @@
   };
 
 })(Drupal, drupalSettings);
-

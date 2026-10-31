@@ -17,8 +17,12 @@ function brew_privacy_node_access_records(NodeInterface $node): array {
   }
 
   $records = [];
-  $is_public = (bool) $node->get('field_is_public')->value;
-  
+  // coffee_bean has no visibility field in this configuration, so beans stay
+  // owner-only. Reading an unknown field would break every bean save.
+  $is_public = $node->hasField('field_is_public')
+    && (bool) $node->get('field_is_public')->value;
+
+
   if ($is_public) {
     $records[] = [
       'realm' => 'brew_privacy_public',

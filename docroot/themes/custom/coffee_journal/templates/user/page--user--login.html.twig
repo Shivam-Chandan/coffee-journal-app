@@ -2,25 +2,15 @@
   Coffee Journal — Login page override
   page--user--login.html.twig
 
-  Replaces the default Drupal username/password login form with a clean
-  Google Sign-In screen. The Google OAuth flow is triggered by navigating
-  to /user/login/google (registered by social_auth_google module).
+  Email/password is primary when coffee_journal_auth is enabled.
+  Google remains available throughout the transition. Both presentations
+  render the native Drupal Form API login form.
 
-  The standard Drupal login form is completely hidden for non-admin users.
-  Admin (UID 1) can still access the full login form at /user/login?admin=1
-  via the hidden link below.
+  Core's html.html.twig supplies the document wrapper and asset placeholders.
 #}
-<!DOCTYPE html>
-<html{{ html_attributes }}>
-  <head>
-    <head-placeholder token="{{ placeholder_token }}">
-    <title>{{ 'Sign in — Coffee Journal'|t }}</title>
-    <css-placeholder token="{{ placeholder_token }}">
-    <js-placeholder token="{{ placeholder_token }}">
-  </head>
-  <body{{ attributes.addClass('cj-login-page') }}>
-    {{ page_top }}
-
+{% if native_auth_enabled %}
+  {{ attach_library('coffee_journal/native_auth') }}
+{% endif %}
     <div id="cj-app" class="cj-login-shell">
 
       {# ── Status messages (e.g. "you have been logged out") ── #}
@@ -51,6 +41,14 @@
         </div>
 
         <div class="cj-login-bottom">
+          {% if native_auth_enabled %}
+            <div class="cj-native-login">
+              <h2>{{ 'Sign in with email'|t }}</h2>
+              {{ page.content }}
+              <p>{{ 'Previously used Google? Choose “Set up password” to keep using the same account and coffee journal. Your Google password is not needed.'|t }}</p>
+            </div>
+            <p class="cj-login-divider">{{ 'Or continue during the transition with Google'|t }}</p>
+          {% endif %}
           {# ── Google Sign-In button ── #}
           <a href="{{ path('social_auth.network.redirect', {'network': 'google'}) }}"
              class="cj-btn-google"
@@ -69,18 +67,14 @@
             {{ 'By continuing you agree to the Terms and Privacy.'|t }}
           </p>
 
-          {# ── Hidden admin fallback ── #}
+          {% if not native_auth_enabled %}
           <details class="cj-admin-login">
             <summary>{{ 'Admin access'|t }}</summary>
             {{ page.content }}
           </details>
+          {% endif %}
         </div>
 
       </main>
 
     </div>
-
-    {{ page_bottom }}
-    <js-bottom-placeholder token="{{ placeholder_token }}">
-  </body>
-</html>

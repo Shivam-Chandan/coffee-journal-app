@@ -129,12 +129,27 @@ Beyond standard Drupal CMS defaults:
 
 ## Drupal Development Rules
 
-This project uses **traditional (non-headless) Drupal**. All code must follow these rules.
+This project is incrementally migrating from traditional Drupal to a headless
+React frontend. The existing Drupal UI remains supported during the pilot.
+See `docs/headless-migration-plan.md` and `docs/headless-migration/tasks.md`.
+
+### Headless frontend (`frontend/`)
+
+- React + TypeScript + Vite, TanStack Router and Query, Tailwind 3.
+- Preserve screen structure and `cj-*` component boundaries. The user approved a
+  frontend visual refresh: self-hosted DM Sans, SVG icons, sage/charcoal palette,
+  readable cards and compact navigation dock. Support light and dark themes.
+- Drupal remains authoritative for accounts, permissions, validation and persistence.
+- Build/deploy independently of Acquia. Never put provider secrets in `VITE_*` variables.
+- Target zero Vercel functions; enforce the actual output allowlist and a ceiling of 11.
+- Frontend markup lives in React; Drupal HTML rendering rules below apply to PHP/Twig only.
+- Migration scope includes `frontend/`, documentation, project guidance and independent
+  CI configuration. Preserve existing user work when editing shared workflows/settings.
 
 ### Hard Rules
 
-- **No raw HTML in PHP.** Never `echo` or `print` HTML inside hooks or controllers. Always return Render Arrays.
-- **No core/contrib modifications.** Only touch files under `docroot/modules/custom/` and `docroot/themes/custom/`.
+- **No raw HTML in PHP.** Return render arrays for HTML and JSON responses for API contracts.
+- **No core/contrib modifications.** Drupal implementation belongs under custom modules/themes; frontend implementation belongs in `frontend/`.
 - **Strict module/theme separation:**
   - Business logic, Form API, database queries → custom modules
   - Layout markup, CSS classes, template preprocessing → custom theme

@@ -1,0 +1,31 @@
+coffee_journal_api.settings:
+  type: config_object
+  label: 'Coffee Journal API usage limits'
+  mapping:
+    limits:
+      type: mapping
+      label: 'Endpoint limits'
+      mapping:
+        scrape:
+          type: coffee_journal_api.endpoint_limits
+          label: 'Coffee scraping'
+        places:
+          type: coffee_journal_api.endpoint_limits
+          label: 'Places search'
+
+coffee_journal_api.endpoint_limits:
+  type: mapping
+  label: 'User and IP request limits'
+  mapping:
+    user_minute:
+      type: integer
+      label: 'Requests per minute per user'
+    user_day:
+      type: integer
+      label: 'Requests per day per user'
+    ip_minute:
+      type: integer
+      label: 'Requests per minute per IP'
+    ip_day:
+      type: integer
+      label: 'Requests per day per IP'

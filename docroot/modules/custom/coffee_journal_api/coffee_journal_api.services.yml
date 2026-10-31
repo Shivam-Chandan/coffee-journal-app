@@ -1,10 +1,26 @@
 services:
 
+  coffee_journal_api.paid_api_limiter:
+    class: Drupal\coffee_journal_api\Service\PaidApiLimiter
+    arguments: ['@flood', '@config.factory', '@lock']
+
+  coffee_journal_api.page_http_client:
+    class: GuzzleHttp\ClientInterface
+    factory: ['Drupal\coffee_journal_api\Service\PageHttpClientFactory', 'create']
+
+  coffee_journal_api.public_address_resolver:
+    class: Drupal\coffee_journal_api\Service\PublicAddressResolver
+
+  coffee_journal_api.safe_page_fetcher:
+    class: Drupal\coffee_journal_api\Service\SafePageFetcher
+    arguments: ['@coffee_journal_api.page_http_client', '@coffee_journal_api.public_address_resolver']
+
   coffee_journal_api.gemini:
     class: Drupal\coffee_journal_api\Service\GeminiService
     arguments:
       - '@http_client'
       - '@logger.channel.coffee_journal_api'
+      - '@coffee_journal_api.safe_page_fetcher'
 
   coffee_journal_api.places:
     class: Drupal\coffee_journal_api\Service\GooglePlacesService
@@ -15,3 +31,14 @@ services:
   logger.channel.coffee_journal_api:
     parent: logger.channel_base
     arguments: ['coffee_journal_api']
+
+  # Shared entity/JSON mapping for the headless frontend contracts. Engagement
+  # repositories are optional so the API keeps working if those modules are off.
+  coffee_journal_api.presenter:
+    class: Drupal\coffee_journal_api\Service\HeadlessPresenter
+    arguments:
+      - '@entity_type.manager'
+      - '@entity_field.manager'
+      - '@file_url_generator'
+      - '@?coffee_journal_likes.repository'
+      - '@?coffee_journal_bookmark.repository'

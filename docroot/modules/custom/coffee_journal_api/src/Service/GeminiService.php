@@ -23,13 +23,14 @@ use Psr\Log\LoggerInterface;
  *
  * Gemini REST endpoint (no SDK required):
  *   POST https://generativelanguage.googleapis.com/v1beta/models/
- *        gemini-2.5-flash-lite:generateContent?key=<API_KEY>
+ *        gemini-2.5-flash-lite:generateContent (x-goog-api-key header)
  */
 final class GeminiService {
 
   public function __construct(
     private readonly ClientInterface $httpClient,
     private readonly LoggerInterface $logger,
+    private readonly SafePageFetcher $pageFetcher,
   ) {}
 
   /**
@@ -58,46 +59,23 @@ final class GeminiService {
 
     $apiKey = getenv('GEMINI_API_KEY') ?: '';
     if ($apiKey === '') {
-      throw new \RuntimeException('Gemini API key is not configured. Set the GEMINI_API_KEY environment variable.');
+      throw ProviderException::failure($this->logger, 'gemini', 'configuration');
     }
 
     try {
-      $html     = $this->fetchPageHtml($url);
+      $html     = $this->pageFetcher->fetch($url);
       $pageText = $this->extractPageText($html);
       return $this->extractWithGemini($pageText, $apiKey);
     }
-    catch (\InvalidArgumentException | \RuntimeException $e) {
+    catch (\InvalidArgumentException | ProviderException $e) {
       throw $e;
     }
     catch (\Throwable $e) {
-      $this->logger->error('Gemini scraping error for @url: @msg', [
-        '@url' => $url,
-        '@msg' => $e->getMessage(),
-      ]);
-      throw new \RuntimeException('Failed to scrape coffee details from URL');
+      throw ProviderException::failure($this->logger, 'gemini', 'unavailable');
     }
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
-
-  /**
-   * Fetch raw HTML from a URL.
-   */
-  private function fetchPageHtml(string $url): string {
-    try {
-      $response = $this->httpClient->get($url, [
-        'timeout'         => 15,
-        'allow_redirects' => TRUE,
-        'headers'         => [
-          'User-Agent' => 'Mozilla/5.0 (compatible; CoffeeJournalBot/1.0)',
-        ],
-      ]);
-      return (string) $response->getBody();
-    }
-    catch (RequestException $e) {
-      throw new \RuntimeException('Failed to fetch URL: ' . $e->getMessage());
-    }
-  }
 
   /**
    * Strip HTML tags and normalize whitespace, capped at 40 000 characters.
@@ -128,10 +106,7 @@ final class GeminiService {
    * @return array<string, mixed>
    */
   private function extractWithGemini(string $pageText, string $apiKey): array {
-    $endpoint = sprintf(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=%s',
-      $apiKey
-    );
+    $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
     $prompt = <<<PROMPT
 You are a coffee expert. Extract the following details from the provided website text in JSON format. Return a single JSON object representing the most relevant coffee product. If any detail is missing, use null for its value:
@@ -157,7 +132,8 @@ PROMPT;
 
     try {
       $response = $this->httpClient->post($endpoint, [
-        'headers' => ['Content-Type' => 'application/json'],
+        'headers' => ['Content-Type' => 'application/json', 'x-goog-api-key' => $apiKey],
+        'allow_redirects' => FALSE,
         'body'    => $body,
         'timeout' => 30,
       ]);
@@ -183,17 +159,17 @@ PROMPT;
         $decoded = $decoded[0] ?? [];
       }
 
-      $this->logger->info('Gemini scraped coffee data: @data', [
-        '@data' => json_encode($decoded),
-      ]);
-
+      if (!is_array($decoded)) {
+        throw new \JsonException('Invalid result shape.');
+      }
       return $decoded;
     }
     catch (RequestException $e) {
-      throw new \RuntimeException('Gemini API request failed: ' . $e->getMessage());
+      $status = $e->getResponse()?->getStatusCode();
+      throw ProviderException::failure($this->logger, 'gemini', $status === 429 ? 'quota' : 'unavailable', $status);
     }
     catch (\JsonException $e) {
-      throw new \RuntimeException('Failed to parse Gemini response as JSON: ' . $e->getMessage());
+      throw ProviderException::failure($this->logger, 'gemini', 'invalid_response');
     }
   }
 

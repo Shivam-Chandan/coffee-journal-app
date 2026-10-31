@@ -298,7 +298,11 @@ $databases = [];
  *   $settings['hash_salt'] = file_get_contents('/home/example/salt.txt');
  * @endcode
  */
-$settings['hash_salt'] = '';
+// Supply a stable, environment-specific secret outside source control. Acquia's
+// platform/secrets settings may supply their own value before the recommended
+// settings fallback runs. Verify the effective source before any deployment;
+// never generate a new salt per request or restore the exposed root salt.txt.
+$settings['hash_salt'] = getenv('DRUPAL_HASH_SALT') ?: '';
 
 /**
  * Deployment identifier.
@@ -861,6 +865,11 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
 # }
 
 require DRUPAL_ROOT . "/../vendor/acquia/drupal-recommended-settings/settings/acquia-recommended.settings.php";
+// DDEV overrides must follow Acquia's local.settings.php database defaults.
+// This local-only file is excluded from the deployment manifest.
+if (getenv('IS_DDEV_PROJECT') === 'true' && file_exists(DRUPAL_ROOT . '/../.ddev/settings.php')) {
+  require DRUPAL_ROOT . '/../.ddev/settings.php';
+}
 /**
  * IMPORTANT.
  *

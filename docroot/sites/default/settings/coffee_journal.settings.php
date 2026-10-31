@@ -12,6 +12,8 @@
  *   - GOOGLE_CLIENT_SECRET
  *   - GEMINI_API_KEY
  *   - GOOGLE_PLACES_API_KEY
+ *   - DRUPAL_HASH_SALT (unless Acquia platform secret settings supply the salt;
+ *     consumed early in settings.php, before the recommended settings loader)
  */
 
 // ── Google OAuth (Social Auth Google) ──────────────────────────────────────

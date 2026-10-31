@@ -1,3 +1,8 @@
+native_auth:
+  css:
+    theme:
+      css/native-auth.css: {}
+
 app:
   version: VERSION
   css:

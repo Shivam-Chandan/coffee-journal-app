@@ -1,0 +1,87 @@
+name: Security regression checks
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Scan current source for secrets
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+      # Scan the current tree. Historical remediation is a separate admin task.
+      - name: Export current tracked source
+        run: |
+          mkdir "$RUNNER_TEMP/security-source"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/security-source"
+          # Ignore rules alone can be bypassed with git add --force.
+          test ! -e "$RUNNER_TEMP/security-source/ssh-keys-github"
+          test ! -e "$RUNNER_TEMP/security-source/salt.txt"
+      - name: Secret detection (blocking, redacted)
+        run: |
+          docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges --pids-limit 64 --memory 512m --cpus 1 \
+            -v "$RUNNER_TEMP/security-source:/source:ro" \
+            ghcr.io/gitleaks/gitleaks:v8.30.0 dir /source --redact --exit-code 1 --no-banner
+
+  regression:
+    name: Security unit regressions
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: gd, pdo_mysql, mbstring, xml, curl, zip
+          tools: composer:v2
+          coverage: none
+      - name: Install test dependencies
+        run: |
+          composer install --prefer-dist --no-interaction --no-progress --no-scripts
+          composer drupal:scaffold --no-interaction
+      - name: Build isolated test toolchain
+        run: docker build -t coffee-security-tests -f .github/security-tests.Dockerfile .github
+      - name: Run bounded offline regressions
+        run: |
+          timeout 180 docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges --pids-limit 64 --memory 512m --cpus 1 \
+            --ulimit cpu=120:120 --ulimit fsize=16777216:16777216 \
+            --tmpfs /scratch:rw,noexec,nosuid,size=64m,mode=1777 \
+            --env HOME=/scratch --env TMPDIR=/scratch --env XDG_CACHE_HOME=/scratch \
+            -v "$GITHUB_WORKSPACE:/app:ro" -w /app coffee-security-tests \
+            php vendor/bin/phpunit --no-configuration --do-not-cache-result \
+            --fail-on-deprecation --fail-on-phpunit-deprecation \
+            --bootstrap docroot/core/tests/bootstrap.php \
+            docroot/modules/custom/coffee_journal_api/tests/phpunit
+      - name: Check frontend syntax and request regressions offline
+        run: |
+          timeout 30 docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges --pids-limit 32 --memory 128m --cpus 1 \
+            --ulimit cpu=20:20 --ulimit fsize=1048576:1048576 \
+            --tmpfs /scratch:rw,noexec,nosuid,size=16m,mode=1777 \
+            --env HOME=/scratch --env TMPDIR=/scratch \
+            -v "$GITHUB_WORKSPACE:/app:ro" -w /app coffee-security-tests \
+            node --test docroot/themes/custom/coffee_journal/tests/api-request.test.cjs
+      - name: Check artifact inspection regressions offline
+        run: |
+          timeout 30 docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges --pids-limit 32 --memory 128m --cpus 1 \
+            --ulimit cpu=20:20 --ulimit fsize=1048576:1048576 \
+            --tmpfs /scratch:rw,noexec,nosuid,size=16m,mode=1777 \
+            --env HOME=/scratch --env TMPDIR=/scratch --env PYTHONDONTWRITEBYTECODE=1 \
+            -v "$GITHUB_WORKSPACE:/app:ro" -w /app coffee-security-tests \
+            python3 -m unittest discover -s scripts/security -p 'test_*.py'

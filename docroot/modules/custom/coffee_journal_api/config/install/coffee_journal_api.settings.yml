@@ -1,0 +1,11 @@
+limits:
+  scrape:
+    user_minute: 5
+    user_day: 50
+    ip_minute: 25
+    ip_day: 250
+  places:
+    user_minute: 20
+    user_day: 200
+    ip_minute: 100
+    ip_day: 1000

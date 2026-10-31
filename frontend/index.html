@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#111513" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Coffee Journal</title>
+    <script>
+      try {
+        document.documentElement.classList.toggle('light-mode', localStorage.getItem('cj-theme') === 'light');
+        document.querySelector('meta[name="theme-color"]').content = document.documentElement.classList.contains('light-mode') ? '#f7f8f3' : '#111513';
+      } catch (_) { /* Storage may be unavailable; retain the existing dark default. */ }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Coffee Journal requires JavaScript. Your existing Drupal journal remains available on the backend site.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

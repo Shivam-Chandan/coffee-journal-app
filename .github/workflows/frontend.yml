@@ -1,0 +1,49 @@
+name: Headless frontend
+
+on:
+  pull_request:
+    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/brew_privacy/**']
+  push:
+    branches: [master]
+    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/brew_privacy/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-build:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:vercel
+        env:
+          DRUPAL_ORIGIN: https://eeschandan1dev.prod.acquia-sites.com
+
+  read-api:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: gd, pdo_sqlite, mbstring, xml, curl, zip
+          coverage: none
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Check new read API coding standards
+        run: vendor/bin/phpcs --standard=Drupal,DrupalPractice docroot/modules/custom/coffee_journal_api/src/Controller/HeadlessReadController.php docroot/modules/custom/coffee_journal_api/tests/src/Kernel/HeadlessReadTest.php
+      - name: Verify owner/public isolation and pagination in isolated kernel fixtures
+        run: php vendor/bin/phpunit --no-configuration --bootstrap docroot/core/tests/bootstrap.php docroot/modules/custom/coffee_journal_api/tests/src/Kernel/HeadlessReadTest.php
+        env:
+          SIMPLETEST_DB: sqlite://localhost/:memory:

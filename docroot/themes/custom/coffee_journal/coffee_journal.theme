@@ -68,6 +68,9 @@ function coffee_journal_preprocess_html(&$variables) {
 
   // Mark node-add / node-edit pages so CSS can style the form shell.
   $route = \Drupal::routeMatch()->getRouteName();
+  if ($route === 'user.login') {
+    $variables['attributes']['class'][] = 'cj-login-page';
+  }
   if ($route === 'node.add') {
     $variables['attributes']['class'][] = 'page-node-add';
     $nodeType = \Drupal::routeMatch()->getRawParameter('node_type');
@@ -86,6 +89,8 @@ function coffee_journal_preprocess_html(&$variables) {
  * Passes current user auth state to page templates.
  */
 function coffee_journal_preprocess_page(&$variables) {
+  // Keep the existing presentation until the native-auth module is enabled.
+  $variables['native_auth_enabled'] = \Drupal::moduleHandler()->moduleExists('coffee_journal_auth');
   $variables['is_front']  = \Drupal::service('path.matcher')->isFrontPage();
   $variables['logged_in'] = \Drupal::currentUser()->isAuthenticated();
 
@@ -288,4 +293,3 @@ function _coffee_journal_form_factor_label(string $value): string {
   ];
   return $labels[$value] ?? ucfirst(str_replace('_', ' ', $value));
 }
-

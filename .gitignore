@@ -125,3 +125,12 @@ oauth_keys/
 # env-file
 /.env*
 /.editorconfig
+
+# Runtime credentials must never enter source or deployment artifacts.
+/ssh-keys-github
+/salt.txt
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+/artifacts/

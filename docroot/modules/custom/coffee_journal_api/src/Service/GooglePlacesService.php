@@ -46,7 +46,7 @@ final class GooglePlacesService {
 
     $apiKey = getenv('GOOGLE_PLACES_API_KEY') ?: '';
     if ($apiKey === '') {
-      throw new \RuntimeException('Google Places API key is not configured. Set the GOOGLE_PLACES_API_KEY environment variable.');
+      throw ProviderException::failure($this->logger, 'places', 'configuration');
     }
 
     try {
@@ -55,15 +55,11 @@ final class GooglePlacesService {
       $results       = $this->fetchFromGoogle($contextQuery, $locationParam, $apiKey);
       return $this->formatResults($results);
     }
-    catch (\InvalidArgumentException | \RuntimeException $e) {
+    catch (\InvalidArgumentException | ProviderException $e) {
       throw $e;
     }
     catch (\Throwable $e) {
-      $this->logger->error('Places search error for "@query": @msg', [
-        '@query' => $query,
-        '@msg'   => $e->getMessage(),
-      ]);
-      throw new \RuntimeException('Failed to search places');
+      throw ProviderException::failure($this->logger, 'places', 'unavailable');
     }
   }
 
@@ -106,11 +102,11 @@ final class GooglePlacesService {
       'https://maps.googleapis.com/maps/api/place/textsearch/json?query=%s%s&key=%s',
       urlencode($query),
       $locationParam,
-      $apiKey
+      rawurlencode($apiKey)
     );
 
     try {
-      $response = $this->httpClient->get($url, ['timeout' => 15]);
+      $response = $this->httpClient->get($url, ['timeout' => 15, 'allow_redirects' => FALSE]);
       $data     = json_decode(
         (string) $response->getBody(),
         associative: TRUE,
@@ -119,16 +115,17 @@ final class GooglePlacesService {
 
       $status = $data['status'] ?? 'UNKNOWN';
       if ($status !== 'OK' && $status !== 'ZERO_RESULTS') {
-        throw new \RuntimeException("Google Places API error: {$status}");
+        throw ProviderException::failure($this->logger, 'places', $status === 'OVER_QUERY_LIMIT' ? 'quota' : 'unavailable');
       }
 
       return $data['results'] ?? [];
     }
     catch (RequestException $e) {
-      throw new \RuntimeException('Failed to fetch results from Google Places API: ' . $e->getMessage());
+      $status = $e->getResponse()?->getStatusCode();
+      throw ProviderException::failure($this->logger, 'places', $status === 429 ? 'quota' : 'unavailable', $status);
     }
     catch (\JsonException $e) {
-      throw new \RuntimeException('Failed to parse Google Places response: ' . $e->getMessage());
+      throw ProviderException::failure($this->logger, 'places', 'invalid_response');
     }
   }
 

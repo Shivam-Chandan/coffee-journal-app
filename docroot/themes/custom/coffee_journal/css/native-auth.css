@@ -1,0 +1,50 @@
+.cj-native-login {
+  width: 100%;
+  text-align: left;
+}
+
+.cj-native-login h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.cj-native-login .form-item {
+  margin-bottom: 1rem;
+}
+
+.cj-native-login label {
+  display: block;
+  margin-bottom: .25rem;
+}
+
+.cj-native-login input:not([type="hidden"]) {
+  box-sizing: border-box;
+  width: 100%;
+  padding: .75rem;
+  border: 1px solid currentColor;
+  border-radius: .5rem;
+}
+
+.cj-native-login input[type="submit"] {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.cj-native-login a {
+  text-decoration: underline;
+  text-underline-offset: .15em;
+}
+
+.cj-native-login p,
+.cj-native-login .description,
+.cj-login-divider {
+  font-size: .875rem;
+  margin: .75rem 0;
+}
+
+.cj-native-login :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}

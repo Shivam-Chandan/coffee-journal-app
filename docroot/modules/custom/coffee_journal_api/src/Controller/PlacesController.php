@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Drupal\coffee_journal_api\Controller;
 
 use Drupal\coffee_journal_api\Service\GooglePlacesService;
+use Drupal\coffee_journal_api\Service\ProviderException;
+use Drupal\coffee_journal_api\Service\PaidApiLimiter;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -32,6 +34,7 @@ final class PlacesController extends ControllerBase implements ContainerInjectio
 
   public function __construct(
     private readonly GooglePlacesService $placesService,
+    private readonly PaidApiLimiter $limiter,
   ) {}
 
   /**
@@ -39,7 +42,8 @@ final class PlacesController extends ControllerBase implements ContainerInjectio
    */
   public static function create(ContainerInterface $container): static {
     return new static(
-      $container->get('coffee_journal_api.places')
+      $container->get('coffee_journal_api.places'),
+      $container->get('coffee_journal_api.paid_api_limiter'),
     );
   }
 
@@ -66,41 +70,37 @@ final class PlacesController extends ControllerBase implements ContainerInjectio
    *
    * Error responses:
    *   400 { "error": "Query is required" }
-   *   500 { "error": "Google Places API key is not configured. ..." }
+   *   503 { "error": "This service is temporarily unavailable." }
    *   502 { "error": "Failed to search places" }
    */
   public function search(Request $request): JsonResponse {
-    $body  = json_decode($request->getContent(), associative: TRUE) ?? [];
-    $query = trim((string) ($body['query'] ?? ''));
-    $lat   = isset($body['lat'])  ? (float) $body['lat']  : NULL;
-    $lng   = isset($body['lng'])  ? (float) $body['lng']  : NULL;
+    $body = json_decode($request->getContent(), associative: TRUE);
+    $query = is_array($body) && is_string($body['query'] ?? NULL) ? trim($body['query']) : '';
+    $lat = is_array($body) && isset($body['lat']) && is_numeric($body['lat']) ? (float) $body['lat'] : NULL;
+    $lng = is_array($body) && isset($body['lng']) && is_numeric($body['lng']) ? (float) $body['lng'] : NULL;
 
-    if ($query === '') {
+    if ($query === '' || strlen($query) > 500 || ($lat !== NULL && abs($lat) > 90) || ($lng !== NULL && abs($lng) > 180)) {
       return new JsonResponse(
-        ['error' => 'Query is required'],
+        ['error' => 'Enter a search query and valid optional coordinates.', 'code' => 'invalid_input'],
         Response::HTTP_BAD_REQUEST
       );
     }
 
     try {
+      if ($rejection = $this->limiter->reserve('places', (int) $this->currentUser()->id(), $request->getClientIp() ?? 'unknown')) {
+        return $rejection;
+      }
       $results = $this->placesService->searchPlaces($query, $lat, $lng);
       return new JsonResponse($results, Response::HTTP_OK);
     }
     catch (\InvalidArgumentException $e) {
       return new JsonResponse(
-        ['error' => $e->getMessage()],
+        ['error' => 'Enter a valid search query.', 'code' => 'invalid_input'],
         Response::HTTP_BAD_REQUEST
       );
     }
-    catch (\RuntimeException $e) {
-      $status = str_contains($e->getMessage(), 'not configured')
-        ? Response::HTTP_INTERNAL_SERVER_ERROR
-        : Response::HTTP_BAD_GATEWAY;
-
-      return new JsonResponse(
-        ['error' => $e->getMessage()],
-        $status
-      );
+    catch (ProviderException $e) {
+      return $e->response();
     }
   }
 

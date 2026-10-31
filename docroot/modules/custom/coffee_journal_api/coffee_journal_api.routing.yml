@@ -7,6 +7,271 @@ coffee_journal_api.global_feed:
   requirements:
     _access: 'TRUE'
 
+coffee_journal_api.headless_session:
+  path: '/api/v1/session'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::session'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_beans:
+  path: '/api/v1/beans'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::beans'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_feed:
+  path: '/api/v1/feed'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::feed'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_form_options:
+  path: '/api/v1/form-options'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::formOptions'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_bean:
+  path: '/api/v1/beans/{uuid}'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::bean'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_bean_choices:
+  path: '/api/v1/bean-choices'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::beanChoices'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_brew:
+  path: '/api/v1/brews/{uuid}'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::brew'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_profile:
+  path: '/api/v1/me/profile'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::profile'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_my_brews:
+  path: '/api/v1/me/brews'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::myBrews'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_saved:
+  path: '/api/v1/me/saved'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessReadController::saved'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_login:
+  path: '/api/v1/auth/login'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessAuthController::login'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_logout:
+  path: '/api/v1/auth/logout'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessAuthController::logout'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_password_reset:
+  path: '/api/v1/auth/password-reset'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessAuthController::requestPasswordReset'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_bean_create:
+  path: '/api/v1/beans'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessWriteController::createBean'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_bean_update:
+  path: '/api/v1/beans/{uuid}'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessWriteController::updateBean'
+  methods: [PATCH]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_bean_delete:
+  path: '/api/v1/beans/{uuid}'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessWriteController::deleteBean'
+  methods: [DELETE]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_brew_create:
+  path: '/api/v1/brews'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessWriteController::createBrew'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_brew_update:
+  path: '/api/v1/brews/{uuid}'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessWriteController::updateBrew'
+  methods: [PATCH]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_brew_delete:
+  path: '/api/v1/brews/{uuid}'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessWriteController::deleteBrew'
+  methods: [DELETE]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_brew_visibility:
+  path: '/api/v1/brews/{uuid}/visibility'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessWriteController::setVisibility'
+  methods: [PUT]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_like:
+  path: '/api/v1/content/{uuid}/like'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessEngagementController::like'
+  methods: [PUT]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_unlike:
+  path: '/api/v1/content/{uuid}/like'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessEngagementController::unlike'
+  methods: [DELETE]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_bookmark:
+  path: '/api/v1/content/{uuid}/bookmark'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessEngagementController::bookmark'
+  methods: [PUT]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.headless_unbookmark:
+  path: '/api/v1/content/{uuid}/bookmark'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\HeadlessEngagementController::unbookmark'
+  methods: [DELETE]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
 coffee_journal_api.scrape_coffee:
   path: '/api/scrape-coffee'
   defaults:
@@ -15,6 +280,7 @@ coffee_journal_api.scrape_coffee:
   methods: [POST]
   requirements:
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
 
 coffee_journal_api.places_search:
   path: '/api/places/search'
@@ -24,6 +290,7 @@ coffee_journal_api.places_search:
   methods: [POST]
   requirements:
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
 
 coffee_journal_api.user_me:
   path: '/api/user/me'
@@ -70,6 +337,7 @@ coffee_journal_api.brew_publish:
   methods: [POST]
   requirements:
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
     node: \d+
 
 coffee_journal_api.brew_photo:
@@ -80,4 +348,5 @@ coffee_journal_api.brew_photo:
   methods: [POST]
   requirements:
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
     node: \d+

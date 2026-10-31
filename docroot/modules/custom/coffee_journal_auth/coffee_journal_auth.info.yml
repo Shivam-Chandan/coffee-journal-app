@@ -1,0 +1,7 @@
+name: Coffee Journal Authentication
+type: module
+description: 'Email login for existing Drupal accounts during the Google transition.'
+package: Coffee Journal
+core_version_requirement: ^11
+dependencies:
+  - drupal:user

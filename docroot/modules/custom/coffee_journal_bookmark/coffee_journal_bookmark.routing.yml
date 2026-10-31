@@ -6,6 +6,7 @@ coffee_journal_bookmark.toggle:
   methods: [POST]
   requirements:
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
     node: \d+
 
 coffee_journal_bookmark.list:

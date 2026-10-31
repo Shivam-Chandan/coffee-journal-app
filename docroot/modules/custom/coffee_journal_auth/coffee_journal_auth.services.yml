@@ -1,0 +1,10 @@
+services:
+  coffee_journal_auth.user_auth:
+    class: Drupal\coffee_journal_auth\Authentication\EmailAuthentication
+    arguments:
+      - '@user.auth'
+      - '@entity_type.manager'
+  coffee_journal_auth.route_subscriber:
+    class: Drupal\coffee_journal_auth\Routing\RouteSubscriber
+    tags:
+      - { name: event_subscriber }

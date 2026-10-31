@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Drupal\coffee_journal_api\Controller;
 
 use Drupal\coffee_journal_api\Service\GeminiService;
+use Drupal\coffee_journal_api\Service\ProviderException;
+use Drupal\coffee_journal_api\Service\PaidApiLimiter;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -29,6 +31,7 @@ final class GeminiController extends ControllerBase implements ContainerInjectio
 
   public function __construct(
     private readonly GeminiService $geminiService,
+    private readonly PaidApiLimiter $limiter,
   ) {}
 
   /**
@@ -36,7 +39,8 @@ final class GeminiController extends ControllerBase implements ContainerInjectio
    */
   public static function create(ContainerInterface $container): static {
     return new static(
-      $container->get('coffee_journal_api.gemini')
+      $container->get('coffee_journal_api.gemini'),
+      $container->get('coffee_journal_api.paid_api_limiter'),
     );
   }
 
@@ -59,41 +63,36 @@ final class GeminiController extends ControllerBase implements ContainerInjectio
    *
    * Error responses:
    *   400 { "error": "URL is required" }
-   *   500 { "error": "Gemini API key is not configured. ..." }
+   *   503 { "error": "This service is temporarily unavailable." }
    *   502 { "error": "Failed to scrape coffee details from URL" }
    */
   public function scrape(Request $request): JsonResponse {
     // Parse JSON body — Drupal does not decode it automatically.
-    $body = json_decode($request->getContent(), associative: TRUE) ?? [];
-    $url  = trim((string) ($body['url'] ?? ''));
+    $body = json_decode($request->getContent(), associative: TRUE);
+    $url = is_array($body) && is_string($body['url'] ?? NULL) ? trim($body['url']) : '';
 
     if ($url === '') {
       return new JsonResponse(
-        ['error' => 'URL is required'],
+        ['error' => 'A product URL is required.', 'code' => 'invalid_input'],
         Response::HTTP_BAD_REQUEST
       );
     }
 
     try {
+      if ($rejection = $this->limiter->reserve('scrape', (int) $this->currentUser()->id(), $request->getClientIp() ?? 'unknown')) {
+        return $rejection;
+      }
       $data = $this->geminiService->scrapeCoffeeDetails($url);
       return new JsonResponse($data, Response::HTTP_OK);
     }
     catch (\InvalidArgumentException $e) {
       return new JsonResponse(
-        ['error' => $e->getMessage()],
+        ['error' => 'Enter a valid public HTTPS product URL.', 'code' => 'invalid_input'],
         Response::HTTP_BAD_REQUEST
       );
     }
-    catch (\RuntimeException $e) {
-      // Distinguish between "key not configured" (500) and upstream failures (502).
-      $status = str_contains($e->getMessage(), 'not configured')
-        ? Response::HTTP_INTERNAL_SERVER_ERROR
-        : Response::HTTP_BAD_GATEWAY;
-
-      return new JsonResponse(
-        ['error' => $e->getMessage()],
-        $status
-      );
+    catch (ProviderException $e) {
+      return $e->response();
     }
   }
 

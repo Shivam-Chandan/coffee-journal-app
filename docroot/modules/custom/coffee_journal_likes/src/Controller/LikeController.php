@@ -24,11 +24,14 @@ class LikeController extends ControllerBase {
    * POST /api/likes/{node} — toggle like for the current user.
    */
   public function toggle(NodeInterface $node): JsonResponse {
+    if (!$this->canEngage($node)) {
+      return $this->privateResponse(['error' => 'Content is unavailable.'], 403);
+    }
     $uid   = (int) $this->currentUser()->id();
     $nid   = (int) $node->id();
     $liked = $this->repo->toggle($uid, $nid);
 
-    return new JsonResponse([
+    return $this->privateResponse([
       'liked' => $liked,
       'nid'   => $nid,
     ]);
@@ -41,7 +44,7 @@ class LikeController extends ControllerBase {
     $uid  = (int) $this->currentUser()->id();
     $nids = $this->repo->listForUser($uid);
 
-    return new JsonResponse(['nids' => $nids]);
+    return $this->privateResponse(['nids' => $this->visibleIds($nids)]);
   }
 
   /**
@@ -49,14 +52,43 @@ class LikeController extends ControllerBase {
    */
   public function counts(Request $request): JsonResponse {
     $raw  = $request->query->get('nids', '');
-    $nids = array_filter(array_map('intval', explode(',', (string) $raw)));
+    if (!is_string($raw) || strlen($raw) > 1200) {
+      return $this->privateResponse(['error' => 'Provide at most 100 positive node IDs.'], 400);
+    }
+    $parts = $raw === '' ? [] : explode(',', $raw);
+    if (count($parts) > 100 || array_filter($parts, static fn (string $id): bool => !preg_match('/^[1-9][0-9]{0,9}$/D', $id))) {
+      return $this->privateResponse(['error' => 'Provide at most 100 positive node IDs.'], 400);
+    }
+    $nids = $this->visibleIds(array_values(array_unique(array_map('intval', $parts))));
 
     if (empty($nids)) {
-      return new JsonResponse(['counts' => (object) []]);
+      return $this->privateResponse(['counts' => (object) []]);
     }
 
     $counts = $this->repo->countForNodes($nids);
-    return new JsonResponse(['counts' => $counts]);
+    return $this->privateResponse(['counts' => (object) $counts]);
+  }
+
+  private function canEngage(NodeInterface $node): bool {
+    return in_array($node->bundle(), ['coffee_bean', 'brew_recipe'], TRUE) &&
+      $node->access('view', $this->currentUser());
+  }
+
+  private function visibleIds(array $nids): array {
+    $visible = [];
+    foreach (array_chunk($nids, 100) as $chunk) {
+      $nodes = $this->entityTypeManager()->getStorage('node')->loadMultiple($chunk);
+      foreach ($chunk as $nid) {
+        if (isset($nodes[$nid]) && $this->canEngage($nodes[$nid])) {
+          $visible[] = (int) $nid;
+        }
+      }
+    }
+    return $visible;
+  }
+
+  private function privateResponse(array $data, int $status = 200): JsonResponse {
+    return new JsonResponse($data, $status, ['Cache-Control' => 'private, no-store']);
   }
 
 }
