@@ -61,6 +61,7 @@ final class HeadlessPresenter {
     private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly EntityFieldManagerInterface $fieldManager,
     private readonly FileUrlGeneratorInterface $fileUrlGenerator,
+    private readonly CreationProvenance $provenance,
     private readonly ?object $likes = NULL,
     private readonly ?object $bookmarks = NULL,
   ) {}
@@ -127,6 +128,7 @@ final class HeadlessPresenter {
       'roast' => (string) $this->value($node, 'field_roast_level', $account, ''),
       'rating' => $this->clamp((float) $this->value($node, 'field_overall_taste_rating', $account, 0), 0, 5),
       'finished' => (bool) $this->value($node, 'field_is_finished', $account, FALSE),
+      'provenance' => $this->provenance->present($node),
     ];
   }
 
@@ -279,7 +281,16 @@ final class HeadlessPresenter {
         $entry = [
           'label' => (string) $definition->getLabel(),
           'required' => $definition->isRequired(),
+          'type' => match ($definition->getType()) {
+            'boolean' => 'boolean', 'integer' => 'integer', 'decimal', 'float' => 'number', default => 'string',
+          },
         ];
+        if (isset($settings['max_length'])) {
+          $entry['max_length'] = (int) $settings['max_length'];
+        }
+        if ($definition->getType() === 'datetime') {
+          $entry['format'] = ($settings['datetime_type'] ?? 'datetime') === 'date' ? 'date' : 'date-time';
+        }
         if (isset($settings['min'])) {
           $entry['min'] = $settings['min'] + 0;
         }

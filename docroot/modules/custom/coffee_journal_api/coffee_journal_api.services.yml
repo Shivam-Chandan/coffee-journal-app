@@ -1,5 +1,40 @@
 services:
 
+  coffee_journal_api.provenance:
+    class: Drupal\coffee_journal_api\Service\CreationProvenance
+
+  coffee_journal_api.journal_input:
+    class: Drupal\coffee_journal_api\Service\JournalInput
+    arguments: ['@entity_field.manager', '@coffee_journal_api.presenter']
+
+  coffee_journal_api.connections:
+    class: Drupal\coffee_journal_api\Service\PersonalConnections
+    arguments: ['@database', '@entity_type.manager', '@datetime.time']
+
+  coffee_journal_api.connector_journal:
+    class: Drupal\coffee_journal_api\Service\ConnectorJournal
+    arguments: ['@entity_type.manager', '@coffee_journal_api.presenter', '@coffee_journal_api.journal_input', '@coffee_journal_api.provenance', '@database', '@lock', '@datetime.time']
+
+  coffee_journal_api.connector_access:
+    class: Drupal\coffee_journal_api\Service\ConnectorAccess
+    arguments: ['@coffee_journal_api.presenter', '@current_user', '@flood']
+
+  coffee_journal_api.mcp:
+    class: Drupal\coffee_journal_api\Service\JournalMcp
+    arguments: ['@coffee_journal_api.connector_journal', '@coffee_journal_api.presenter', '@entity_field.manager', '@keyvalue.expirable', '@lock']
+
+  coffee_journal_api.connector_auth:
+    class: Drupal\coffee_journal_api\Authentication\ConnectorAuthentication
+    arguments: ['@coffee_journal_api.connections']
+    tags:
+      - { name: authentication_provider, provider_id: coffee_connector, priority: 200 }
+
+  coffee_journal_api.connector_responses:
+    class: Drupal\coffee_journal_api\EventSubscriber\ConnectorResponses
+    arguments: ['@coffee_journal_api.presenter', '@logger.channel.coffee_journal_api']
+    tags:
+      - { name: event_subscriber }
+
   coffee_journal_api.headless_session_configuration:
     class: Drupal\coffee_journal_api\Session\HeadlessSessionConfiguration
     decorates: session_configuration
@@ -45,5 +80,6 @@ services:
       - '@entity_type.manager'
       - '@entity_field.manager'
       - '@file_url_generator'
+      - '@coffee_journal_api.provenance'
       - '@?coffee_journal_likes.repository'
       - '@?coffee_journal_bookmark.repository'

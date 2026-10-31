@@ -29,3 +29,7 @@ if (getenv('GOOGLE_CLIENT_SECRET')) {
 // Acquia sets SERVER_NAME; add any custom domains here.
 $settings['trusted_host_patterns'][] = '^.+\.acquia-sites\.com$';
 $settings['trusted_host_patterns'][] = '^eeschandan1(dev|test)?\.prod\.acquia-sites\.com$';
+
+// Empty by default: personal AI connectors stay disabled until explicitly set.
+$settings['coffee_journal_connector_account_uuid'] = getenv('COFFEE_CONNECTOR_ACCOUNT_UUID') ?: '';
+$settings['coffee_journal_connector_app_url'] = getenv('COFFEE_CONNECTOR_APP_URL') ?: '';

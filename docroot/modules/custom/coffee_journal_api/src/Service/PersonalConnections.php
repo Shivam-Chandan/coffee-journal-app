@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Drupal\coffee_journal_api\Service;
+
+use Drupal\Core\Database\Connection;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Site\Settings;
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\user\UserInterface;
+
+/**
+ * Personal connector credentials. Neither tokens nor account IDs enter config.
+ */
+final class PersonalConnections {
+
+  public function __construct(
+    private readonly Connection $database,
+    private readonly EntityTypeManagerInterface $entities,
+    private readonly TimeInterface $time,
+  ) {}
+
+  public function pilot(): ?UserInterface {
+    $uuid = Settings::get('coffee_journal_connector_account_uuid', '');
+    if (!is_string($uuid) || $uuid === '') {
+      return NULL;
+    }
+    $users = $this->entities->getStorage('user')->loadByProperties(['uuid' => $uuid]);
+    $user = reset($users);
+    return $user instanceof UserInterface && $user->isActive() && !$user->isAnonymous() ? $user : NULL;
+  }
+
+  public function issue(string $provider = 'chatgpt', int $days = 90, array $scopes = ['beans:read', 'beans:create']): array {
+    if (!in_array($provider, ['chatgpt', 'claude', 'gemini'], TRUE) || $days < 1 || $days > 365
+      || !$scopes || array_diff($scopes, ['beans:read', 'beans:create'])) {
+      throw new \InvalidArgumentException('Invalid provider, expiry or scopes.');
+    }
+    $account = $this->pilot();
+    if (!$account) {
+      throw new \RuntimeException('Configure an active COFFEE_CONNECTOR_ACCOUNT_UUID before issuing credentials.');
+    }
+    $token = 'cj_' . bin2hex(random_bytes(32));
+    $id = bin2hex(random_bytes(16));
+    $this->database->insert('coffee_journal_connection')->fields([
+      'id' => $id,
+      'token_hash' => hash('sha256', $token),
+      'account_uuid' => $account->uuid(),
+      'provider' => $provider,
+      'scopes' => implode(' ', $scopes),
+      'expires' => $this->time->getCurrentTime() + $days * 86400,
+      'revoked' => 0,
+    ])->execute();
+    return ['id' => $id, 'token' => $token];
+  }
+
+  public function verify(string $token): ?array {
+    if (!preg_match('/^cj_[0-9a-f]{64}$/D', $token)) {
+      return NULL;
+    }
+    $record = $this->database->select('coffee_journal_connection', 'c')->fields('c')
+      ->condition('token_hash', hash('sha256', $token))->condition('revoked', 0)
+      ->condition('expires', $this->time->getCurrentTime(), '>')->execute()->fetchAssoc();
+    $account = $this->pilot();
+    if (!$record || !$account || $record['account_uuid'] !== $account->uuid()) {
+      return NULL;
+    }
+    $record['account'] = $account;
+    $record['scopes'] = explode(' ', $record['scopes']);
+    unset($record['token_hash']);
+    return $record;
+  }
+
+  public function revoke(string $id): void {
+    $this->database->update('coffee_journal_connection')->fields(['revoked' => 1])->condition('id', $id)->execute();
+  }
+
+}

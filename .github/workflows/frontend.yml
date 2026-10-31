@@ -2,10 +2,10 @@ name: Headless frontend
 
 on:
   pull_request:
-    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/brew_privacy/**']
+    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/brew_privacy/**', 'docs/ai-connectors/**', 'composer.json', 'composer.lock']
   push:
     branches: [master]
-    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/brew_privacy/**']
+    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/brew_privacy/**', 'docs/ai-connectors/**', 'composer.json', 'composer.lock']
   workflow_dispatch:
 
 permissions:
@@ -43,7 +43,7 @@ jobs:
       - run: composer install --prefer-dist --no-interaction --no-progress
       - name: Check new read API coding standards
         run: vendor/bin/phpcs --standard=Drupal,DrupalPractice docroot/modules/custom/coffee_journal_api/src/Controller/HeadlessReadController.php docroot/modules/custom/coffee_journal_api/tests/src/Kernel/HeadlessReadTest.php
-      - name: Verify owner/public isolation and pagination in isolated kernel fixtures
-        run: php vendor/bin/phpunit --no-configuration --bootstrap docroot/core/tests/bootstrap.php docroot/modules/custom/coffee_journal_api/tests/src/Kernel/HeadlessReadTest.php
+      - name: Verify journal and AI connector contracts in isolated kernel fixtures
+        run: php vendor/bin/phpunit --no-configuration --bootstrap docroot/core/tests/bootstrap.php docroot/modules/custom/coffee_journal_api/tests/src/Kernel
         env:
           SIMPLETEST_DB: 'sqlite://localhost/:memory:'

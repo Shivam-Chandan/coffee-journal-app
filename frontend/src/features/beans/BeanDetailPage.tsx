@@ -12,6 +12,7 @@ import { BrewCardItem } from '../brews/BrewCardItem'
 import { useSession } from '../auth/useAuth'
 import { ROAST_LABELS } from './labels'
 import { BeanForm } from './BeanForm'
+import { ProvenanceBadge } from '../../components/ProvenanceBadge'
 
 export function BeanDetailPage() {
   const { beanId } = useParams({ from: '/beans/$beanId' })
@@ -69,6 +70,7 @@ export function BeanDetailPage() {
       </header>
 
       <div className="cj-chip-row">
+        <ProvenanceBadge provenance={bean.provenance} detail />
         {bean.roast && <span className="cj-chip cj-chip--filled">{ROAST_LABELS[bean.roast] ?? bean.roast}</span>}
         {bean.form_factor && <span className="cj-chip">{bean.form_factor === 'ground' ? 'Ground' : 'Whole bean'}</span>}
         {bean.quantity !== null && <span className="cj-chip">{bean.quantity}{bean.quantity_unit}</span>}

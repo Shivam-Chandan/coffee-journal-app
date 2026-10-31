@@ -1,0 +1,19 @@
+uuid: 6e8473cb-d2ed-4682-95b7-a69c989ca123
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_creation_channel
+    - node.type.coffee_bean
+id: node.coffee_bean.field_creation_channel
+field_name: field_creation_channel
+entity_type: node
+bundle: coffee_bean
+label: 'Creation channel'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

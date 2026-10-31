@@ -1,0 +1,187 @@
+openapi: 3.1.0
+info:
+  title: Personal Coffee Journal
+  version: 1.0.0
+  description: Read and create the connected owner's coffees. Fetch field options first. Never invent unknown values.
+servers:
+  - url: https://YOUR-DRUPAL-HOST
+security:
+  - personalBearer: []
+paths:
+  /api/integrations/v1/bean-options:
+    get:
+      operationId: getCoffeeOptions
+      summary: Get available fields, required values, units and allowed choices before creating a coffee
+      responses:
+        '200':
+          description: Field metadata keyed by the supported input names
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        label: { type: string }
+                        required: { type: boolean }
+                        type: { type: string, enum: [string, number, integer, boolean] }
+                        format: { type: string }
+                        max_length: { type: integer }
+                        min: { type: number }
+                        max: { type: number }
+                        options:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              value: { type: string }
+                              label: { type: string }
+  /api/integrations/v1/beans:
+    get:
+      operationId: listCoffees
+      summary: List or search my coffees by name, newest first, 20 per page
+      parameters:
+        - name: q
+          in: query
+          description: Optional coffee title search
+          schema: { type: string, maxLength: 200 }
+        - name: before
+          in: query
+          description: Cursor returned as meta.next; omit on the first page
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Owner-only coffee cards and pagination cursor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Coffee' }
+                  meta:
+                    type: object
+                    properties:
+                      next: { type: [integer, 'null'] }
+    post:
+      operationId: createCoffee
+      summary: Create a coffee after summarizing the proposed values and obtaining user confirmation
+      description: Fetch field options first. Preserve request_id across timeout or in_progress retries. Correct validation errors before retrying. Never retry an uncertain save with a new request_id. Do not invent ratings or purchase dates.
+      x-openai-isConsequential: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCoffee'
+      responses:
+        '201': { $ref: '#/components/responses/SavedCoffee' }
+        '200': { $ref: '#/components/responses/SavedCoffee' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+  /api/integrations/v1/beans/{uuid}:
+    get:
+      operationId: getCoffee
+      summary: Read one of my coffees by UUID
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { $ref: '#/components/responses/SavedCoffee' }
+        '404': { $ref: '#/components/responses/Error' }
+components:
+  securitySchemes:
+    personalBearer:
+      type: http
+      scheme: bearer
+  schemas:
+    CreateCoffee:
+      type: object
+      additionalProperties: false
+      required: [request_id, title]
+      properties:
+        request_id:
+          type: string
+          pattern: '^[A-Za-z0-9_-]{8,64}$'
+          description: Generate a unique ID for each intentional save. Reuse the same ID and fields after uncertain outcomes. Deduplication lasts 24 hours.
+        title: { type: string, minLength: 1, maxLength: 255 }
+        brand: { type: string }
+        estate: { type: string }
+        roast:
+          type: string
+          description: Use an allowed option from getCoffeeOptions
+        form_factor:
+          type: string
+          description: Use an allowed option from getCoffeeOptions
+        quantity: { type: number }
+        quantity_unit:
+          type: string
+          description: Use an allowed option from getCoffeeOptions
+        purchase_date: { type: string, format: date }
+        notes: { type: string }
+        bitterness: { type: number }
+        acidity: { type: number }
+        clarity: { type: number }
+        rating: { type: number }
+        finished: { type: boolean }
+        worth_reordering: { type: boolean }
+    Coffee:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        brand: { type: string }
+        roast: { type: string }
+        estate: { type: string }
+        form_factor: { type: string }
+        quantity: { type: [number, 'null'] }
+        quantity_unit: { type: string }
+        purchase_date: { type: string }
+        notes: { type: string }
+        rating: { type: number }
+        finished: { type: boolean }
+        worth_reordering: { type: boolean }
+        url: { type: string, format: uri }
+        provenance:
+          type: object
+          readOnly: true
+          properties:
+            channel: { type: string, enum: [app, ai_connector, unknown] }
+            provider: { type: [string, 'null'] }
+            label: { type: [string, 'null'] }
+            created_at: { type: integer, description: Unix timestamp }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+            fields:
+              type: object
+              additionalProperties: { type: string }
+  responses:
+    SavedCoffee:
+      description: Saved or retrieved coffee with application link and creation source
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/Coffee' }
+    Error:
+      description: Authentication, permission, validation, retry conflict or rate-limit error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

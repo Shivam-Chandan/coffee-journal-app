@@ -7,6 +7,32 @@ use Drupal\file\Entity\File;
 use Drupal\user\UserInterface;
 
 /**
+ * Implements hook_node_presave().
+ */
+function coffee_journal_api_node_presave(\Drupal\node\NodeInterface $node): void {
+  \Drupal::service('coffee_journal_api.provenance')->presave($node);
+}
+
+/**
+ * Implements hook_entity_field_access().
+ */
+function coffee_journal_api_entity_field_access($operation, $field_definition, $account, $items = NULL) {
+  if ($field_definition->getTargetEntityTypeId() === 'node'
+    && in_array($field_definition->getName(), \Drupal\coffee_journal_api\Service\CreationProvenance::FIELDS, TRUE)) {
+    return \Drupal\Core\Access\AccessResult::forbidden();
+  }
+  return \Drupal\Core\Access\AccessResult::neutral();
+}
+
+/**
+ * Implements hook_cron().
+ */
+function coffee_journal_api_cron(): void {
+  \Drupal::database()->delete('coffee_journal_create_receipt')
+    ->condition('expires', \Drupal::time()->getCurrentTime(), '<=')->execute();
+}
+
+/**
  * Implements hook_user_login().
  *
  * Maps available Google profile data from the social auth session to the

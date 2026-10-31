@@ -1,0 +1,21 @@
+uuid: 8c775465-ff1e-414c-b64a-651b3540a191
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_creation_connection
+field_name: field_creation_connection
+entity_type: node
+type: string
+settings:
+  max_length: 64
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

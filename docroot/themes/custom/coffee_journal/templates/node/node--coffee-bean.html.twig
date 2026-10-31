@@ -55,6 +55,9 @@
 
   {# ── Roast · Date meta chips ── #}
   <div class="cj-bean-detail__chips">
+    {% if creation_badge %}
+      <span class="cj-chip">{{ creation_badge }}</span>
+    {% endif %}
     {% if roast_label %}
       <span class="cj-chip cj-chip--filled">{{ roast_label }}</span>
     {% endif %}

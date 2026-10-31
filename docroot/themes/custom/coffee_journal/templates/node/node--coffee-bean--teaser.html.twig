@@ -26,6 +26,9 @@
   {# Info row #}
   <div class="cj-journal-tile__info">
     <a href="{{ url }}" class="cj-journal-tile__name">{{ label }}</a>
+    {% if creation_badge %}
+      <span class="cj-chip">{{ creation_badge }}</span>
+    {% endif %}
 
     {% if brand_val %}
       <span class="cj-journal-tile__brand">{{ brand_val }}</span>

@@ -1,6 +1,7 @@
 import type { ReactNode, SVGProps } from 'react'
 
 const paths = {
+  sparkles: <><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z" /><path d="M20 2v4m-2-2h4" /></>,
   coffee: <><path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z" /><path d="M16 10h1a3 3 0 1 1 0 6h-1M8 3v2m4-2v2M3 22h15" /></>,
   feed: <><rect x="4" y="3" width="16" height="18" rx="4" /><path d="M8 8h8M8 12h8m-8 4h4" /></>,
   journal: <><path d="M5 19a2 2 0 0 1 2-2h12V3H7a2 2 0 0 0-2 2Zm0 0a2 2 0 0 0 2 2h12v-4M9 7h6m-6 4h4" /></>,

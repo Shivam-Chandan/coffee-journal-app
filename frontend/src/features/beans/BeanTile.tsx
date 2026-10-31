@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import type { BeanCard } from '../../api/schemas'
 import { Icon } from '../../components/Icon'
 import { ROAST_LABELS } from './labels'
+import { ProvenanceBadge } from '../../components/ProvenanceBadge'
 
 /** One coffee in the journal grid. */
 export function BeanTile({ bean }: { bean: BeanCard }) {
@@ -24,6 +25,7 @@ export function BeanTile({ bean }: { bean: BeanCard }) {
             </span>
           </span>
           {bean.finished && <span className="cj-journal-tile__flag">Finished</span>}
+          <ProvenanceBadge provenance={bean.provenance} />
         </span>
       </Link>
     </article>

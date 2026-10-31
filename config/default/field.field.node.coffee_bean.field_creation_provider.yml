@@ -1,0 +1,19 @@
+uuid: adf90d3f-8c42-4842-ab7f-c2bbd4e06ebc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_creation_provider
+    - node.type.coffee_bean
+id: node.coffee_bean.field_creation_provider
+field_name: field_creation_provider
+entity_type: node
+bundle: coffee_bean
+label: 'Creation provider'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

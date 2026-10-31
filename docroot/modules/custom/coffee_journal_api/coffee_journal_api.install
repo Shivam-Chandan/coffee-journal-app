@@ -19,3 +19,47 @@ function coffee_journal_api_update_9001() {
 
   return t('Granted brew_recipe create/edit permissions to authenticated role.');
 }
+
+/**
+ * Implements hook_schema().
+ */
+function coffee_journal_api_schema(): array {
+  return [
+    'coffee_journal_connection' => [
+      'description' => 'Personal AI connection credentials (hashes only).',
+      'fields' => [
+        'id' => ['type' => 'varchar', 'length' => 32, 'not null' => TRUE],
+        'token_hash' => ['type' => 'varchar', 'length' => 64, 'not null' => TRUE],
+        'account_uuid' => ['type' => 'varchar', 'length' => 36, 'not null' => TRUE],
+        'provider' => ['type' => 'varchar', 'length' => 32, 'not null' => TRUE],
+        'scopes' => ['type' => 'varchar', 'length' => 64, 'not null' => TRUE],
+        'expires' => ['type' => 'int', 'size' => 'big', 'not null' => TRUE],
+        'revoked' => ['type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0],
+      ],
+      'primary key' => ['id'],
+      'unique keys' => ['token_hash' => ['token_hash']],
+    ],
+    'coffee_journal_create_receipt' => [
+      'description' => 'Payload-bound create results committed atomically with coffee nodes.',
+      'fields' => [
+        'id' => ['type' => 'varchar', 'length' => 64, 'not null' => TRUE],
+        'payload_hash' => ['type' => 'varchar', 'length' => 64, 'not null' => TRUE],
+        'node_uuid' => ['type' => 'varchar', 'length' => 36, 'not null' => TRUE],
+        'expires' => ['type' => 'int', 'size' => 'big', 'not null' => TRUE],
+      ],
+      'primary key' => ['id'],
+      'indexes' => ['expires' => ['expires']],
+    ],
+  ];
+}
+
+/**
+ * Install personal connector credential and retry receipt tables.
+ */
+function coffee_journal_api_update_9002(): void {
+  foreach (coffee_journal_api_schema() as $table => $definition) {
+    if (!\Drupal::database()->schema()->tableExists($table)) {
+      \Drupal::database()->schema()->createTable($table, $definition);
+    }
+  }
+}

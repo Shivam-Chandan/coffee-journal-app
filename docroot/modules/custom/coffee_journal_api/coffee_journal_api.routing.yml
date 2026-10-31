@@ -1,3 +1,62 @@
+coffee_journal_api.connector_mcp:
+  path: '/api/integrations/v1/mcp'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\McpController::handle'
+  requirements:
+    _access: 'TRUE'
+  options:
+    _auth: ['coffee_connector']
+    no_cache: TRUE
+
+coffee_journal_api.connector_options:
+  path: '/api/integrations/v1/bean-options'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\ConnectorController::handle'
+    operation: 'options'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    _auth: ['coffee_connector']
+    no_cache: TRUE
+
+coffee_journal_api.connector_list:
+  path: '/api/integrations/v1/beans'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\ConnectorController::handle'
+    operation: 'list'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    _auth: ['coffee_connector']
+    no_cache: TRUE
+
+coffee_journal_api.connector_detail:
+  path: '/api/integrations/v1/beans/{uuid}'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\ConnectorController::handle'
+    operation: 'detail'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    _auth: ['coffee_connector']
+    no_cache: TRUE
+
+coffee_journal_api.connector_create:
+  path: '/api/integrations/v1/beans'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\ConnectorController::handle'
+    operation: 'create'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+  options:
+    _auth: ['coffee_connector']
+    no_cache: TRUE
+
 coffee_journal_api.global_feed:
   path: '/feed'
   defaults:

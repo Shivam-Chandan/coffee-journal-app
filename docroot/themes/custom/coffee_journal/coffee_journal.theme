@@ -114,6 +114,18 @@ function coffee_journal_preprocess_node(&$variables) {
   if ($node->bundle() === 'coffee_bean') {
     $variables['page'] = TRUE;
 
+    $provenance = \Drupal::service('coffee_journal_api.provenance')->present($node);
+    $variables['creation_badge'] = NULL;
+    if ($provenance['channel'] === 'ai_connector') {
+      $provider = ['chatgpt' => 'ChatGPT', 'claude' => 'Claude', 'gemini' => 'Gemini'][$provenance['provider'] ?? ''] ?? NULL;
+      $variables['creation_badge'] = $variables['view_mode'] === 'full'
+        ? t('Added via @provider · @date', [
+          '@provider' => $provider ?? 'AI',
+          '@date' => \Drupal::service('date.formatter')->format($provenance['created_at'], 'custom', 'd M Y'),
+        ])
+        : ($provider ? t('AI · @provider', ['@provider' => $provider]) : t('Added via AI'));
+    }
+
     $variables['user_can_edit']   = $node->access('update', $account);
     $variables['user_can_delete'] = $node->access('delete', $account);
 

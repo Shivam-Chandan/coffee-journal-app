@@ -6,7 +6,7 @@ namespace Drupal\coffee_journal_api\Controller;
 
 use Drupal\coffee_journal_api\Service\HeadlessPresenter;
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\coffee_journal_api\Service\JournalInput;
 use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
 use Drupal\node\NodeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -23,7 +23,7 @@ final class HeadlessWriteController extends ControllerBase {
 
   public function __construct(
     private readonly HeadlessPresenter $presenter,
-    private readonly EntityFieldManagerInterface $fieldManager,
+    private readonly JournalInput $input,
     private readonly KeyValueExpirableFactoryInterface $keyValueFactory,
   ) {}
 
@@ -33,7 +33,7 @@ final class HeadlessWriteController extends ControllerBase {
   public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('coffee_journal_api.presenter'),
-      $container->get('entity_field.manager'),
+      $container->get('coffee_journal_api.journal_input'),
       $container->get('keyvalue.expirable'),
     );
   }
@@ -186,11 +186,11 @@ final class HeadlessWriteController extends ControllerBase {
       'uid' => $account->id(),
       'status' => 1,
     ]);
-    $errors = $this->applyPayload($node, $bundle, $payload, TRUE);
+    $errors = $this->input->apply($node, $payload, $account, TRUE);
     if ($errors) {
       return $this->presenter->error('validation_failed', 'Please review the highlighted fields.', 422, $errors);
     }
-    $violations = $this->violations($node);
+    $violations = $this->input->violations($node);
     if ($violations) {
       return $this->presenter->error('validation_failed', 'Please review the highlighted fields.', 422, $violations);
     }
@@ -225,7 +225,7 @@ final class HeadlessWriteController extends ControllerBase {
         409
       );
     }
-    $errors = $this->applyPayload($node, $bundle, $payload, FALSE);
+    $errors = $this->input->apply($node, $payload, $this->currentUser(), FALSE);
     if ($errors) {
       return $this->presenter->error('validation_failed', 'Please review the highlighted fields.', 422, $errors);
     }
@@ -236,80 +236,6 @@ final class HeadlessWriteController extends ControllerBase {
     $node->setNewRevision(FALSE);
     $node->save();
     return $this->presenter->response(['data' => $this->detail($node)]);
-  }
-
-  /**
-   * Copies allowlisted payload keys onto the entity.
-   */
-  private function applyPayload(NodeInterface $node, string $bundle, array $payload, bool $isNew): array {
-    $map = $bundle === 'coffee_bean'
-      ? HeadlessPresenter::BEAN_FIELDS
-      : HeadlessPresenter::BREW_FIELDS;
-    $definitions = $this->fieldManager->getFieldDefinitions('node', $bundle);
-    $errors = [];
-    foreach ($map as $key => $field) {
-      if (!isset($definitions[$field])) {
-        continue;
-      }
-      if (!array_key_exists($key, $payload)) {
-        if ($isNew && $field === 'title') {
-          $errors[$key] = 'A name is required.';
-        }
-        continue;
-      }
-      $value = $payload[$key];
-      if ($field === 'field_coffee_bean_ref') {
-        if ($value === NULL || $value === '') {
-          $node->set($field, NULL);
-          continue;
-        }
-        if (!is_string($value)) {
-          $errors[$key] = 'Choose one of your coffees.';
-          continue;
-        }
-        $bean = $this->presenter->loadNode($value, 'coffee_bean');
-        // Referencing a bean the account cannot see would leak private data.
-        if (!$bean || !$bean->access('view', $this->currentUser())) {
-          $errors[$key] = 'Choose one of your coffees.';
-          continue;
-        }
-        $node->set($field, ['target_id' => $bean->id()]);
-        continue;
-      }
-      $type = $definitions[$field]->getType();
-      if ($type === 'boolean') {
-        if (!is_bool($value)) {
-          $errors[$key] = 'Expected true or false.';
-          continue;
-        }
-        $this->assign($node, $field, $value);
-        continue;
-      }
-      if (in_array($type, ['integer', 'decimal', 'float'], TRUE)) {
-        if ($value === NULL || $value === '') {
-          $this->assign($node, $field, NULL);
-          continue;
-        }
-        if (!is_int($value) && !is_float($value)) {
-          $errors[$key] = 'Enter a number.';
-          continue;
-        }
-        $this->assign($node, $field, $type === 'integer' ? (int) round((float) $value) : (float) $value);
-        continue;
-      }
-      if (!is_string($value)) {
-        $errors[$key] = 'Expected text.';
-        continue;
-      }
-      $value = trim($value);
-      if ($type === 'text_long') {
-        // Plain text only; the Drupal UI also restricts these to plain_text.
-        $this->assign($node, $field, $value === '' ? NULL : ['value' => $value, 'format' => 'plain_text']);
-        continue;
-      }
-      $this->assign($node, $field, $value === '' ? NULL : $value);
-    }
-    return $errors;
   }
 
   /**
@@ -326,18 +252,7 @@ final class HeadlessWriteController extends ControllerBase {
    * Returns per-field validation messages keyed by contract name.
    */
   private function violations(NodeInterface $node): array {
-    $bundle = $node->bundle();
-    $map = $bundle === 'coffee_bean'
-      ? HeadlessPresenter::BEAN_FIELDS
-      : HeadlessPresenter::BREW_FIELDS;
-    $reverse = array_flip($map);
-    $errors = [];
-    foreach ($node->validate() as $violation) {
-      $property = explode('.', $violation->getPropertyPath())[0];
-      $key = $reverse[$property] ?? $property;
-      $errors[$key] = (string) $violation->getMessage();
-    }
-    return $errors;
+    return $this->input->violations($node);
   }
 
   /**

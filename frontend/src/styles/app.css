@@ -290,6 +290,9 @@
   .cj-detail__engage { display: flex; gap: 10px; flex-wrap: wrap; }
   .cj-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .cj-chip svg { width: 13px; height: 13px; margin-right: 5px; }
+  .cj-provenance { align-self: flex-start; max-width: 100%; flex-wrap: wrap; gap: 4px; }
+  .cj-provenance svg { flex: none; margin-right: 0; }
+  .cj-journal-tile__info > .cj-provenance { margin-top: 10px; }
   .cj-section-heading { font-size: 12px; font-weight: 700; letter-spacing: 1.4px; color: var(--cj-text-muted); }
   .cj-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .cj-empty-inline { font-size: 13px; color: var(--cj-text-muted); }

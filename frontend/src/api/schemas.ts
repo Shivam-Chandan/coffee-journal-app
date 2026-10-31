@@ -2,6 +2,13 @@ import { z } from 'zod'
 
 const uuid = z.string().regex(/^[0-9a-fA-F-]{36}$/)
 
+export const provenanceSchema = z.object({
+  channel: z.enum(['app', 'ai_connector', 'unknown']),
+  provider: z.string().nullable(),
+  label: z.string().nullable(),
+  created_at: z.number().int().nonnegative(),
+})
+
 export const engagementSchema = z.object({
   likes: z.number().int().nonnegative(),
   liked: z.boolean(),
@@ -37,6 +44,7 @@ export const beanCardSchema = z.object({
   roast: z.string(),
   rating: z.number().min(0).max(5),
   finished: z.boolean(),
+  provenance: provenanceSchema.optional(),
 })
 
 export const brewCardSchema = z.object({
