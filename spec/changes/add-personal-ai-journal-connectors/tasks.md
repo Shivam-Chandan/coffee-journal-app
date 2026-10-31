@@ -1,7 +1,7 @@
 # Implementation tasks
 
-Status: implementation verified locally; deployment and actual personal chat-client
-activation remain pending. See [execution record](execution.md).
+Status: deployed and API-verified in production; actual personal chat-client
+configuration remains pending. See [execution record](execution.md).
 
 1. [ ] **Confirm deployment and client prerequisites.** Identify pilot account UUID,
    HTTPS domains, actual required bean fields/options, and ChatGPT Actions support.
@@ -43,14 +43,15 @@ activation remain pending. See [execution record](execution.md).
 
 ## Partial task evidence
 
-- **1:** Local Drupal/PHP/DB confirmed, deployed hook ordering verified. Pilot
-  account UUID and final external domains remain unselected; consumer accounts
-  have not been opened/configured.
+- **1:** Local Drupal/PHP/DB confirmed, deployed hook ordering verified. Production
+  pilot account UUID and external domains are selected and verified. Consumer
+  accounts have not been opened/configured.
 - **8:** OpenAPI, consequential write annotation and GPT instructions delivered.
   Import/authentication in the private GPT and mobile verification remain pending.
 - **9:** Local kernel/unit/frontend, real concurrent HTTP and source label checks
-  pass. CI now includes connector kernel coverage. Deployment and live chat-to-app
-  acceptance remain pending.
+  pass. CI includes connector kernel coverage. Production deployment, runtime
+  configuration and HTTPS create/replay/source verification pass. Live chat-to-app
+  acceptance remains pending.
 - **10:** Official PHP SDK transport and connection-scoped sessions implemented;
   HTTP handshake/discovery/create/replay/revocation verified. Anthropic currently
   documents fixed bearer request headers, so no OAuth implementation is needed

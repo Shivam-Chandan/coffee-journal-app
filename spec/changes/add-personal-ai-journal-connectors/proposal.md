@@ -1,7 +1,8 @@
 # Personal AI journal connectors and entry provenance
 
 Status: approved; backend, UI, Actions contract and MCP adapter implemented and
-verified locally. Deployment, personal account activation and actual chat-client
+released to production. The requested personal Drupal profile is enabled and a
+ChatGPT credential issued. Actual private GPT/Claude configuration and chat-client
 acceptance remain pending. See `execution.md`.
 
 ## Why

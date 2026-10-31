@@ -1,7 +1,8 @@
 # Implementation evidence
 
-Date: November 1, 2026. Working-tree implementation; no deployment or release
-revision has been created for this change.
+Date: November 1, 2026. Implementation released to production as `c5f3b6fa2`.
+The server-side connection is enabled for the requested owner; private GPT/client
+configuration remains a user activation step.
 
 ## Delivered
 
@@ -92,13 +93,38 @@ git diff --check
 
 ## Remaining activation steps
 
-1. Select the owner's Drupal account UUID and final backend/frontend origins.
-2. Deploy code/dependencies/config and run the existing update/import/cache flow.
-3. Set environment account/app URL settings; issue separate production credentials
-   in a private administrator terminal.
-4. Import Actions into a private GPT, configure its credential, and test web/mobile
+1. Import Actions into a private GPT, configure its credential, and test web/mobile
    create-to-journal behavior and confirmation.
-5. Configure Claude's remote MCP connector with its separate fixed bearer header;
+2. Configure Claude's remote MCP connector with its separate fixed bearer header;
    verify tools, confirmation, creation, retry and revocation in that account.
-6. Keep Gemini deferred until a specific supported consumer-client integration is
+3. Keep Gemini deferred until a specific supported consumer-client integration is
    verified. Archive only once the agreed deployment/client acceptance is complete.
+
+## Production release
+
+- Commit: `c5f3b6fa2` — `feat: add personal AI journal connectors and source badges`.
+- [Pipeline 41245465111](https://github.com/Shivam-Chandan/coffee-journal-app/actions/runs/41245465111)
+  passed security/source scans, assembled artifact checks, Build, Dev, Test and
+  Prod deployment. Focused headless frontend/kernel checks also passed.
+- The Git-integrated Vercel production deployment succeeded for the same commit.
+  Live assets include the provenance badge component; the frontend remains static.
+- Backend: `https://eeschandan1.prod.acquia-sites.com`.
+- Frontend: `https://coffee-journal-vert.vercel.app`.
+- Acquia CLI device authentication was restored and the requested Acquia account
+  identity verified. The requested Drupal owner was found and confirmed active.
+- Production-only `COFFEE_CONNECTOR_ACCOUNT_UUID` and `COFFEE_CONNECTOR_APP_URL`
+  environment variables were set through the Acquia API. Runtime verification
+  confirms schema update **9002**, all three provenance fields, the MCP SDK and
+  the intended pilot/app URL. Production cache rebuild succeeded.
+- A 90-day read/create ChatGPT credential was issued. Its secret was copied
+  directly from command output to the owner's local clipboard; it was not added
+  to repository files or displayed in the conversation.
+- Live HTTPS verification using that credential passed field-options retrieval,
+  creation, ChatGPT provenance, correct frontend saved URL, same-request replay,
+  detail retrieval, source-spoof rejection, and isolation from browser-session
+  authentication.
+- The single clearly marked synthetic verification coffee and its retry receipt
+  were removed after matching UUID, owner, title and creation connection. Existing
+  journal entries were not used as verification fixtures.
+- Consumer ChatGPT/Claude accounts have not yet been configured or exercised;
+  server API verification is distinct from chat-client acceptance.
