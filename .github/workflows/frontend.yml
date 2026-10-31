@@ -46,4 +46,4 @@ jobs:
       - name: Verify owner/public isolation and pagination in isolated kernel fixtures
         run: php vendor/bin/phpunit --no-configuration --bootstrap docroot/core/tests/bootstrap.php docroot/modules/custom/coffee_journal_api/tests/src/Kernel/HeadlessReadTest.php
         env:
-          SIMPLETEST_DB: sqlite://localhost/:memory:
+          SIMPLETEST_DB: 'sqlite://localhost/:memory:'
