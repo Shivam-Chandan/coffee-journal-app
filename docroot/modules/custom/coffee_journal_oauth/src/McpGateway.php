@@ -22,8 +22,10 @@ final class McpGateway {
       return $this->access->authorize($request) ?? $this->mcp->handle($request, $request->attributes->get('_coffee_connection'));
     }
     $challenge = $this->settings->challenge();
-    // A 401 with the metadata pointer is what starts each client's sign-in.
-    if ($request->headers->has('Authorization')) {
+    // Only an actually supplied credential counts as a failed token. Some web
+    // servers forward an empty Authorization header, which must still be
+    // treated as an anonymous request so client discovery can proceed.
+    if (trim((string) $request->headers->get('Authorization', '')) !== '') {
       return new JsonResponse(['error' => 'invalid_token'], 401, ['WWW-Authenticate' => $challenge, 'Cache-Control' => 'private, no-store']);
     }
     $ip = hash('sha256', (string) $request->getClientIp());

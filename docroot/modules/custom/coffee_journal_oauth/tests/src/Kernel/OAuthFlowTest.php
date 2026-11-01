@@ -493,6 +493,34 @@ final class OAuthFlowTest extends KernelTestBase {
     catch (\League\OAuth2\Server\Exception\OAuthServerException) { $this->addToAssertionCount(1); }
   }
 
+  /**
+   * Some web servers forward an empty Authorization header. That must not be
+   * mistaken for a failed token, or client discovery never reaches sign-in.
+   */
+  public function testEmptyAuthorizationHeaderStillAllowsDiscovery(): void {
+    $gateway = $this->container->get('coffee_journal_oauth.gateway');
+    $body = ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize', 'params' => [
+      'protocolVersion' => '2025-06-18', 'capabilities' => new \stdClass(), 'clientInfo' => ['name' => 'probe', 'version' => '1'],
+    ]];
+    foreach (['', '   '] as $value) {
+      $request = Request::create('https://journal.example/api/integrations/v1/mcp', 'POST', server: [
+        'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json, text/event-stream',
+      ], content: json_encode($body));
+      $request->headers->set('Authorization', $value);
+      $response = $gateway->handle($request);
+      $this->assertSame(200, $response->getStatusCode(), 'An empty credential must be treated as anonymous.');
+      $this->assertNotEmpty($response->headers->get('Mcp-Session-Id'));
+    }
+    // A supplied but invalid credential must still be refused with a challenge.
+    $invalid = Request::create('https://journal.example/api/integrations/v1/mcp', 'POST', server: [
+      'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json, text/event-stream',
+    ], content: json_encode($body));
+    $invalid->headers->set('Authorization', 'Bearer wrong-token');
+    $refused = $gateway->handle($invalid);
+    $this->assertSame(401, $refused->getStatusCode());
+    $this->assertStringContainsString('resource_metadata=', $refused->headers->get('WWW-Authenticate'));
+  }
+
   private function providerStatus(string $provider): string {
     $status = $this->container->get('coffee_journal_oauth.grants')->status($this->owner);
     foreach ($status['providers'] as $entry) {
