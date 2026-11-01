@@ -573,6 +573,14 @@ final class OAuthFlowTest extends KernelTestBase {
     $this->assertContains('none', $meta['token_endpoint_auth_methods_supported']);
 
     $tokens = json_decode($this->exchange($this->code($changes), $changes)->getContent(), TRUE);
+
+    // The consent screen must render for a document client and name the
+    // assistant, not just succeed at the token endpoint.
+    $consent = \Drupal\coffee_journal_oauth\Form\ConsentForm::create($this->container)
+      ->buildForm([], new \Drupal\Core\Form\FormState(), $this->query($changes));
+    $this->assertStringContainsString('ChatGPT', (string) $consent['intro']['#plain_text']);
+    $this->assertStringContainsString('chatgpt.com', (string) $consent['destination']['#plain_text']);
+
     $grant = $server->verify($tokens['access_token']);
     $this->assertSame('chatgpt', $grant['provider']);
     $this->assertSame($url, $grant['client_id']);
