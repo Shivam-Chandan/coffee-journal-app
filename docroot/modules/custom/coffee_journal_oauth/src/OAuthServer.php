@@ -83,11 +83,41 @@ final class OAuthServer {
     $request->setUser(new User($grant));
     $request->setAuthorizationApproved($approved);
     try {
-      return $this->response($this->server()->completeAuthorizationRequest($request, new PsrResponse()));
+      return $this->withIssuer($this->response($this->server()->completeAuthorizationRequest($request, new PsrResponse())));
     }
     catch (OAuthServerException $exception) {
-      return $this->error($exception);
+      // Denials and late failures still redirect, so they also carry iss.
+      return $this->withIssuer($this->error($exception));
     }
+  }
+
+  /**
+   * Adds the RFC 9207 iss parameter to every authorization redirect.
+   *
+   * Clients compare it against the issuer they sent the request to, which
+   * blocks mix-up attacks. It must appear on success and error responses
+   * alike, and only on redirects to the client's callback.
+   */
+  private function withIssuer(Response $response): Response {
+    $location = $response->headers->get('Location');
+    if (!$response->isRedirection() || !is_string($location) || $location === '') {
+      return $response;
+    }
+    $parts = parse_url($location);
+    if (!$parts || ($parts['scheme'] ?? '') !== 'https') {
+      return $response;
+    }
+    parse_str($parts['query'] ?? '', $query);
+    if (isset($query['iss'])) {
+      return $response;
+    }
+    $query['iss'] = $this->settings->issuer();
+    $rebuilt = $parts['scheme'] . '://' . $parts['host']
+      . (isset($parts['port']) ? ':' . $parts['port'] : '')
+      . ($parts['path'] ?? '') . '?' . http_build_query($query)
+      . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+    $response->headers->set('Location', $rebuilt);
+    return $response;
   }
 
   public function token(array $body, array $headers = []): Response {
@@ -165,6 +195,13 @@ final class OAuthServer {
   public function error(OAuthServerException $exception): Response {
     // Do not log authorization codes, token bodies or private request values.
     return $this->response($exception->generateHttpResponse(new PsrResponse()));
+  }
+
+  /**
+   * Error responses from the authorize endpoint must also identify the issuer.
+   */
+  public function authorizeError(OAuthServerException $exception): Response {
+    return $this->withIssuer($this->error($exception));
   }
 
   private function response(\Psr\Http\Message\ResponseInterface $response): Response {

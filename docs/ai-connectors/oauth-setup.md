@@ -52,7 +52,7 @@ HTTPS origin for `COFFEE_OAUTH_ISSUER`; do not reuse production issuer/keys on D
 | `COFFEE_OAUTH_ENABLED` | `1` only after the remaining settings are configured |
 | `COFFEE_OAUTH_ISSUER` | Canonical HTTPS Drupal origin, no trailing slash/path |
 | `COFFEE_OAUTH_CHATGPT_CLIENT_ID` | Agreed predefined client ID, 8–128 letters/digits/`.`/`_`/`:`/`-` |
-| `COFFEE_OAUTH_CHATGPT_REDIRECT_URIS` | Exact HTTPS ChatGPT callbacks, whitespace separated |
+| `COFFEE_OAUTH_CHATGPT_REDIRECT_URIS` | `https://chatgpt.com/connector_platform_oauth_redirect` |
 | `COFFEE_OAUTH_CHATGPT_CLIENT_SECRET` | Only for a confidential client; absent for PKCE public client |
 | `COFFEE_OAUTH_CLAUDE_CLIENT_ID` | Claude's client ID; see [Claude setup](claude-oauth-setup.md) |
 | `COFFEE_OAUTH_CLAUDE_REDIRECT_URIS` | `https://claude.ai/api/mcp/auth_callback` |
@@ -121,9 +121,15 @@ The client must send that `resource` on authorization, code exchange and refresh
 Authorization requires `response_type=code`, the registered client and exact
 redirect, a state value, `code_challenge_method=S256`, and a valid challenge.
 
-Metadata deliberately does **not** advertise DCR, CIMD, OIDC scopes or RFC 9207
-issuer-identification support. Configure the callback mode actually shown by
-ChatGPT for this server. Token requests are server-to-server form-encoded POSTs,
+The server advertises `authorization_response_iss_parameter_supported` and
+returns the RFC 9207 `iss` parameter on every authorization redirect, including
+denials and errors. OpenAI documents that this qualifies a server for the
+**stable** redirect URI `https://chatgpt.com/connector_platform_oauth_redirect`
+instead of a per-connection callback that can only be read from the management
+page. Confirm the redirect URI shown for your connection still matches before
+relying on it.
+
+Metadata deliberately does **not** advertise DCR, CIMD or OIDC scopes. Token requests are server-to-server form-encoded POSTs,
 not browser-session requests; the token route does not accept cookie auth.
 
 ## Connection lifecycle

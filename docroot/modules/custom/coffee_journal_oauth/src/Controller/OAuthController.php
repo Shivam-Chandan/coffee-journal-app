@@ -55,6 +55,9 @@ final class OAuthController extends ControllerBase {
       'response_types_supported' => ['code'], 'grant_types_supported' => ['authorization_code', 'refresh_token'],
       'code_challenge_methods_supported' => ['S256'], 'scopes_supported' => OAuthSettings::SCOPES,
       'token_endpoint_auth_methods_supported' => array_values(array_unique($methods)),
+      // Every authorization redirect carries iss, so clients can use a stable
+      // redirect URI instead of a per-connection callback.
+      'authorization_response_iss_parameter_supported' => TRUE,
     ], 200, ['Cache-Control' => 'private, no-store']);
   }
 
@@ -70,7 +73,7 @@ final class OAuthController extends ControllerBase {
       return $this->formBuilder()->getForm(ConsentForm::class, $query);
     }
     catch (OAuthServerException $exception) {
-      return $this->server->error($exception);
+      return $this->server->authorizeError($exception);
     }
   }
 

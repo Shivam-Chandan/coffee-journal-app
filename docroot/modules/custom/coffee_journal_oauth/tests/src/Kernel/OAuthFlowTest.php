@@ -430,6 +430,69 @@ final class OAuthFlowTest extends KernelTestBase {
     $this->assertStringContainsString('scope="beans:read beans:create"', $challenge);
   }
 
+  /**
+   * RFC 9207: every authorization redirect must identify the issuer, which is
+   * what lets ChatGPT use its documented stable callback URL.
+   */
+  public function testIssuerIdentificationOnEveryAuthorizationRedirect(): void {
+    $server = $this->container->get('coffee_journal_oauth.server');
+    $issuer = 'https://journal.example';
+
+    // Success redirect.
+    $approved = $server->complete($this->query(), $this->owner, TRUE);
+    parse_str(parse_url($approved->headers->get('Location'), PHP_URL_QUERY), $granted);
+    $this->assertSame($issuer, $granted['iss']);
+    $this->assertArrayHasKey('code', $granted);
+    $this->assertSame('test-state-0001', $granted['state']);
+
+    // Denial redirect.
+    $denied = $server->complete($this->query(), $this->owner, FALSE);
+    parse_str(parse_url($denied->headers->get('Location'), PHP_URL_QUERY), $rejected);
+    $this->assertSame($issuer, $rejected['iss']);
+    $this->assertSame('access_denied', $rejected['error']);
+
+    // Error redirect from the authorize endpoint itself.
+    $error = $server->authorizeError(\League\OAuth2\Server\Exception\OAuthServerException::invalidScope('unknown', 'https://chatgpt.com/connector_platform_oauth_redirect'));
+    parse_str(parse_url($error->headers->get('Location'), PHP_URL_QUERY), $failed);
+    $this->assertSame($issuer, $failed['iss']);
+
+    // The advertised metadata must match the behavior above, and the iss value
+    // must equal the metadata issuer exactly for strict client comparison.
+    $meta = json_decode(OAuthController::create($this->container)->discovery(Request::create('/'), 'server')->getContent(), TRUE);
+    $this->assertTrue($meta['authorization_response_iss_parameter_supported']);
+    $this->assertSame($issuer, $meta['issuer']);
+
+    // Token responses are not redirects and must not be rewritten.
+    $this->assertNull($this->exchange($this->code())->headers->get('Location'));
+  }
+
+  /**
+   * ChatGPT's documented stable callback works once iss support is advertised.
+   */
+  public function testChatgptStableCallbackIsAccepted(): void {
+    $runtime = $this->runtime;
+    $runtime['coffee_journal_oauth']['chatgpt_redirect_uris'] = "https://chatgpt.com/connector_platform_oauth_redirect\nhttps://chatgpt.com/connector/oauth/test-client";
+    new Settings($runtime);
+    $server = $this->container->get('coffee_journal_oauth.server');
+    $stable = ['redirect_uri' => 'https://chatgpt.com/connector_platform_oauth_redirect'];
+
+    // Both registered callbacks work, and each is bound through the exchange.
+    foreach ([$stable, ['redirect_uri' => 'https://chatgpt.com/connector/oauth/test-client']] as $changes) {
+      $code = $this->code($changes);
+      $this->assertSame(200, $this->exchange($code, $changes)->getStatusCode());
+      // A code issued for one callback cannot be redeemed against the other.
+      $other = $changes === $stable ? ['redirect_uri' => 'https://chatgpt.com/connector/oauth/test-client'] : $stable;
+      $this->assertGreaterThanOrEqual(400, $this->exchange($this->code($changes), $other)->getStatusCode());
+    }
+
+    // An unregistered chatgpt.com path is still refused.
+    try {
+      $server->authorize($this->query(['redirect_uri' => 'https://chatgpt.com/not-registered']));
+      $this->fail('Unregistered callbacks must be rejected.');
+    }
+    catch (\League\OAuth2\Server\Exception\OAuthServerException) { $this->addToAssertionCount(1); }
+  }
+
   private function providerStatus(string $provider): string {
     $status = $this->container->get('coffee_journal_oauth.grants')->status($this->owner);
     foreach ($status['providers'] as $entry) {
