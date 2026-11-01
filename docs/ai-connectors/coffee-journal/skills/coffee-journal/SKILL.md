@@ -16,6 +16,7 @@ Discover the tool definitions from the server instead of recreating its protocol
 | `get_coffee_options` | Read required fields, types, units, limits and allowed choices | No arguments |
 | `list_coffees` | List/search my coffees, newest first | Optional `q` string, optional `before` integer cursor |
 | `get_coffee` | Read one of my coffees | `uuid` string |
+| `update_coffee` | Update an existing coffee | `uuid` plus only the fields to change |
 | `create_coffee` | Save a confirmed coffee | `request_id` plus supported coffee fields |
 
 The create schema reflects the production Drupal field configuration, including
@@ -153,4 +154,24 @@ its journal link and **Added via ChatGPT**.
   connection. Do not run automatic polling or bulk creation.
 
 
-Never create a test entry without explicit permission. No update, delete, brew or upload operations. Use get_coffee_options before proposing creation; list_coffees for search/pagination and get_coffee for details. create_coffee is a write requiring explicit confirmation and host permission controls. All field constraints come from live options and discovered schemas. REST details in these instructions explain the backend contract; use the connected MCP tools.
+Never create a test entry without explicit permission. No delete, brew or upload operations. Use get_coffee_options before proposing creation; list_coffees for search/pagination and get_coffee for details. create_coffee is a write requiring explicit confirmation and host permission controls. All field constraints come from live options and discovered schemas. REST details in these instructions explain the backend contract; use the connected MCP tools.
+
+
+## Update an existing coffee
+
+Use list_coffees to identify the intended bag and get_coffee to read its current
+values. Resolve ambiguous matches before writing. Fetch get_coffee_options for
+live field constraints. Call update_coffee with the UUID and only requested
+changes; omitted fields remain unchanged. A clear user instruction to update is
+authorization; honor host write approvals. Never invent ratings.
+
+- Ratings use the live schema keys and ranges (rating, bitterness,
+  acidity and clarity).
+- Mark a bag done with `finished: true`; reopen it with `finished: false`.
+- Mark beans for reorder with `worth_reordering: true`; remove that flag with
+  `worth_reordering: false`. This records a preference, without placing an order.
+- Return the saved values and journal URL. Updates require `beans:update`;
+  reconnect with that permission if it is missing. Existing read/create grants
+  do not gain update permission automatically.
+- Updates set absolute values and need no request_id. For an uncertain result,
+  read the coffee before deciding whether to retry the same fields.

@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "coffee-journal",
-  "version": "1.0.0",
-  "description": "Read and create coffees in my personal Drupal coffee journal.",
+  "version": "1.1.0",
+  "description": "Read, create and update coffees in my personal Drupal coffee journal.",
   "author": {
     "name": "Shivam Chandan"
   },

@@ -34,7 +34,7 @@ final class JournalTool implements ToolHandlerInterface {
       }
       return new CallToolResult([new TextContent(json_encode($data, JSON_THROW_ON_ERROR))], structuredContent: $data);
     }
-    $scope = $this->operation === 'create' ? 'beans:create' : 'beans:read';
+    $scope = match ($this->operation) { 'create' => 'beans:create', 'update' => 'beans:update', default => 'beans:read' };
     if (!in_array($scope, $this->connection['scopes'], TRUE)) {
       return CallToolResult::error([new TextContent('This connection does not allow this operation.')]);
     }
@@ -42,6 +42,7 @@ final class JournalTool implements ToolHandlerInterface {
       'options' => $this->journal->options(),
       'list' => $this->journal->listing($this->connection, isset($arguments['before']) ? array_replace($arguments, ['before' => (string) $arguments['before']]) : $arguments),
       'detail' => $this->journal->detail($this->connection, $arguments['uuid']),
+      'update' => $this->journal->update($this->connection, $arguments),
       'create' => $this->journal->create($this->connection, $arguments),
     };
     $data = json_decode($response->getContent(), TRUE, 512, JSON_THROW_ON_ERROR);

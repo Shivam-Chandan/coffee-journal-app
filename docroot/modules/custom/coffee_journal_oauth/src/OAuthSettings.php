@@ -11,7 +11,7 @@ use Drupal\Core\Site\Settings;
  */
 final class OAuthSettings {
 
-  public const SCOPES = ['beans:read', 'beans:create'];
+  public const SCOPES = ['beans:read', 'beans:create', 'beans:update'];
 
   /**
    * Documented callback hosts per provider. Exact URIs stay runtime settings.

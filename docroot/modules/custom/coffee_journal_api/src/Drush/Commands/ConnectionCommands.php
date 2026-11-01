@@ -24,7 +24,7 @@ final class ConnectionCommands extends DrushCommands {
       throw new \InvalidArgumentException('Use integer days and scope read or read-create.');
     }
     $result = \Drupal::service('coffee_journal_api.connections')->issue($provider, (int) $days,
-      $scope === 'read' ? ['beans:read'] : ['beans:read', 'beans:create']);
+      $scope === 'read' ? ['beans:read'] : ['beans:read', 'beans:create', 'beans:update']);
     $this->output()->writeln('Connection ID: ' . $result['id']);
     $this->output()->writeln('Token (shown once; save in connector authentication): ' . $result['token']);
   }

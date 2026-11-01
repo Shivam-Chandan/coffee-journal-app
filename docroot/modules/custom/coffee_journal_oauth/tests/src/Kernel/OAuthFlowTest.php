@@ -195,7 +195,7 @@ final class OAuthFlowTest extends KernelTestBase {
     $call(['jsonrpc' => '2.0', 'method' => 'notifications/initialized'], $session);
     $response = $call(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/list'], $session);
     $tools = $this->rpc($response)['result']['tools'];
-    $this->assertCount(5, $tools);
+    $this->assertCount(6, $tools);
     $this->assertSame('oauth2', $tools[0]['securitySchemes'][0]['type']);
     $profile = array_values(array_filter($tools, static fn ($tool) => $tool['name'] === 'get_profile'))[0];
     $this->assertTrue($profile['_meta']['openai/profile']);
@@ -420,14 +420,14 @@ final class OAuthFlowTest extends KernelTestBase {
       $data = json_decode($controller->discovery(Request::create($path), 'resource')->getContent(), TRUE);
       $this->assertSame('https://journal.example/api/integrations/v1/mcp', $data['resource']);
       $this->assertSame(['https://journal.example'], $data['authorization_servers']);
-      $this->assertSame(['beans:read', 'beans:create'], $data['scopes_supported']);
+      $this->assertSame(['beans:read', 'beans:create', 'beans:update'], $data['scopes_supported']);
     }
     $server = json_decode($controller->discovery(Request::create('/.well-known/openid-configuration'), 'server')->getContent(), TRUE);
     $this->assertSame('https://journal.example', $server['issuer']);
     $this->assertSame('https://journal.example/coffee/oauth/token', $server['token_endpoint']);
     $challenge = $this->container->get('coffee_journal_oauth.settings')->challenge();
     $this->assertStringContainsString('resource_metadata="https://journal.example/.well-known/oauth-protected-resource"', $challenge);
-    $this->assertStringContainsString('scope="beans:read beans:create"', $challenge);
+    $this->assertStringContainsString('scope="beans:read beans:create beans:update"', $challenge);
   }
 
   /**

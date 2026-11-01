@@ -58,6 +58,38 @@ final class ConnectorJournalTest extends KernelTestBase {
     new Settings(['hash_salt' => 'kernel-only', 'coffee_journal_connector_account_uuid' => $this->owner->uuid(), 'coffee_journal_connector_app_url' => 'https://journal.example']);
   }
 
+  public function testPartialUpdatesRespectOwnershipAndScope(): void {
+    foreach (['field_is_finished', 'field_worth_reordering'] as $name) {
+      FieldStorageConfig::create(['entity_type' => 'node', 'field_name' => $name, 'type' => 'boolean'])->save();
+      FieldConfig::create(['entity_type' => 'node', 'field_name' => $name, 'bundle' => 'coffee_bean'])->save();
+    }
+    FieldStorageConfig::create(['entity_type' => 'node', 'field_name' => 'field_overall_taste_rating', 'type' => 'decimal', 'settings' => ['precision' => 3, 'scale' => 1]])->save();
+    FieldConfig::create(['entity_type' => 'node', 'field_name' => 'field_overall_taste_rating', 'bundle' => 'coffee_bean', 'settings' => ['min' => 0, 'max' => 5]])->save();
+    $connections = $this->container->get('coffee_journal_api.connections');
+    $connection = $connections->verify($connections->issue()['token']);
+    $journal = $this->container->get('coffee_journal_api.connector_journal');
+    $node = Node::create(['type' => 'coffee_bean', 'uid' => $this->owner->id(), 'title' => 'Keep title', 'field_brand_roaster' => 'Keep brand', 'status' => 1]);
+    $node->save();
+    $patch = ['uuid' => $node->uuid(), 'finished' => TRUE, 'worth_reordering' => TRUE, 'rating' => 4.5];
+    $this->assertSame(200, $journal->update($connection, $patch)->getStatusCode());
+    $saved = Node::load($node->id());
+    $this->assertSame(4.5, (float) $saved->get('field_overall_taste_rating')->value);
+    $this->assertSame(422, $journal->update($connection, ['uuid' => $node->uuid(), 'rating' => 6])->getStatusCode());
+    $this->assertSame(200, $journal->update($connection, ['uuid' => $node->uuid(), 'finished' => FALSE])->getStatusCode());
+    $this->assertFalse((bool) Node::load($node->id())->get('field_is_finished')->value);
+    $this->assertSame('Keep title', $saved->label());
+    $this->assertSame('Keep brand', $saved->get('field_brand_roaster')->value);
+    $this->assertTrue((bool) $saved->get('field_is_finished')->value);
+    $this->assertTrue((bool) $saved->get('field_worth_reordering')->value);
+    $this->assertSame(422, $journal->update($connection, ['uuid' => $node->uuid(), 'finished' => 'yes'])->getStatusCode());
+    $this->assertSame(400, $journal->update($connection, ['uuid' => $node->uuid()])->getStatusCode());
+    $readonly = $connection;
+    $readonly['scopes'] = ['beans:read', 'beans:create'];
+    $this->assertSame(403, $journal->update($readonly, $patch)->getStatusCode());
+    $connection['account'] = $this->other;
+    $this->assertSame(404, $journal->update($connection, $patch)->getStatusCode());
+  }
+
   public function testCredentialLifecycleAndRouteIsolation(): void {
     $connections = $this->container->get('coffee_journal_api.connections');
     $issued = $connections->issue();
@@ -200,7 +232,7 @@ final class ConnectorJournalTest extends KernelTestBase {
     $this->assertSame(202, $response->getStatusCode());
     $response = $controller->handle($request(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/list'], $session));
     $body = $this->mcpBody($response);
-    $this->assertSame(['get_coffee_options', 'list_coffees', 'get_coffee', 'create_coffee'], array_column($body['result']['tools'], 'name'));
+    $this->assertSame(['get_coffee_options', 'list_coffees', 'get_coffee', 'update_coffee', 'create_coffee'], array_column($body['result']['tools'], 'name'));
     $create = ['jsonrpc' => '2.0', 'id' => 3, 'method' => 'tools/call', 'params' => [
       'name' => 'create_coffee', 'arguments' => ['request_id' => 'mcp-kernel-0001', 'title' => 'Claude coffee'],
     ]];
@@ -212,6 +244,12 @@ final class ConnectorJournalTest extends KernelTestBase {
     $response = $controller->handle($request($create, $session));
     $replay = $this->mcpBody($response);
     $this->assertSame($body['result']['structuredContent']['data']['id'], $replay['result']['structuredContent']['data']['id']);
+    $response = $controller->handle($request(['jsonrpc' => '2.0', 'id' => 40, 'method' => 'tools/call', 'params' => [
+      'name' => 'update_coffee', 'arguments' => ['uuid' => $body['result']['structuredContent']['data']['id'], 'brand' => 'Updated roaster'],
+    ]], $session));
+    $updated = $this->mcpBody($response);
+    $this->assertFalse($updated['result']['isError'] ?? FALSE, json_encode($updated));
+    $this->assertSame('Updated roaster', $updated['result']['structuredContent']['data']['brand']);
     $create['params']['arguments']['field_creation_provider'] = 'chatgpt';
     $create['id'] = 5;
     $response = $controller->handle($request($create, $session));
@@ -225,6 +263,7 @@ final class ConnectorJournalTest extends KernelTestBase {
     $readonlySession = $response->headers->get('Mcp-Session-Id');
     $controller->handle($request(['jsonrpc' => '2.0', 'method' => 'notifications/initialized'], $readonlySession, $secondConnection));
     $response = $controller->handle($request(['jsonrpc' => '2.0', 'id' => 5, 'method' => 'tools/list'], $readonlySession, $secondConnection));
+    $this->assertNotContains('update_coffee', array_column($this->mcpBody($response)['result']['tools'], 'name'));
     $this->assertNotContains('create_coffee', array_column($this->mcpBody($response)['result']['tools'], 'name'));
     $foreignOrigin = $request($initialize);
     $foreignOrigin->headers->set('Origin', 'https://foreign.example');

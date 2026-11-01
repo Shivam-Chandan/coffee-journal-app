@@ -54,7 +54,7 @@ final class ConsentForm extends FormBase {
     $form['destination'] = ['#type' => 'item', '#plain_text' => $this->t('Approving returns you to @host.', [
       '@host' => parse_url($query['redirect_uri'], PHP_URL_HOST),
     ])];
-    $labels = ['beans:read' => $this->t('Read my coffees'), 'beans:create' => $this->t('Create coffees')];
+    $labels = ['beans:read' => $this->t('Read my coffees'), 'beans:create' => $this->t('Create coffees'), 'beans:update' => $this->t('Update coffees')];
     $form['scopes'] = ['#theme' => 'item_list', '#items' => array_map(static fn ($scope) => $labels[$scope->getIdentifier()], $request->getScopes())];
     $form['actions'] = ['#type' => 'actions'];
     $form['actions']['allow'] = ['#type' => 'submit', '#value' => $this->t('Allow'), '#approved' => TRUE];

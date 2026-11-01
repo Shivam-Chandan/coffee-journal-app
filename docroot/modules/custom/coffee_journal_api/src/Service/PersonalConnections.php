@@ -61,9 +61,9 @@ final class PersonalConnections {
     return $pilot && (int) $pilot->id() === (int) $account->id() ? self::CLAUDE_CONNECTORS_URL : NULL;
   }
 
-  public function issue(string $provider = 'chatgpt', int $days = 90, array $scopes = ['beans:read', 'beans:create']): array {
+  public function issue(string $provider = 'chatgpt', int $days = 90, array $scopes = ['beans:read', 'beans:create', 'beans:update']): array {
     if (!in_array($provider, ['chatgpt', 'claude', 'gemini'], TRUE) || $days < 1 || $days > 365
-      || !$scopes || array_diff($scopes, ['beans:read', 'beans:create'])) {
+      || !$scopes || array_diff($scopes, ['beans:read', 'beans:create', 'beans:update'])) {
       throw new \InvalidArgumentException('Invalid provider, expiry or scopes.');
     }
     $account = $this->pilot();

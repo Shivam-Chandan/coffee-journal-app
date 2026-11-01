@@ -4,7 +4,7 @@
     "email": "shivam.k.chandan@gmail.com",
     "name": "Shivam Chandan"
   },
-  "description": "Read and create coffees in my personal Drupal coffee journal.",
+  "description": "Read, create and update coffees in my personal Drupal coffee journal.",
   "extensions": {
     "com.openai": {
       "interface": {
@@ -17,5 +17,5 @@
     }
   },
   "name": "coffee-journal",
-  "version": "1.2.0"
+  "version": "1.1.0"
 }

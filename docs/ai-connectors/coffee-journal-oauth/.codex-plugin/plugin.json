@@ -3,14 +3,14 @@
     "email": "shivam.k.chandan@gmail.com",
     "name": "Shivam Chandan"
   },
-  "description": "Read and create coffees in my personal Drupal coffee journal.",
+  "description": "Read, create and update coffees in my personal Drupal coffee journal.",
   "interface": {
     "capabilities": [],
     "category": "Other",
     "defaultPrompt": "Help me manage my coffee journal.",
     "developerName": "Shivam Chandan",
     "displayName": "Coffee Journal",
-    "longDescription": "Read and create coffees in my personal Drupal coffee journal.",
+    "longDescription": "Read, create and update coffees in my personal Drupal coffee journal.",
     "shortDescription": "Your personal coffee journal"
   },
   "keywords": [],
@@ -18,5 +18,5 @@
   "name": "coffee-journal",
   "requires_local_executor": false,
   "skills": "./skills",
-  "version": "1.2.0"
+  "version": "1.1.0"
 }

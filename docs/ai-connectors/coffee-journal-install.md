@@ -15,7 +15,7 @@ coffee-journal/
   skills/coffee-journal/SKILL.md
 ```
 
-The complete manifests and assistant instructions are in those files. No runtime handlers or static tool schemas are needed: the host discovers the existing remote MCP server. Its four expected tools are get_coffee_options, list_coffees, get_coffee and create_coffee. Discovery remains unverified until authentication.
+The complete manifests and assistant instructions are in those files. No runtime handlers or static tool schemas are needed: the host discovers the existing remote MCP server. Its five expected tools are get_coffee_options, list_coffees, get_coffee, create_coffee and update_coffee. Discovery remains unverified until authentication.
 
 ## Install and connect
 

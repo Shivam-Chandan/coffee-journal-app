@@ -143,7 +143,7 @@ not browser-session requests; the token route does not accept cookie auth.
 
 ## Connection lifecycle
 
-- Scopes: `beans:read` and `beans:create`.
+- Scopes: `beans:read`, `beans:create` and `beans:update`.
 - Access token lifetime: 15 minutes.
 - Code lifetime: 5 minutes, single use.
 - Grant family lifetime: at most 30 days from creation.

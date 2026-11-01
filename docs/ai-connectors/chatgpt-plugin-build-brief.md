@@ -94,6 +94,7 @@ Discover the tool definitions from the server instead of recreating its protocol
 | `get_coffee_options` | Read required fields, types, units, limits and allowed choices | No arguments |
 | `list_coffees` | List/search my coffees, newest first | Optional `q` string, optional `before` integer cursor |
 | `get_coffee` | Read one of my coffees | `uuid` string |
+| `update_coffee` | Update ratings, finished bags or reorder preference | `uuid` and fields to change; requires `beans:update` |
 | `create_coffee` | Save a confirmed coffee | `request_id` plus supported coffee fields |
 
 The create schema reflects the production Drupal field configuration, including

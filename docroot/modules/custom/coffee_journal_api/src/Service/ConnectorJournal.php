@@ -148,6 +148,41 @@ final class ConnectorJournal {
     }
   }
 
+  public function update(array $connection, array $payload): JsonResponse {
+    if (!in_array('beans:update', $connection['scopes'], TRUE)) {
+      return $this->presenter->error('forbidden', 'This connection cannot update coffees.', 403);
+    }
+    $uuid = $payload['uuid'] ?? NULL;
+    unset($payload['uuid']);
+    if (!is_string($uuid) || !$payload || array_diff(array_keys($payload), array_keys(HeadlessPresenter::BEAN_FIELDS))) {
+      return $this->presenter->error('invalid_request', 'Supply a coffee UUID and at least one documented coffee field.', 400);
+    }
+    $lockName = 'coffee_connector_update:' . hash('sha256', $uuid);
+    if (!$this->lock->acquire($lockName, 120.0)) {
+      return $this->presenter->error('in_progress', 'This coffee is busy. Retry the same update.', 409);
+    }
+    try {
+      $this->entities->getStorage('node')->resetCache();
+      $node = $this->presenter->loadNode($uuid, 'coffee_bean');
+      if (!$this->owned($node, $connection)) {
+        return $this->presenter->error('not_found', 'This coffee is unavailable.', 404);
+      }
+      if (!$node->access('update', $connection['account'])) {
+        return $this->presenter->error('forbidden', 'You cannot update this coffee.', 403);
+      }
+      $errors = $this->input->apply($node, $payload, $connection['account'], FALSE);
+      $errors += $this->input->violations($node);
+      if ($errors) {
+        return $this->presenter->error('validation_failed', 'Please review the coffee fields.', 422, $errors);
+      }
+      $node->save();
+      return $this->presenter->response(['data' => $this->present($node, $connection)]);
+    }
+    finally {
+      $this->lock->release($lockName);
+    }
+  }
+
   private function owned(?NodeInterface $node, array $connection): bool {
     return $node !== NULL && $node->bundle() === 'coffee_bean'
       && (int) $node->getOwnerId() === (int) $connection['account']->id()

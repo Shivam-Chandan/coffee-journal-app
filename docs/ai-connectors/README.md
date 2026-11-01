@@ -144,7 +144,7 @@ accounts. Checked November 1, 2026; if your UI lacks that setting, do not put a 
 in the URL or expose the endpoint anonymously. That client requires a separately
 implemented supported authentication path before use.
 
-Tools: `get_coffee_options`, `list_coffees`, `get_coffee`, `create_coffee`. Read-only
+Tools: `get_coffee_options`, `list_coffees`, `get_coffee`, `create_coffee`, `update_coffee`. Read-only
 connections do not advertise the create tool. Schemas reject undocumented fields.
 MCP requests share the 60/minute connection limit and 64 KiB body limit; JSON-RPC
 batches are rejected to prevent multiplying the request budget. All initialization,
@@ -158,3 +158,17 @@ Provider identities are registered for ChatGPT, Claude and Gemini, but issuing a
 token alone does not connect a consumer chat app. Gemini remains deferred until
 a specific client supports this integration. If a future client requires OAuth,
 use a maintained implementation rather than weakening fixed-credential access.
+
+
+### Updating coffees through MCP
+
+`update_coffee` accepts `uuid` and the coffee fields to change. Examples:
+`{"uuid":"<coffee UUID>","rating":4.5}`, `{"uuid":"<coffee UUID>","finished":true}`,
+and `{"uuid":"<coffee UUID>","worth_reordering":true}`. Omitted fields are
+preserved. Read live options for rating ranges. Updates require ownership,
+Drupal update access, and the new `beans:update` scope. Existing credentials
+retain their original scopes; issue a replacement personal connection or
+reconnect OAuth with `beans:update` after deploying the server and updated
+plugin. No database migration is required. The `coffee-journal-oauth.zip`
+package requests all three scopes. Production deployment and host discovery
+must be verified separately from the local kernel suite.

@@ -4,13 +4,13 @@
     "developerName": "Shivam Chandan",
     "displayName": "Coffee Journal",
     "shortDescription": "Your personal coffee journal",
-    "longDescription": "Read and create coffees in my personal Drupal coffee journal.",
+    "longDescription": "Read, create and update coffees in my personal Drupal coffee journal.",
     "category": "Other",
     "capabilities": []
   },
   "name": "coffee-journal",
-  "version": "1.0.1",
-  "description": "Read and create coffees in my personal Drupal coffee journal.",
+  "version": "1.1.0",
+  "description": "Read, create and update coffees in my personal Drupal coffee journal.",
   "author": {
     "name": "Shivam Chandan",
     "email": "shivam.k.chandan@gmail.com"
