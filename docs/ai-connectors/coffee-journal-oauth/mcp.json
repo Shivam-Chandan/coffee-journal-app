@@ -2,25 +2,26 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
   "mcpServers": {
     "coffee-journal": {
-      "type": "streamable-http",
-      "url": "https://eeschandan1.prod.acquia-sites.com/api/integrations/v1/mcp",
       "extensions": {
         "com.openai": {
           "auth": {
-            "type": "oauth",
-            "client": {
-              "mode": "provided",
-              "clientId": "coffee-journal-chatgpt-prod",
-              "tokenEndpointAuthMethod": "none"
-            },
-            "resource": "https://eeschandan1.prod.acquia-sites.com/api/integrations/v1/mcp",
             "baseScopes": [
               "beans:read",
               "beans:create"
-            ]
+            ],
+            "client": {
+              "clientId": "coffee-journal-chatgpt-prod",
+              "mode": "provided",
+              "redirectUri": "https://chatgpt.com/connector_platform_oauth_redirect",
+              "tokenEndpointAuthMethod": "none"
+            },
+            "resource": "https://eeschandan1.prod.acquia-sites.com/api/integrations/v1/mcp",
+            "type": "oauth"
           }
         }
-      }
+      },
+      "type": "streamable-http",
+      "url": "https://eeschandan1.prod.acquia-sites.com/api/integrations/v1/mcp"
     }
   }
 }

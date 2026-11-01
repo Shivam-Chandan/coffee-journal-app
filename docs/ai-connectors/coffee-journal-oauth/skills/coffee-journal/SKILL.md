@@ -17,9 +17,11 @@ Discover the tool definitions from the server instead of recreating its protocol
 | `list_coffees` | List/search my coffees, newest first | Optional `q` string, optional `before` integer cursor |
 | `get_coffee` | Read one of my coffees | `uuid` string |
 | `create_coffee` | Save a confirmed coffee | `request_id` plus supported coffee fields |
+| `get_profile` | Confirm which journal profile the credential belongs to | No arguments |
 
 The create schema reflects the production Drupal field configuration, including
-required fields. A read-only credential will not advertise `create_coffee`.
+required fields. A read-only grant will not advertise `create_coffee`, and
+`get_profile` appears only on an authenticated OAuth connection.
 
 Follow MCP initialization and protocol negotiation. Send the returned
 `Mcp-Session-Id` on subsequent requests, with the negotiated protocol header when
