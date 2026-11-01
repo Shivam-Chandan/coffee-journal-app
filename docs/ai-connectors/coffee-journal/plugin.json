@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "coffee-journal",
+  "version": "1.0.0",
+  "description": "Read and create coffees in my personal Drupal coffee journal.",
+  "author": {
+    "name": "Shivam Chandan"
+  },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Coffee Journal",
+        "shortDescription": "Your personal coffee journal",
+        "defaultPrompt": "Help me manage my coffee journal."
+      }
+    }
+  }
+}

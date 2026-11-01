@@ -6,6 +6,7 @@ namespace Drupal\coffee_journal_api\Controller;
 
 use Drupal\coffee_journal_api\Service\HeadlessPresenter;
 use Drupal\coffee_journal_api\Service\PersonalConnections;
+use Drupal\coffee_journal_api\Service\ChatgptConnectionStatusInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\node\NodeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -26,6 +27,7 @@ final class HeadlessReadController extends ControllerBase {
     private readonly PersonalConnections $connections,
     private readonly ?object $likes = NULL,
     private readonly ?object $bookmarks = NULL,
+    private readonly ?ChatgptConnectionStatusInterface $oauthStatus = NULL,
   ) {}
 
   /**
@@ -37,6 +39,7 @@ final class HeadlessReadController extends ControllerBase {
       $container->get('coffee_journal_api.connections'),
       $container->has('coffee_journal_likes.repository') ? $container->get('coffee_journal_likes.repository') : NULL,
       $container->has('coffee_journal_bookmark.repository') ? $container->get('coffee_journal_bookmark.repository') : NULL,
+      $container->has('coffee_journal_oauth.connection_status') ? $container->get('coffee_journal_oauth.connection_status') : NULL,
     );
   }
 
@@ -187,6 +190,7 @@ final class HeadlessReadController extends ControllerBase {
         'initial' => mb_strtoupper(mb_substr((string) $account->getDisplayName(), 0, 1)),
         'member_since' => (int) $user->getCreatedTime(),
         'chatgpt_app_url' => $this->connections->chatgptAppUrl($account),
+        'chatgpt_connection' => $this->oauthStatus?->status($account),
         'stats' => [
           'beans' => $count('coffee_bean'),
           'brews' => $count('brew_recipe'),

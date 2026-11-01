@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "author": {
+    "email": "shivam.k.chandan@gmail.com",
+    "name": "Shivam Chandan"
+  },
+  "description": "Read and create coffees in my personal Drupal coffee journal.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "defaultPrompt": "Help me manage my coffee journal.",
+        "developerName": "Shivam Chandan",
+        "displayName": "Coffee Journal",
+        "shortDescription": "Your personal coffee journal"
+      },
+      "requires_local_executor": false
+    }
+  },
+  "name": "coffee-journal",
+  "version": "1.0.1"
+}

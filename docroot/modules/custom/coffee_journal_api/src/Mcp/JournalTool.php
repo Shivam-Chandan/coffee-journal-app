@@ -22,6 +22,18 @@ final class JournalTool implements ToolHandlerInterface {
   ) {}
 
   public function execute(array $arguments, ClientGateway $gateway): CallToolResult {
+    if (!isset($this->connection['account'])) {
+      return new CallToolResult([new TextContent('Connect your Coffee Journal account to continue.')], TRUE,
+        meta: ['mcp/www_authenticate' => [$this->connection['oauth_challenge']]]);
+    }
+    if ($this->operation === 'profile') {
+      $account = $this->connection['account'];
+      $data = ['id' => $account->uuid(), 'name' => $account->getDisplayName()];
+      if (is_string($account->getEmail()) && $account->getEmail() !== '') {
+        $data['email'] = $account->getEmail();
+      }
+      return new CallToolResult([new TextContent(json_encode($data, JSON_THROW_ON_ERROR))], structuredContent: $data);
+    }
     $scope = $this->operation === 'create' ? 'beans:create' : 'beans:read';
     if (!in_array($scope, $this->connection['scopes'], TRUE)) {
       return CallToolResult::error([new TextContent('This connection does not allow this operation.')]);

@@ -1,5 +1,11 @@
 # Personal AI journal connections
 
+For native ChatGPT MCP account linking, use the new
+[OAuth setup guide](oauth-setup.md). OpenAI's current native MCP authentication
+flow requires OAuth; app-issued bearer credentials below remain useful for REST
+Actions, compatible tool runtimes and API verification. Do not assume the native
+ChatGPT connector accepts a custom fixed bearer header.
+
 The implementation exposes provider-neutral read/create coffee tools through
 ChatGPT Actions and a remote MCP endpoint for compatible clients such as Claude.
 It makes no inference API calls and requires no OpenAI or Anthropic API key.

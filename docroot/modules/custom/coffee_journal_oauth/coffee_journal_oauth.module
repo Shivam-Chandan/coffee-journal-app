@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @file
+ * Lifecycle hooks for journal OAuth records.
+ */
+
+/**
+ * Implements hook_cron().
+ */
+function coffee_journal_oauth_cron(): void {
+  \Drupal::database()->delete('coffee_journal_oauth_token')->condition('expires', time(), '<=')->execute();
+}

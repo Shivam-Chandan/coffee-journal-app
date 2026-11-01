@@ -6,6 +6,7 @@ import { State } from '../../components/State'
 import { BeanTile } from '../beans/BeanTile'
 import { BrewCardItem } from '../brews/BrewCardItem'
 import { useLogout, useSession } from '../auth/useAuth'
+import { ChatgptConnectionControls } from './ChatgptConnectionControls'
 
 const TABS = [
   { id: 'posts', label: 'Brews' },
@@ -72,6 +73,12 @@ function ProfileHeader({ uid, name, email }: { uid: number; name: string; email:
   const query = useQuery(profileQuery(uid))
   const stats = query.data?.data.stats
   const chatgptAppUrl = query.data?.data.chatgpt_app_url
+  const isIPhone = typeof navigator !== 'undefined' && /iPhone|iPod/.test(navigator.userAgent)
+  // Native plugin-page routing needs verification on the installed iOS client.
+  // Never automatically fall back to Safari: it has a separate login session.
+  const chatgptLaunchUrl = isIPhone && chatgptAppUrl
+    ? chatgptAppUrl.replace(/^https:\/\/chatgpt\.com\//, 'chatgpt://')
+    : chatgptAppUrl ?? undefined
   return (
     <>
       <header className="cj-profile">
@@ -88,11 +95,14 @@ function ProfileHeader({ uid, name, email }: { uid: number; name: string; email:
         <section className="cj-profile-connection" aria-labelledby="chatgpt-connection-title">
           <div className="cj-profile-connection__text">
             <h2 id="chatgpt-connection-title"><Icon name="sparkles" />Coffee Journal in ChatGPT</h2>
-            <p>Open your ChatGPT app to read and add coffees. First-time setup uses your personal connection token in the plugin’s credential settings.</p>
+            {query.data?.data.chatgpt_connection?.enabled
+              ? <ChatgptConnectionControls uid={uid} initial={query.data.data.chatgpt_connection} />
+              : <p>Open your ChatGPT app to read and add coffees. First-time setup uses your personal connection token in the plugin’s credential settings.</p>}
           </div>
-          <a href={chatgptAppUrl} target="_blank" rel="noopener noreferrer" className="cj-button cj-button--primary">
-            <Icon name="link" />Connect ChatGPT<span className="sr-only"> (opens in a new tab)</span>
+          <a href={chatgptLaunchUrl} className="cj-button cj-button--primary">
+            <Icon name="link" />Connect ChatGPT
           </a>
+          {isIPhone && <p>If the plugin does not open, select Coffee Journal from Plugins inside the ChatGPT app.</p>}
         </section>
       )}
     </>

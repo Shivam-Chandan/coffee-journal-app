@@ -112,6 +112,16 @@ export const savedSchema = z.object({
   ])),
   meta,
 })
+export const chatgptConnectionSchema = z.object({
+  enabled: z.boolean(),
+  status: z.enum(['not_connected', 'authorized', 'reconnect_required', 'unavailable']),
+  scopes: z.array(z.string()).optional(),
+  authorized_at: z.number().int().optional(),
+  expires_at: z.number().int().optional(),
+})
+export const chatgptConnectionResponse = z.object({ data: chatgptConnectionSchema })
+export type ChatgptConnection = z.infer<typeof chatgptConnectionSchema>
+
 export const profileSchema = z.object({
   data: z.object({
     id: z.number().int().positive(),
@@ -120,6 +130,7 @@ export const profileSchema = z.object({
     initial: z.string(),
     member_since: z.number().int().nonnegative(),
     chatgpt_app_url: z.string().url().nullable().optional(),
+    chatgpt_connection: chatgptConnectionSchema.nullable().optional(),
     stats: z.object({
       beans: z.number().int().nonnegative(),
       brews: z.number().int().nonnegative(),

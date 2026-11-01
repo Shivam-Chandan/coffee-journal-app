@@ -5,7 +5,7 @@ coffee_journal_api.connector_mcp:
   requirements:
     _access: 'TRUE'
   options:
-    _auth: ['coffee_connector']
+    _auth: ['coffee_connector', 'coffee_oauth']
     no_cache: TRUE
 
 coffee_journal_api.connector_options:

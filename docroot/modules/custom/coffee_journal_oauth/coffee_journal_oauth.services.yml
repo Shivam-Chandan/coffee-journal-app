@@ -1,0 +1,23 @@
+services:
+  coffee_journal_oauth.settings:
+    class: Drupal\coffee_journal_oauth\OAuthSettings
+  coffee_journal_oauth.grants:
+    class: Drupal\coffee_journal_oauth\GrantStore
+    arguments: ['@database', '@coffee_journal_api.connections', '@coffee_journal_oauth.settings', '@lock']
+  coffee_journal_oauth.repositories:
+    class: Drupal\coffee_journal_oauth\Repositories
+    arguments: ['@coffee_journal_oauth.settings', '@coffee_journal_oauth.grants']
+  coffee_journal_oauth.server:
+    class: Drupal\coffee_journal_oauth\OAuthServer
+    arguments: ['@coffee_journal_oauth.settings', '@coffee_journal_oauth.repositories', '@coffee_journal_oauth.grants', '@lock', '@database']
+  coffee_journal_oauth.connection_status:
+    class: Drupal\coffee_journal_oauth\ConnectionStatus
+    arguments: ['@coffee_journal_oauth.settings', '@coffee_journal_oauth.grants']
+  coffee_journal_oauth.authentication:
+    class: Drupal\coffee_journal_oauth\Authentication\JournalOAuth
+    arguments: ['@coffee_journal_oauth.server']
+    tags:
+      - { name: authentication_provider, provider_id: coffee_oauth, priority: 210 }
+  coffee_journal_oauth.gateway:
+    class: Drupal\coffee_journal_oauth\McpGateway
+    arguments: ['@coffee_journal_oauth.settings', '@coffee_journal_api.connector_access', '@coffee_journal_api.mcp', '@flood']

@@ -1,0 +1,7 @@
+name: Coffee Journal OAuth
+type: module
+description: Personal ChatGPT OAuth authorization and resource binding using League OAuth2 Server.
+package: Coffee Journal
+core_version_requirement: ^11
+dependencies:
+  - coffee_journal_api:coffee_journal_api

@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * @file
+ * Schema for journal-specific OAuth grants. Token secrets are never persisted.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function coffee_journal_oauth_schema(): array {
+  return ['coffee_journal_oauth_grant' => [
+    'description' => 'Stable account/client authorization families.',
+    'fields' => [
+      'id' => ['type' => 'varchar', 'length' => 32, 'not null' => TRUE],
+      'account_uuid' => ['type' => 'varchar', 'length' => 36, 'not null' => TRUE],
+      'client_id' => ['type' => 'varchar', 'length' => 255, 'not null' => TRUE],
+      'scopes' => ['type' => 'varchar', 'length' => 128, 'not null' => TRUE],
+      'created' => ['type' => 'int', 'size' => 'big', 'not null' => TRUE],
+      'expires' => ['type' => 'int', 'size' => 'big', 'not null' => TRUE],
+      'authorized' => ['type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0],
+      'revoked' => ['type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0],
+    ],
+    'primary key' => ['id'],
+    'indexes' => ['account_client' => ['account_uuid', 'client_id']],
+  ], 'coffee_journal_oauth_token' => [
+    'description' => 'Hashed OAuth token identifiers and revocation state, never token secrets.',
+    'fields' => [
+      'id' => ['type' => 'varchar', 'length' => 80, 'not null' => TRUE],
+      'grant_id' => ['type' => 'varchar', 'length' => 32, 'not null' => TRUE],
+      'expires' => ['type' => 'int', 'size' => 'big', 'not null' => TRUE],
+      'revoked' => ['type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0],
+    ],
+    'primary key' => ['id'],
+    'indexes' => ['expires' => ['expires']],
+  ]];
+}
+
+/**
+ * Add atomic token-consumption storage on development installations.
+ */
+function coffee_journal_oauth_update_9001(): void {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('coffee_journal_oauth_token')) {
+    $schema->createTable('coffee_journal_oauth_token', coffee_journal_oauth_schema()['coffee_journal_oauth_token']);
+  }
+}

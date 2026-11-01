@@ -2,10 +2,10 @@ name: Headless frontend
 
 on:
   pull_request:
-    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/brew_privacy/**', 'docs/ai-connectors/**', 'composer.json', 'composer.lock']
+    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/coffee_journal_oauth/**', 'docroot/modules/custom/brew_privacy/**', 'docs/ai-connectors/**', 'composer.json', 'composer.lock', 'config/default/core.extension.yml']
   push:
     branches: [master]
-    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/brew_privacy/**', 'docs/ai-connectors/**', 'composer.json', 'composer.lock']
+    paths: ['frontend/**', '.github/workflows/frontend.yml', 'docroot/modules/custom/coffee_journal_api/**', 'docroot/modules/custom/coffee_journal_oauth/**', 'docroot/modules/custom/brew_privacy/**', 'docs/ai-connectors/**', 'composer.json', 'composer.lock', 'config/default/core.extension.yml']
   workflow_dispatch:
 
 permissions:
@@ -44,6 +44,6 @@ jobs:
       - name: Check new read API coding standards
         run: vendor/bin/phpcs --standard=Drupal,DrupalPractice docroot/modules/custom/coffee_journal_api/src/Controller/HeadlessReadController.php docroot/modules/custom/coffee_journal_api/tests/src/Kernel/HeadlessReadTest.php
       - name: Verify journal and AI connector contracts in isolated kernel fixtures
-        run: php vendor/bin/phpunit --no-configuration --bootstrap docroot/core/tests/bootstrap.php docroot/modules/custom/coffee_journal_api/tests/src/Kernel
+        run: php vendor/bin/phpunit --no-configuration --bootstrap docroot/core/tests/bootstrap.php docroot/modules/custom/coffee_journal_api/tests/src/Kernel docroot/modules/custom/coffee_journal_oauth/tests/src/Kernel
         env:
           SIMPLETEST_DB: 'sqlite://localhost/:memory:'

@@ -33,3 +33,16 @@ $settings['trusted_host_patterns'][] = '^eeschandan1(dev|test)?\.prod\.acquia-si
 // Empty by default: personal AI connectors stay disabled until explicitly set.
 $settings['coffee_journal_connector_account_uuid'] = getenv('COFFEE_CONNECTOR_ACCOUNT_UUID') ?: '';
 $settings['coffee_journal_connector_app_url'] = getenv('COFFEE_CONNECTOR_APP_URL') ?: '';
+
+// Optional OAuth pilot. Keys/secret paths are environment-specific, never config exports.
+$settings['coffee_journal_oauth'] = [
+  'enabled' => getenv('COFFEE_OAUTH_ENABLED') === '1',
+  'issuer' => getenv('COFFEE_OAUTH_ISSUER') ?: '',
+  'client_id' => getenv('COFFEE_OAUTH_CLIENT_ID') ?: '',
+  'client_secret' => getenv('COFFEE_OAUTH_CLIENT_SECRET') ?: '',
+  'redirect_uri' => getenv('COFFEE_OAUTH_REDIRECT_URI') ?: '',
+  'private_key' => getenv('COFFEE_OAUTH_PRIVATE_KEY_PATH') ?: '',
+  'public_key' => getenv('COFFEE_OAUTH_PUBLIC_KEY_PATH') ?: '',
+  'previous_public_key' => getenv('COFFEE_OAUTH_PREVIOUS_PUBLIC_KEY_PATH') ?: '',
+  'encryption_key' => getenv('COFFEE_OAUTH_ENCRYPTION_KEY') ?: '',
+];

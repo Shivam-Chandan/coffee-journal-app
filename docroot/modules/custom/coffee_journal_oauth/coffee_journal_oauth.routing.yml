@@ -1,0 +1,63 @@
+coffee_journal_oauth.resource_metadata:
+  path: '/.well-known/oauth-protected-resource'
+  defaults:
+    _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::discovery'
+    kind: resource
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+coffee_journal_oauth.server_metadata:
+  path: '/.well-known/oauth-authorization-server'
+  defaults:
+    _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::discovery'
+    kind: server
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+coffee_journal_oauth.authorize:
+  path: '/coffee/oauth/authorize'
+  defaults:
+    _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::authorize'
+    _title: 'Connect Coffee Journal to ChatGPT'
+  methods: [GET, POST]
+  requirements:
+    _access: 'TRUE'
+  options:
+    _auth: ['cookie']
+    _no_big_pipe: TRUE
+    no_cache: TRUE
+coffee_journal_oauth.token:
+  path: '/coffee/oauth/token'
+  defaults:
+    _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::token'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+  options:
+    _auth: []
+    no_cache: TRUE
+coffee_journal_oauth.connection:
+  path: '/api/v1/me/connections/chatgpt'
+  defaults:
+    _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::connection'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['cookie']
+    no_cache: TRUE
+coffee_journal_oauth.disconnect:
+  path: '/api/v1/me/connections/chatgpt'
+  defaults:
+    _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::connection'
+  methods: [DELETE]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    _auth: ['cookie']
+    no_cache: TRUE
