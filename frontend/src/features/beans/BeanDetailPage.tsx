@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ApiError } from '../../api/client'
 import { beanQuery } from '../../api/queries'
-import { useDeleteEntry } from '../../api/mutations'
+import { useCompleteOrder, useDeleteEntry } from '../../api/mutations'
 import { FormError } from '../../components/Field'
 import { Icon } from '../../components/Icon'
 import { Sheet } from '../../components/Sheet'
@@ -13,6 +13,7 @@ import { useSession } from '../auth/useAuth'
 import { ROAST_LABELS } from './labels'
 import { BeanForm } from './BeanForm'
 import { ProvenanceBadge } from '../../components/ProvenanceBadge'
+import { OrderHistory } from './OrderHistory'
 
 export function BeanDetailPage() {
   const { beanId } = useParams({ from: '/beans/$beanId' })
@@ -23,6 +24,8 @@ export function BeanDetailPage() {
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const [addingOrder, setAddingOrder] = useState(false)
+  const complete = useCompleteOrder(uid)
 
   if (isPending || query.isPending) return <State title="Loading this coffee…" />
   if (query.isError) {
@@ -80,6 +83,21 @@ export function BeanDetailPage() {
       </div>
 
       <section className="cj-detail__section">
+        <div className="cj-section-head">
+          <h2 className="cj-section-heading">Orders · {bean.order_count ?? bean.orders?.length ?? 0}</h2>
+          {bean.can_edit && <button type="button" className="cj-button cj-button--quiet" onClick={() => setAddingOrder(true)}><Icon name="plus" />Add order</button>}
+        </div>
+        {bean.current_order && bean.can_edit && (
+          <button type="button" className="cj-inline-button" disabled={complete.isPending}
+            onClick={() => void complete.mutateAsync(bean.current_order!.id).catch(() => null)}>
+            {complete.isPending ? 'Saving…' : 'Mark current bag completed'}
+          </button>
+        )}
+        {complete.error && <FormError>{complete.error.message}</FormError>}
+        <OrderHistory orders={bean.orders ?? []} />
+      </section>
+
+      <section className="cj-detail__section">
         <h2 className="cj-section-heading">Taste profile</h2>
         <dl className="cj-taste-grid">
           <TasteBar label="Overall" value={bean.taste.rating} max={5} />
@@ -117,6 +135,11 @@ export function BeanDetailPage() {
       {editing && (
         <Sheet title="Edit coffee" onClose={() => setEditing(false)}>
           <BeanForm uid={uid} bean={bean} onDone={() => setEditing(false)} />
+        </Sheet>
+      )}
+      {addingOrder && (
+        <Sheet title="Add order" onClose={() => setAddingOrder(false)}>
+          <BeanForm uid={uid} orderFor={bean} onDone={() => setAddingOrder(false)} />
         </Sheet>
       )}
 

@@ -55,6 +55,7 @@ fi
 "${DRUSH[@]}" updatedb --yes
 "${DRUSH[@]}" config:import --yes
 "${DRUSH[@]}" cache:rebuild
+"${DRUSH[@]}" coffee:orders-backfill
 
 curl --silent --show-error --output /dev/null --max-time 30 "${SITE_URL}/user/login" \
   || log "Asset warm-up failed; assets will generate on the next request"

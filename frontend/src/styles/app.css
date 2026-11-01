@@ -408,3 +408,18 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+/* Coffee identity picker and purchase history, shared across both themes. */
+.cj-coffee-picker { position: relative; }
+.cj-coffee-picker__choices { list-style: none; margin: 0; padding: .35rem; border: 1px solid currentColor; border-radius: .75rem; max-height: 18rem; overflow-y: auto; }
+.cj-coffee-picker__choice { padding: .65rem; cursor: pointer; border-radius: .4rem; }
+.cj-coffee-picker__choice[aria-selected="true"], .cj-coffee-picker__choice:hover { background: rgb(110 140 117 / 18%); }
+.cj-coffee-picker__choice strong, .cj-coffee-picker__choice span { display: block; }
+.cj-coffee-picker__choice span { font-size: .8rem; opacity: .75; }
+.cj-order-history { list-style: none; margin: .75rem 0 0; padding: 0; }
+.cj-order-history__item { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem 0; border-bottom: 1px solid rgb(128 128 128 / 20%); }
+.cj-order-history__item strong, .cj-order-history__item div > span { display: block; }
+.cj-order-history__item div > span { font-size: .8rem; opacity: .75; }
+.cj-card-orders { padding: 0 1rem 1rem; font-size: .8rem; }
+.cj-card-orders summary { cursor: pointer; padding-top: .5rem; }
+.cj-journal-tile__link { height: auto; }
+.cj-card-orders .cj-order-history__item { align-items: flex-start; flex-direction: column; gap: .4rem; }

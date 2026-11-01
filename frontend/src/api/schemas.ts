@@ -36,6 +36,17 @@ export const sessionSchema = z.object({
   ]),
 })
 
+export const coffeeOrderSchema = z.object({
+  id: uuid,
+  purchase_date: z.string(),
+  quantity: z.number().nullable(),
+  quantity_unit: z.string(),
+  form_factor: z.string(),
+  finished: z.boolean(),
+  completed_at: z.number().nullable(),
+  completion_reason: z.string(),
+})
+
 export const beanCardSchema = z.object({
   id: uuid,
   nid: z.number().int().positive(),
@@ -44,6 +55,8 @@ export const beanCardSchema = z.object({
   roast: z.string(),
   rating: z.number().min(0).max(5),
   finished: z.boolean(),
+  order_count: z.number().int().nonnegative().optional(),
+  current_order: coffeeOrderSchema.nullable().optional(),
   provenance: provenanceSchema.optional(),
 })
 
@@ -84,6 +97,7 @@ export const beanDetailSchema = beanCardSchema.extend({
   }),
   engagement: engagementSchema,
   brews: z.array(brewCardSchema).optional(),
+  orders: z.array(coffeeOrderSchema).optional(),
 })
 
 export const brewDetailSchema = brewCardSchema.extend({
@@ -103,7 +117,7 @@ const meta = z.object({ next: z.number().int().positive().nullable() })
 export const beansSchema = z.object({ data: z.array(beanCardSchema), meta })
 export const feedSchema = z.object({ data: z.array(brewCardSchema), meta })
 export const beanChoicesSchema = z.object({
-  data: z.array(z.object({ id: uuid, title: z.string(), brand: z.string() })),
+  data: z.array(z.object({ id: uuid, title: z.string(), brand: z.string(), roast: z.string().optional() })),
 })
 export const savedSchema = z.object({
   data: z.array(z.union([

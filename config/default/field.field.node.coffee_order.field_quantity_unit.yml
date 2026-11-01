@@ -1,0 +1,23 @@
+uuid: 019e64d0-82e4-4874-9424-71482c482db7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_quantity_unit
+    - node.type.coffee_order
+  module:
+    - options
+id: node.coffee_order.field_quantity_unit
+field_name: field_quantity_unit
+entity_type: node
+bundle: coffee_order
+label: 'Quantity Unit'
+description: ''
+required: true
+translatable: true
+default_value:
+  -
+    value: g
+default_value_callback: ''
+settings: {  }
+field_type: list_string

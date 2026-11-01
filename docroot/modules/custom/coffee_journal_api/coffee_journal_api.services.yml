@@ -1,5 +1,9 @@
 services:
 
+  coffee_journal_api.orders:
+    class: Drupal\coffee_journal_api\Service\CoffeeOrders
+    arguments: ['@entity_type.manager', '@database', '@lock']
+
   coffee_journal_api.provenance:
     class: Drupal\coffee_journal_api\Service\CreationProvenance
 
@@ -83,3 +87,4 @@ services:
       - '@coffee_journal_api.provenance'
       - '@?coffee_journal_likes.repository'
       - '@?coffee_journal_bookmark.repository'
+      - '@coffee_journal_api.orders'

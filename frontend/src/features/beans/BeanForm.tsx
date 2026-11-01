@@ -3,12 +3,13 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { ApiError, mutate } from '../../api/client'
 import { formOptionsQuery } from '../../api/queries'
-import { useSaveBean } from '../../api/mutations'
+import { useAddOrder, useSaveBean } from '../../api/mutations'
 import { scrapeSchema, type BeanDetail, type FieldMeta } from '../../api/schemas'
 import { FormError, RatingField, SelectField, TextField, ToggleField } from '../../components/Field'
 import { Icon } from '../../components/Icon'
 import { State } from '../../components/State'
 import { readDraft, removeDraft, writeDraft } from '../../lib/drafts'
+import { CoffeePicker, type CoffeeChoice } from './CoffeePicker'
 
 interface Values {
   title: string
@@ -55,11 +56,13 @@ function fromDetail(bean: BeanDetail): Values {
   }
 }
 
-export function BeanForm({ uid, bean, onDone }: { uid: number; bean?: BeanDetail; onDone: (id: string) => void }) {
+export function BeanForm({ uid, bean, orderFor, onDone }: { uid: number; bean?: BeanDetail; orderFor?: CoffeeChoice; onDone: (id: string) => void }) {
   const options = useQuery(formOptionsQuery)
   const save = useSaveBean(uid, bean)
+  const addOrder = useAddOrder(uid)
+  const [selected, setSelected] = useState<CoffeeChoice | undefined>(orderFor)
   const navigate = useNavigate()
-  const draftName = bean ? `bean:${bean.id}` : 'bean:new'
+  const draftName = bean ? `bean:${bean.id}` : orderFor ? `order:${orderFor.id}` : 'bean:new'
   const [values, setValues] = useState<Values>(() => {
     const draft = readDraft<Values>(uid, draftName)
     return draft?.values ?? (bean ? fromDetail(bean) : blank)
@@ -88,7 +91,8 @@ export function BeanForm({ uid, bean, onDone }: { uid: number; bean?: BeanDetail
 
   const meta = options.data.data.coffee_bean
   const field = (key: string): FieldMeta | undefined => meta[key]
-  const error = save.error as ApiError | null
+  const error = (selected ? addOrder.error : save.error) as ApiError | null
+  const saving = save.isPending || addOrder.isPending
   const fields = error?.fields ?? {}
   const conflict = error?.code === 'conflict'
   const generalError = error && !Object.keys(fields).length ? error.message : null
@@ -122,7 +126,16 @@ export function BeanForm({ uid, bean, onDone }: { uid: number; bean?: BeanDetail
       quantity: values.quantity === '' ? null : Number(values.quantity),
       purchase_date: values.purchase_date || null,
     }
-    const result = await save.mutateAsync(payload).catch(() => null)
+    const result = selected
+      ? await addOrder.mutateAsync({ beanId: selected.id, values: {
+          quantity: payload.quantity, quantity_unit: values.quantity_unit,
+          purchase_date: values.purchase_date, form_factor: values.form_factor, finished: values.finished,
+        } }).catch(() => null)
+      : await save.mutateAsync(bean ? {
+          title: values.title, brand: values.brand, estate: values.estate, roast: values.roast,
+          notes: values.notes, rating: values.rating, bitterness: values.bitterness,
+          acidity: values.acidity, clarity: values.clarity, worth_reordering: values.worth_reordering,
+        } : payload).catch(() => null)
     if (result) {
       removeDraft(uid, draftName)
       onDone(result.data.id)
@@ -151,7 +164,7 @@ export function BeanForm({ uid, bean, onDone }: { uid: number; bean?: BeanDetail
         </p>
       )}
 
-      {!bean && (
+      {!bean && !selected && (
         <div className="cj-autofill">
           <span className="cj-autofill__label"><Icon name="link" />Fill from a product page</span>
           <div className="cj-autofill__row">
@@ -181,10 +194,21 @@ export function BeanForm({ uid, bean, onDone }: { uid: number; bean?: BeanDetail
         </div>
       )}
 
-      <TextField label="Coffee name" value={values.title} onChange={(value) => set('title', value)} placeholder="e.g. Vienna Roast" required error={fields.title} />
+      {selected && (
+        <div className="cj-autofill">
+          <strong>{selected.title}</strong>
+          <p className="cj-field__hint">Add another order. The coffee’s rating and notes stay the same. A new current order completes the previous bag; older dates are added to history.</p>
+          {!orderFor && <button type="button" className="cj-inline-button" onClick={() => { setSelected(undefined); addOrder.reset() }}>Choose a different coffee</button>}
+        </div>
+      )}
+      {!bean && !selected && <CoffeePicker uid={uid} value={values.title} onChange={(value) => set('title', value)} onSelect={(coffee) => { setSelected(coffee); save.reset() }} error={fields.title} />}
+      {!selected && <>
+      {bean && <TextField label="Coffee name" value={values.title} onChange={(value) => set('title', value)} required error={fields.title} />}
       <TextField label={field('brand')?.label ?? 'Brand / Roaster'} value={values.brand} onChange={(value) => set('brand', value)} placeholder="e.g. Blue Tokai" error={fields.brand} />
       <TextField label={field('estate')?.label ?? 'Estate'} value={values.estate} onChange={(value) => set('estate', value)} error={fields.estate} />
       <SelectField label={field('roast')?.label ?? 'Roast level'} value={values.roast} onChange={(value) => set('roast', value)} options={field('roast')?.options ?? []} error={fields.roast} />
+      </>}
+      {!bean && <>
       <SelectField label={field('form_factor')?.label ?? 'Form factor'} value={values.form_factor} onChange={(value) => set('form_factor', value)} options={field('form_factor')?.options ?? []} required={field('form_factor')?.required} error={fields.form_factor} />
 
       <div className="cj-field-row">
@@ -193,6 +217,9 @@ export function BeanForm({ uid, bean, onDone }: { uid: number; bean?: BeanDetail
       </div>
 
       <TextField label={field('purchase_date')?.label ?? 'Order date'} type="date" value={values.purchase_date} onChange={(value) => set('purchase_date', value)} required={field('purchase_date')?.required} error={fields.purchase_date} />
+      <ToggleField label="Bag completed" value={values.finished} onChange={(value) => set('finished', value)} />
+      </>}
+      {!selected && <>
       <TextField label={field('notes')?.label ?? 'Tasting notes'} value={values.notes} onChange={(value) => set('notes', value)} multiline required={field('notes')?.required} error={fields.notes} />
 
       <fieldset className="cj-fieldset">
@@ -203,11 +230,11 @@ export function BeanForm({ uid, bean, onDone }: { uid: number; bean?: BeanDetail
         <RatingField label={field('clarity')?.label ?? 'Note clarity'} value={values.clarity} onChange={(value) => set('clarity', value)} min={field('clarity')?.min ?? 1} max={field('clarity')?.max ?? 10} error={fields.clarity} />
       </fieldset>
 
-      <ToggleField label="Bag finished" value={values.finished} onChange={(value) => set('finished', value)} />
       <ToggleField label="Worth reordering" value={values.worth_reordering} onChange={(value) => set('worth_reordering', value)} />
+      </>}
 
-      <button type="submit" className="cj-button cj-button--primary" disabled={save.isPending}>
-        {save.isPending ? 'Saving…' : bean ? 'Save changes' : 'Add to journal'}
+      <button type="submit" className="cj-button cj-button--primary" disabled={saving}>
+        {saving ? 'Saving…' : selected ? 'Add order' : bean ? 'Save coffee details' : 'Add to journal'}
       </button>
     </form>
   )

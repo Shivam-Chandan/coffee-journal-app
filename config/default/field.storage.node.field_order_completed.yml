@@ -1,0 +1,18 @@
+uuid: 6e99750f-388f-4416-a8bc-e2301f2f446a
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_order_completed
+field_name: field_order_completed
+entity_type: node
+type: timestamp
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -132,19 +132,26 @@ final class HeadlessReadController extends ControllerBase {
   /**
    * Lists the account's beans as lightweight choices for the brew form.
    */
-  public function beanChoices(): JsonResponse {
+  public function beanChoices(?Request $request = NULL): JsonResponse {
     if ($this->currentUser()->isAnonymous()) {
       return $this->presenter->error('authentication_required', 'Sign in to view your coffees.', 401);
     }
     $storage = $this->entityTypeManager()->getStorage('node');
-    $ids = $storage->getQuery()
+    $query = $storage->getQuery()
       ->accessCheck(TRUE)
       ->condition('type', 'coffee_bean')
       ->condition('status', 1)
       ->condition('uid', $this->currentUser()->id())
       ->sort('nid', 'DESC')
-      ->range(0, 100)
-      ->execute();
+      ->range(0, 100);
+    $search = $request?->query->all()['q'] ?? '';
+    if (!is_string($search) || mb_strlen($search) > 200) {
+      return $this->presenter->error('invalid_request', 'Search must be at most 200 characters.', 400);
+    }
+    if (trim($search) !== '') {
+      $query->condition($query->orConditionGroup()->condition('title', trim($search), 'CONTAINS')->condition('field_brand_roaster', trim($search), 'CONTAINS'));
+    }
+    $ids = $query->execute();
     $data = [];
     foreach ($storage->loadMultiple($ids) as $node) {
       if ($node instanceof NodeInterface && $node->access('view', $this->currentUser())) {
@@ -152,6 +159,7 @@ final class HeadlessReadController extends ControllerBase {
           'id' => $node->uuid(),
           'title' => (string) $node->label(),
           'brand' => (string) $this->presenter->value($node, 'field_brand_roaster', $this->currentUser(), ''),
+          'roast' => (string) $this->presenter->value($node, 'field_roast_level', $this->currentUser(), ''),
         ];
       }
     }

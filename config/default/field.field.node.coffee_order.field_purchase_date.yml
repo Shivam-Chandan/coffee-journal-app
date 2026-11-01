@@ -1,0 +1,21 @@
+uuid: cfb8b965-5035-4847-9b58-02891240b982
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_purchase_date
+    - node.type.coffee_order
+  module:
+    - datetime
+id: node.coffee_order.field_purchase_date
+field_name: field_purchase_date
+entity_type: node
+bundle: coffee_order
+label: 'Order Date'
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

@@ -194,6 +194,9 @@ final class HeadlessWriteController extends ControllerBase {
     if ($violations) {
       return $this->presenter->error('validation_failed', 'Please review the highlighted fields.', 422, $violations);
     }
+    if ($bundle === 'coffee_bean' && \Drupal::service('coffee_journal_api.orders')->duplicate($node)) {
+      return $this->presenter->error('duplicate_coffee', 'This coffee already exists. Select it from the search to add an order.', 409, ['title' => 'Choose the existing coffee above.']);
+    }
     $node->save();
     $this->keyValueExpirable()->setWithExpire($lock, $node->uuid(), 86400);
     return $this->presenter->response(['data' => $this->detail($node)], 201);

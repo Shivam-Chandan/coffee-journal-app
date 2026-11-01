@@ -12,7 +12,7 @@ function brew_privacy_node_access_records(NodeInterface $node): array {
   $bundle = $node->bundle();
   
   // Apply privacy rules to both coffee_bean and brew_recipe nodes
-  if (!in_array($bundle, ['coffee_bean', 'brew_recipe'], TRUE) || $node->isNew()) {
+  if (!in_array($bundle, ['coffee_bean', 'coffee_order', 'brew_recipe'], TRUE) || $node->isNew()) {
     return [];
   }
 

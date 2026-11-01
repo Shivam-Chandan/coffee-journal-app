@@ -201,6 +201,30 @@ coffee_journal_api.headless_password_reset:
   options:
     no_cache: TRUE
 
+coffee_journal_api.order_create:
+  path: '/api/v1/beans/{uuid}/orders'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\CoffeeOrderController::createOrder'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
+coffee_journal_api.order_complete:
+  path: '/api/v1/orders/{uuid}/complete'
+  defaults:
+    _controller: '\Drupal\coffee_journal_api\Controller\CoffeeOrderController::completeOrder'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+    uuid: '[0-9a-fA-F-]{36}'
+  options:
+    no_cache: TRUE
+
 coffee_journal_api.headless_bean_create:
   path: '/api/v1/beans'
   defaults:

@@ -1,0 +1,23 @@
+uuid: 138496b0-2621-4c7d-b9f3-2be96a3b5b77
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_is_finished
+    - node.type.coffee_order
+id: node.coffee_order.field_is_finished
+field_name: field_is_finished
+entity_type: node
+bundle: coffee_order
+label: 'Bag Finished?'
+description: ''
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

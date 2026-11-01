@@ -11,6 +11,39 @@ use Drupal\user\UserInterface;
  */
 function coffee_journal_api_node_presave(\Drupal\node\NodeInterface $node): void {
   \Drupal::service('coffee_journal_api.provenance')->presave($node);
+  if ($node->bundle() === 'coffee_order') {
+    \Drupal::service('coffee_journal_api.orders')->presave($node);
+  }
+}
+
+/** Implements hook_node_insert(). */
+function coffee_journal_api_node_insert(\Drupal\node\NodeInterface $node): void {
+  _coffee_journal_api_order_saved($node, TRUE);
+}
+
+/** Implements hook_node_update(). */
+function coffee_journal_api_node_update(\Drupal\node\NodeInterface $node): void {
+  _coffee_journal_api_order_saved($node, FALSE);
+}
+
+/** Implements hook_node_delete(). */
+function coffee_journal_api_node_delete(\Drupal\node\NodeInterface $node): void {
+  if ($node->bundle() === 'coffee_bean') {
+    foreach (\Drupal::service('coffee_journal_api.orders')->history($node) as $order) {
+      $order->delete();
+    }
+  }
+}
+
+/** Routes lifecycle events through the shared order service. */
+function _coffee_journal_api_order_saved(\Drupal\node\NodeInterface $node, bool $new): void {
+  $orders = \Drupal::service('coffee_journal_api.orders');
+  if ($node->bundle() === 'coffee_bean') {
+    $orders->beanSaved($node, $new);
+  }
+  elseif ($node->bundle() === 'coffee_order') {
+    $orders->project($node);
+  }
 }
 
 /**
@@ -222,6 +255,88 @@ function coffee_journal_api_preprocess_node(array &$variables) {
  */
 function coffee_journal_api_form_node_coffee_bean_edit_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   _coffee_journal_api_add_recipe_section($form, $form_state);
+  $bean = $form_state->getFormObject()->getEntity();
+  $orders = \Drupal::service('coffee_journal_api.orders');
+  if ($orders->enabled()) {
+    $form['cj_orders'] = [
+      '#type' => 'details', '#title' => t('Order history'), '#open' => TRUE, '#weight' => 29,
+      'add' => ['#type' => 'link', '#title' => t('Add order'), '#url' => \Drupal\Core\Url::fromRoute('node.add', ['node_type' => 'coffee_order'], ['query' => ['coffee' => $bean->uuid()]])],
+      'history' => ['#type' => 'table', '#header' => [t('Date'), t('Quantity'), t('Status')], '#rows' => []],
+    ];
+    foreach ($orders->history($bean) as $order) {
+      $form['cj_orders']['history']['#rows'][] = [
+        $order->get('field_purchase_date')->value,
+        $order->get('field_quantity')->value . ' ' . $order->get('field_quantity_unit')->value,
+        $order->get('field_is_finished')->value ? t('Completed') : t('Current bag'),
+      ];
+    }
+  }
+}
+
+/** Implements hook_form_node_coffee_bean_form_alter(). */
+function coffee_journal_api_form_node_coffee_bean_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state): void {
+  if (!\Drupal::service('coffee_journal_api.orders')->enabled()) {
+    return;
+  }
+  $form['cj_existing_coffee'] = [
+    '#type' => 'entity_autocomplete', '#title' => t('Search your existing coffees'),
+    '#target_type' => 'node', '#selection_settings' => ['target_bundles' => ['coffee_bean']],
+    '#description' => t('Select a coffee and choose Add order to keep its rating and purchase history together.'),
+    '#weight' => -20,
+  ];
+  $form['cj_add_order'] = [
+    '#type' => 'submit', '#value' => t('Add order for selected coffee'), '#weight' => -19,
+    '#limit_validation_errors' => [['cj_existing_coffee']],
+    '#submit' => ['coffee_journal_api_existing_coffee_order_submit'],
+  ];
+  $form['#validate'][] = 'coffee_journal_api_validate_duplicate_coffee';
+}
+
+/** Prevent accidental exact-identity duplicate cards in the legacy add form. */
+function coffee_journal_api_validate_duplicate_coffee(array &$form, \Drupal\Core\Form\FormStateInterface $form_state): void {
+  $bean = $form_state->getFormObject()->getEntity();
+  if (\Drupal::service('coffee_journal_api.orders')->duplicate($bean)) {
+    $form_state->setErrorByName('title', t('This coffee already exists. Select it above and add an order instead.'));
+  }
+}
+
+/** Route the existing-coffee shortcut to the order form. */
+function coffee_journal_api_existing_coffee_order_submit(array &$form, \Drupal\Core\Form\FormStateInterface $form_state): void {
+  $id = $form_state->getValue('cj_existing_coffee');
+  $bean = $id ? \Drupal\node\Entity\Node::load($id) : NULL;
+  if (!$bean || $bean->bundle() !== 'coffee_bean' || (int) $bean->getOwnerId() !== (int) \Drupal::currentUser()->id()) {
+    \Drupal::messenger()->addError(t('Choose one of your coffees first.'));
+    return;
+  }
+  $form_state->setRedirect('node.add', ['node_type' => 'coffee_order'], ['query' => ['coffee' => $bean->uuid()]]);
+}
+
+/** Implements hook_form_alter(). */
+function coffee_journal_api_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, string $form_id): void {
+  if (!in_array($form_id, ['node_coffee_order_form', 'node_coffee_order_edit_form'], TRUE)) {
+    return;
+  }
+  $order = $form_state->getFormObject()->getEntity();
+  if ($order->isNew()) {
+    $order->setTitle('Coffee order');
+    $uuid = \Drupal::request()->query->get('coffee');
+    $bean = is_string($uuid) ? \Drupal::service('coffee_journal_api.presenter')->loadNode($uuid, 'coffee_bean') : NULL;
+    if ($bean && (int) $bean->getOwnerId() === (int) \Drupal::currentUser()->id()) {
+      $order->set('field_coffee_bean_ref', $bean->id());
+      $form['field_coffee_bean_ref']['widget'][0]['target_id']['#default_value'] = $bean;
+    }
+  }
+  $form['title']['#access'] = FALSE;
+  $form['#validate'][] = 'coffee_journal_api_validate_order_owner';
+}
+
+/** Entity-reference access alone does not guarantee ownership for admins. */
+function coffee_journal_api_validate_order_owner(array &$form, \Drupal\Core\Form\FormStateInterface $form_state): void {
+  $order = $form_state->getFormObject()->getEntity();
+  $bean = $order->get('field_coffee_bean_ref')->entity;
+  if (!$bean || $bean->bundle() !== 'coffee_bean' || (int) $bean->getOwnerId() !== (int) $order->getOwnerId()) {
+    $form_state->setErrorByName('field_coffee_bean_ref', t('Choose a coffee belonging to the order owner.'));
+  }
 }
 
 /**

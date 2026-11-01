@@ -57,6 +57,14 @@ final class HeadlessPresenter {
     'caption' => 'field_share_caption',
   ];
 
+  public const ORDER_FIELDS = [
+    'form_factor' => 'field_form_factor',
+    'quantity' => 'field_quantity',
+    'quantity_unit' => 'field_quantity_unit',
+    'purchase_date' => 'field_purchase_date',
+    'finished' => 'field_is_finished',
+  ];
+
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly EntityFieldManagerInterface $fieldManager,
@@ -64,6 +72,7 @@ final class HeadlessPresenter {
     private readonly CreationProvenance $provenance,
     private readonly ?object $likes = NULL,
     private readonly ?object $bookmarks = NULL,
+    private readonly ?CoffeeOrders $orders = NULL,
   ) {}
 
   /**
@@ -99,6 +108,12 @@ final class HeadlessPresenter {
     $nodes = $this->entityTypeManager->getStorage('node')
       ->loadByProperties(['uuid' => $uuid, 'type' => $bundle]);
     $node = $nodes ? reset($nodes) : NULL;
+    if ($bundle === 'coffee_bean' && $node instanceof NodeInterface && !$node->isPublished()) {
+      $canonical = \Drupal::keyValue('coffee_consolidation')->get($uuid);
+      if (is_string($canonical) && $canonical !== $uuid) {
+        return $this->loadNode($canonical, $bundle);
+      }
+    }
     return $node instanceof NodeInterface ? $node : NULL;
   }
 
@@ -120,6 +135,14 @@ final class HeadlessPresenter {
    * Maps a bean to its card representation.
    */
   public function beanCard(NodeInterface $node, AccountInterface $account): array {
+    $history = $this->orders?->history($node) ?? [];
+    $current = NULL;
+    foreach ($history as $order) {
+      if (!$order->get('field_is_finished')->value) {
+        $current = $this->orders->present($order);
+        break;
+      }
+    }
     return [
       'id' => $node->uuid(),
       'nid' => (int) $node->id(),
@@ -127,7 +150,9 @@ final class HeadlessPresenter {
       'brand' => (string) $this->value($node, 'field_brand_roaster', $account, ''),
       'roast' => (string) $this->value($node, 'field_roast_level', $account, ''),
       'rating' => $this->clamp((float) $this->value($node, 'field_overall_taste_rating', $account, 0), 0, 5),
-      'finished' => (bool) $this->value($node, 'field_is_finished', $account, FALSE),
+      'finished' => $history ? $current === NULL : (bool) $this->value($node, 'field_is_finished', $account, FALSE),
+      'order_count' => count($history),
+      'current_order' => $current,
       'provenance' => $this->provenance->present($node),
     ];
   }
@@ -155,6 +180,7 @@ final class HeadlessPresenter {
       ],
     ];
     $data['engagement'] = $this->engagement($node, $account);
+    $data['orders'] = array_map(fn ($order) => $this->orders->present($order), $this->orders?->history($node) ?? []);
     return $data;
   }
 

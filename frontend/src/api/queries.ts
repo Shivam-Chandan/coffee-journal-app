@@ -66,9 +66,9 @@ export const brewQuery = (uid: number, id: string) => queryOptions({
   retry: false,
 })
 
-export const beanChoicesQuery = (uid: number) => queryOptions({
-  queryKey: privateKey(uid, 'bean-choices'),
-  queryFn: ({ signal }) => getJson('/api/v1/bean-choices', beanChoicesSchema, signal),
+export const beanChoicesQuery = (uid: number, search = '') => queryOptions({
+  queryKey: privateKey(uid, 'bean-choices', search),
+  queryFn: ({ signal }) => getJson(`/api/v1/bean-choices?q=${encodeURIComponent(search)}`, beanChoicesSchema, signal),
   retry: false,
 })
 

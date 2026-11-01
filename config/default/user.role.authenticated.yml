@@ -4,7 +4,9 @@ status: true
 dependencies:
   config:
     - filter.format.basic_html
+    - node.type.brew_recipe
     - node.type.coffee_bean
+    - node.type.coffee_order
   module:
     - comment
     - contact
@@ -27,10 +29,13 @@ permissions:
   - 'access site-wide contact form'
   - 'create brew_recipe content'
   - 'create coffee_bean content'
+  - 'create coffee_order content'
   - 'delete own coffee_bean content'
+  - 'delete own coffee_order content'
   - 'delete own files'
   - 'edit own brew_recipe content'
   - 'edit own coffee_bean content'
+  - 'edit own coffee_order content'
   - 'post comments'
   - 'search content'
   - 'skip comment approval'

@@ -19,7 +19,7 @@ final class JournalInput {
   ) {}
 
   public function apply(NodeInterface $node, array $payload, AccountInterface $account, bool $isNew): array {
-    $map = $node->bundle() === 'coffee_bean' ? HeadlessPresenter::BEAN_FIELDS : HeadlessPresenter::BREW_FIELDS;
+    $map = self::fields($node->bundle());
     $definitions = $this->fieldManager->getFieldDefinitions('node', $node->bundle());
     $errors = [];
     foreach ($map as $key => $field) {
@@ -83,13 +83,21 @@ final class JournalInput {
   }
 
   public function violations(NodeInterface $node): array {
-    $reverse = array_flip($node->bundle() === 'coffee_bean' ? HeadlessPresenter::BEAN_FIELDS : HeadlessPresenter::BREW_FIELDS);
+    $reverse = array_flip(self::fields($node->bundle()));
     $errors = [];
     foreach ($node->validate() as $violation) {
       $property = explode('.', $violation->getPropertyPath())[0];
       $errors[$reverse[$property] ?? $property] = (string) $violation->getMessage();
     }
     return $errors;
+  }
+
+  private static function fields(string $bundle): array {
+    return match ($bundle) {
+      'coffee_bean' => HeadlessPresenter::BEAN_FIELDS,
+      'coffee_order' => HeadlessPresenter::ORDER_FIELDS,
+      default => HeadlessPresenter::BREW_FIELDS,
+    };
   }
 
 }

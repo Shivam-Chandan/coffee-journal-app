@@ -1,0 +1,23 @@
+uuid: e9990db7-28cd-4f03-ac6f-9717a1ece0c1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_quantity
+    - node.type.coffee_order
+id: node.coffee_order.field_quantity
+field_name: field_quantity
+entity_type: node
+bundle: coffee_order
+label: Quantity
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0.0
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: decimal

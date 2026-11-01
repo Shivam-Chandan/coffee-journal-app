@@ -53,6 +53,27 @@ export function useSaveBrew(uid: number, existing?: BrewDetail) {
   })
 }
 
+export function useAddOrder(uid: number) {
+  const refresh = useRefresh(uid)
+  const [idempotencyKey] = useState(newIdempotencyKey)
+  return useMutation({
+    mutationFn: ({ beanId, values }: { beanId: string; values: Record<string, unknown> }) =>
+      mutate(`/api/v1/beans/${beanId}/orders`, beanDetailResponse, { method: 'POST', body: values, idempotencyKey }),
+    onSuccess: refresh,
+  })
+}
+
+export function useCompleteOrder(uid: number) {
+  const refresh = useRefresh(uid)
+  const [submissionKey] = useState(newIdempotencyKey)
+  return useMutation({
+    mutationFn: (id: string) => mutate(`/api/v1/orders/${id}/complete`, beanDetailResponse, {
+      method: 'POST', body: {}, idempotencyKey: `${id}-${submissionKey.slice(0, 20)}`,
+    }),
+    onSuccess: refresh,
+  })
+}
+
 export function useDeleteEntry(uid: number, kind: 'beans' | 'brews') {
   const refresh = useRefresh(uid)
   return useMutation({

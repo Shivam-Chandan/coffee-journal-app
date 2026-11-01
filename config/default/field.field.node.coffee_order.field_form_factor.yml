@@ -1,0 +1,23 @@
+uuid: 9b2db1d9-516a-4df6-90d7-cff915da081b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_form_factor
+    - node.type.coffee_order
+  module:
+    - options
+id: node.coffee_order.field_form_factor
+field_name: field_form_factor
+entity_type: node
+bundle: coffee_order
+label: 'Form Factor'
+description: ''
+required: true
+translatable: true
+default_value:
+  -
+    value: whole_bean
+default_value_callback: ''
+settings: {  }
+field_type: list_string

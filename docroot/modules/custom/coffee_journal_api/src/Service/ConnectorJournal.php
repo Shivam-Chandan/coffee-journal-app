@@ -119,6 +119,15 @@ final class ConnectorJournal {
       if ($errors) {
         return $this->presenter->error('validation_failed', 'Please review the coffee fields.', 422, $errors);
       }
+      $orders = \Drupal::service('coffee_journal_api.orders');
+      $existingCoffee = $orders->enabled() ? $orders->duplicate($node) : NULL;
+      $purchase = NULL;
+      if ($existingCoffee) {
+        // Repeat purchases do not overwrite the coffee's personal rating.
+        $purchase = $orders->fromBean($node);
+        $purchase->set('field_coffee_bean_ref', $existingCoffee->id());
+        $node = $existingCoffee;
+      }
       // The unique receipt and node commit in the same database transaction.
       // A second worker cannot save another node even if the advisory lock expires.
       if ($receipt) {
@@ -127,8 +136,18 @@ final class ConnectorJournal {
       $this->database->insert('coffee_journal_create_receipt')->fields([
         'id' => $id, 'payload_hash' => $hash, 'node_uuid' => $node->uuid(), 'expires' => $now + 86400,
       ])->execute();
-      $this->provenance->markConnector($node, $connection['provider'], $connection['id']);
-      $node->save();
+      if ($purchase) {
+        $orders->write($node, 'connector-' . $id, $payload, function () use ($purchase) {
+          $purchase->save();
+          return $purchase;
+        });
+        $this->entities->getStorage('node')->resetCache([$node->id()]);
+        $node = $this->entities->getStorage('node')->load($node->id());
+      }
+      else {
+        $this->provenance->markConnector($node, $connection['provider'], $connection['id']);
+        $node->save();
+      }
       $result = $this->presenter->response(['data' => $this->present($node, $connection)], 201);
       unset($transaction);
       return $result;
