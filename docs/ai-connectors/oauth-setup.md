@@ -129,7 +129,16 @@ instead of a per-connection callback that can only be read from the management
 page. Confirm the redirect URI shown for your connection still matches before
 relying on it.
 
-Metadata deliberately does **not** advertise DCR, CIMD or OIDC scopes. Token requests are server-to-server form-encoded POSTs,
+The server also accepts **Client ID Metadata Documents (CIMD)**, which is how
+ChatGPT actually identifies itself: it presents an HTTPS document URL as its
+`client_id` rather than a pre-registered string. Only exact allowlisted document
+URLs are ever fetched, the document must claim the same `client_id` it was
+presented as, and its callbacks are honoured only when this deployment already
+registered them. CIMD clients are public and authenticate with PKCE, never a
+secret. A predefined `COFFEE_OAUTH_CHATGPT_CLIENT_ID` remains supported, and
+`COFFEE_OAUTH_CHATGPT_REDIRECT_URIS` must still list the callback either way.
+
+Metadata deliberately does **not** advertise DCR or OIDC scopes. Token requests are server-to-server form-encoded POSTs,
 not browser-session requests; the token route does not accept cookie auth.
 
 ## Connection lifecycle

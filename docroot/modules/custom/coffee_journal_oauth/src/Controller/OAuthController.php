@@ -50,6 +50,11 @@ final class OAuthController extends ControllerBase {
     foreach ($this->settings->clients() as $client) {
       $methods = array_merge($methods, $client['secret'] === '' ? ['none'] : ['client_secret_post', 'client_secret_basic']);
     }
+    // Metadata document clients authenticate as public clients using PKCE.
+    $documents = $this->settings->metadataDocuments();
+    if ($documents) {
+      $methods[] = 'none';
+    }
     return new JsonResponse([
       'issuer' => $issuer, 'authorization_endpoint' => $issuer . '/coffee/oauth/authorize', 'token_endpoint' => $issuer . '/coffee/oauth/token',
       'response_types_supported' => ['code'], 'grant_types_supported' => ['authorization_code', 'refresh_token'],
@@ -58,6 +63,9 @@ final class OAuthController extends ControllerBase {
       // Every authorization redirect carries iss, so clients can use a stable
       // redirect URI instead of a per-connection callback.
       'authorization_response_iss_parameter_supported' => TRUE,
+      // Clients may present an allowlisted HTTPS metadata document URL as
+      // their client_id. Both values are required before a client selects it.
+      'client_id_metadata_document_supported' => $documents !== [],
     ], 200, ['Cache-Control' => 'private, no-store']);
   }
 

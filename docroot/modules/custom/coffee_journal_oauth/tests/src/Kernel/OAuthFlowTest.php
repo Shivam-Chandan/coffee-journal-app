@@ -521,6 +521,99 @@ final class OAuthFlowTest extends KernelTestBase {
     $this->assertStringContainsString('resource_metadata=', $refused->headers->get('WWW-Authenticate'));
   }
 
+  /**
+   * Replaces the document fetcher with a stub so tests never use the network.
+   */
+  private function stubMetadataDocument(array $document, int $status = 200): void {
+    $handler = new \GuzzleHttp\Handler\MockHandler([
+      new \GuzzleHttp\Psr7\Response($status, ['Content-Type' => 'application/json'], json_encode($document)),
+    ]);
+    $this->container->set('coffee_journal_oauth.client_documents', new \Drupal\coffee_journal_oauth\ClientMetadataDocuments(
+      $this->container->get('coffee_journal_oauth.settings'),
+      new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($handler)]),
+      $this->container->get('keyvalue.expirable'),
+    ));
+    // Rebuild dependents so they use the stubbed fetcher.
+    $this->container->set('coffee_journal_oauth.grants', new \Drupal\coffee_journal_oauth\GrantStore(
+      $this->container->get('database'), $this->container->get('coffee_journal_api.connections'),
+      $this->container->get('coffee_journal_oauth.settings'), $this->container->get('lock'),
+      $this->container->get('coffee_journal_oauth.client_documents'),
+    ));
+    $this->container->set('coffee_journal_oauth.repositories', new \Drupal\coffee_journal_oauth\Repositories(
+      $this->container->get('coffee_journal_oauth.settings'), $this->container->get('coffee_journal_oauth.grants'),
+      $this->container->get('coffee_journal_oauth.client_documents'),
+    ));
+    $this->container->set('coffee_journal_oauth.server', new \Drupal\coffee_journal_oauth\OAuthServer(
+      $this->container->get('coffee_journal_oauth.settings'), $this->container->get('coffee_journal_oauth.repositories'),
+      $this->container->get('coffee_journal_oauth.grants'), $this->container->get('lock'), $this->container->get('database'),
+    ));
+    $this->container->get('keyvalue.expirable')->get('coffee_journal_oauth_cimd')->deleteAll();
+  }
+
+  /**
+   * ChatGPT presents an HTTPS metadata document URL as its client_id.
+   */
+  public function testMetadataDocumentClientCanConnect(): void {
+    $url = 'https://chatgpt.com/oauth/client.json';
+    $stable = 'https://chatgpt.com/connector_platform_oauth_redirect';
+    $runtime = $this->runtime;
+    $runtime['coffee_journal_oauth']['chatgpt_redirect_uris'] = $stable;
+    new Settings($runtime);
+    $this->stubMetadataDocument([
+      'client_id' => $url,
+      'redirect_uris' => [$stable],
+      'token_endpoint_auth_methods_supported' => ['none', 'private_key_jwt'],
+    ]);
+    $server = $this->container->get('coffee_journal_oauth.server');
+    $changes = ['client_id' => $url, 'redirect_uri' => $stable];
+
+    // Metadata is advertised only while such a client can actually be used.
+    $meta = json_decode(OAuthController::create($this->container)->discovery(Request::create('/'), 'server')->getContent(), TRUE);
+    $this->assertTrue($meta['client_id_metadata_document_supported']);
+    $this->assertContains('none', $meta['token_endpoint_auth_methods_supported']);
+
+    $tokens = json_decode($this->exchange($this->code($changes), $changes)->getContent(), TRUE);
+    $grant = $server->verify($tokens['access_token']);
+    $this->assertSame('chatgpt', $grant['provider']);
+    $this->assertSame($url, $grant['client_id']);
+    $this->assertSame($this->owner->uuid(), $grant['account']->uuid());
+    $this->assertSame('authorized', $this->providerStatus('chatgpt'));
+
+    // Disconnecting the provider also revokes its metadata-document grants.
+    $this->container->get('coffee_journal_oauth.grants')->disconnect($this->owner, 'chatgpt');
+    $this->assertNull($server->verify($tokens['access_token']));
+    $this->assertSame('reconnect_required', $this->providerStatus('chatgpt'));
+  }
+
+  /**
+   * Only exact allowlisted documents are trusted, and only for their own
+   * already-registered callbacks.
+   */
+  public function testMetadataDocumentsAreStrictlyValidated(): void {
+    $url = 'https://chatgpt.com/oauth/client.json';
+    $stable = 'https://chatgpt.com/connector_platform_oauth_redirect';
+    $runtime = $this->runtime;
+    $runtime['coffee_journal_oauth']['chatgpt_redirect_uris'] = $stable;
+    new Settings($runtime);
+
+    // A document claiming a different client_id is refused.
+    $this->stubMetadataDocument(['client_id' => 'https://evil.example/client.json', 'redirect_uris' => [$stable]]);
+    $this->assertNull($this->container->get('coffee_journal_oauth.repositories')->resolve($url));
+
+    // A document advertising an unregistered callback contributes nothing.
+    $this->stubMetadataDocument(['client_id' => $url, 'redirect_uris' => ['https://chatgpt.com/not-registered']]);
+    $this->assertNull($this->container->get('coffee_journal_oauth.repositories')->resolve($url));
+
+    // An unreachable document fails closed.
+    $this->stubMetadataDocument(['client_id' => $url, 'redirect_uris' => [$stable]], 404);
+    $this->assertNull($this->container->get('coffee_journal_oauth.repositories')->resolve($url));
+
+    // A non-allowlisted document URL is never fetched at all.
+    $this->stubMetadataDocument(['client_id' => 'https://other.example/c.json', 'redirect_uris' => [$stable]]);
+    $this->assertNull($this->container->get('coffee_journal_oauth.client_documents')->provider('https://other.example/c.json'));
+    $this->assertSame([], $this->container->get('coffee_journal_oauth.client_documents')->redirects('https://other.example/c.json'));
+  }
+
   private function providerStatus(string $provider): string {
     $status = $this->container->get('coffee_journal_oauth.grants')->status($this->owner);
     foreach ($status['providers'] as $entry) {

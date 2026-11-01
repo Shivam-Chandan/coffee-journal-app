@@ -23,12 +23,38 @@ final class GrantStore {
     private readonly PersonalConnections $connections,
     private readonly OAuthSettings $settings,
     private readonly LockBackendInterface $lock,
+    private readonly ClientMetadataDocuments $documents,
   ) {}
+
+  /**
+   * Groups every registered client ID by the provider that may present it.
+   *
+   * A provider can connect with a predefined client, an allowlisted metadata
+   * document, or both, so revocation covers all of its client identities.
+   */
+  private function clientsByProvider(): array {
+    $grouped = [];
+    foreach ($this->settings->clients() as $clientId => $client) {
+      $grouped[$client['provider']][] = $clientId;
+    }
+    foreach ($this->settings->metadataDocuments() as $provider => $url) {
+      $grouped[$provider][] = $url;
+    }
+    return $grouped;
+  }
+
+  /**
+   * Returns the provider a stored client ID belongs to, if still registered.
+   */
+  private function provider(string $clientId): ?string {
+    $client = $this->settings->client($clientId);
+    return $client['provider'] ?? $this->documents->provider($clientId);
+  }
 
   public function consent(AccountInterface $account, array $scopes, string $clientId): string {
     $pilot = $this->connections->pilot();
     if (!$pilot || (int) $pilot->id() !== (int) $account->id() || !$scopes
-      || array_diff($scopes, OAuthSettings::SCOPES) || !$this->settings->client($clientId)) {
+      || array_diff($scopes, OAuthSettings::SCOPES) || $this->provider($clientId) === NULL) {
       throw OAuthServerException::accessDenied('This account cannot authorize the journal.');
     }
     $key = 'coffee_oauth_consent:' . hash('sha256', $pilot->uuid() . $clientId);
@@ -60,13 +86,13 @@ final class GrantStore {
   public function grant(string $id, bool $authorized = FALSE): ?array {
     $record = $this->database->select('coffee_journal_oauth_grant', 'g')->fields('g')->condition('id', $id)->execute()->fetchAssoc();
     $pilot = $this->connections->pilot();
-    $client = $record ? $this->settings->client($record['client_id']) : NULL;
-    if (!$this->settings->enabled() || !$record || !$pilot || !$client || $record['account_uuid'] !== $pilot->uuid()
+    $provider = $record ? $this->provider($record['client_id']) : NULL;
+    if (!$this->settings->enabled() || !$record || !$pilot || $provider === NULL || $record['account_uuid'] !== $pilot->uuid()
       || $record['revoked'] || (int) $record['expires'] <= time() || ($authorized && !$record['authorized'])) {
       return NULL;
     }
     return ['id' => $id, 'account' => $pilot, 'scopes' => explode(' ', $record['scopes']),
-      'provider' => $client['provider'], 'client_id' => $record['client_id'], 'auth_type' => 'oauth',
+      'provider' => $provider, 'client_id' => $record['client_id'], 'auth_type' => 'oauth',
       'created' => (int) $record['created'], 'expires' => (int) $record['expires']];
   }
 
@@ -128,14 +154,14 @@ final class GrantStore {
       return ['enabled' => FALSE, 'providers' => []];
     }
     $providers = [];
-    foreach ($this->settings->clients() as $clientId => $client) {
+    foreach ($this->clientsByProvider() as $provider => $clientIds) {
       $ids = $this->database->select('coffee_journal_oauth_grant', 'g')->fields('g', ['id'])
-        ->condition('account_uuid', $pilot->uuid())->condition('client_id', $clientId)
+        ->condition('account_uuid', $pilot->uuid())->condition('client_id', $clientIds, 'IN')
         ->condition('authorized', 1)->orderBy('created', 'DESC')->execute()->fetchCol();
-      $entry = ['provider' => $client['provider'], 'status' => $ids ? 'reconnect_required' : 'not_connected'];
+      $entry = ['provider' => $provider, 'status' => $ids ? 'reconnect_required' : 'not_connected'];
       foreach ($ids as $id) {
         if ($grant = $this->grant($id, TRUE)) {
-          $entry = ['provider' => $client['provider'], 'status' => 'authorized', 'scopes' => $grant['scopes'],
+          $entry = ['provider' => $provider, 'status' => 'authorized', 'scopes' => $grant['scopes'],
             'authorized_at' => $grant['created'], 'expires_at' => $grant['expires']];
           break;
         }
@@ -150,7 +176,7 @@ final class GrantStore {
    */
   public function disconnect(AccountInterface $account, string $provider): void {
     $pilot = $this->connections->pilot();
-    $clients = array_keys(array_filter($this->settings->clients(), static fn ($client) => $client['provider'] === $provider));
+    $clients = $this->clientsByProvider()[$provider] ?? [];
     if (!$pilot || (int) $pilot->id() !== (int) $account->id() || !$clients) {
       throw OAuthServerException::accessDenied();
     }

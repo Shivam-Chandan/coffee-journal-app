@@ -65,7 +65,7 @@ final class OAuthServer {
     foreach ($query as $value) {
       if (!is_string($value)) { throw OAuthServerException::invalidRequest('authorization parameters'); }
     }
-    $client = is_string($query['client_id'] ?? NULL) ? $this->settings->client($query['client_id']) : NULL;
+    $client = is_string($query['client_id'] ?? NULL) ? $this->repositories->resolve($query['client_id']) : NULL;
     if (!$client || isset($query['destination']) || ($query['resource'] ?? NULL) !== $this->settings->resource()
       || ($query['code_challenge_method'] ?? '') !== 'S256'
       || !is_string($query['code_challenge'] ?? NULL) || !preg_match('/^[A-Za-z0-9_-]{43}$/D', $query['code_challenge'])
@@ -122,7 +122,7 @@ final class OAuthServer {
 
   public function token(array $body, array $headers = []): Response {
     $clientId = $body['client_id'] ?? NULL;
-    if (!is_string($clientId) || !$this->settings->client($clientId)
+    if (!is_string($clientId) || !$this->repositories->resolve($clientId)
       || ($body['resource'] ?? NULL) !== $this->settings->resource()
       || !in_array($body['grant_type'] ?? NULL, ['authorization_code', 'refresh_token'], TRUE)) {
       return $this->error(OAuthServerException::invalidRequest('client_id, resource or grant_type'));

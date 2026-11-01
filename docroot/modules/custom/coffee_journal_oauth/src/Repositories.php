@@ -14,17 +14,39 @@ use League\OAuth2\Server\Repositories\{AccessTokenRepositoryInterface, AuthCodeR
  */
 final class Repositories implements AccessTokenRepositoryInterface, AuthCodeRepositoryInterface, ClientRepositoryInterface, RefreshTokenRepositoryInterface, ScopeRepositoryInterface {
 
-  public function __construct(private readonly OAuthSettings $settings, private readonly GrantStore $store) {}
+  public function __construct(
+    private readonly OAuthSettings $settings,
+    private readonly GrantStore $store,
+    private readonly ClientMetadataDocuments $documents,
+  ) {}
 
   public function getClientEntity(string $clientIdentifier): ?ClientEntityInterface {
-    $client = $this->settings->client($clientIdentifier);
+    $client = $this->resolve($clientIdentifier);
     return $client ? new Client($clientIdentifier, $client['redirects'], $client['secret'] !== '') : NULL;
   }
 
   public function validateClient(string $clientIdentifier, ?string $clientSecret, ?string $grantType): bool {
-    $client = $this->settings->client($clientIdentifier);
+    $client = $this->resolve($clientIdentifier);
     return $client !== NULL && in_array($grantType, ['authorization_code', 'refresh_token'], TRUE)
       && ($client['secret'] === '' || (is_string($clientSecret) && hash_equals($client['secret'], $clientSecret)));
+  }
+
+  /**
+   * Resolves a predefined client, or an allowlisted metadata document client.
+   *
+   * Metadata clients are public: they authenticate with PKCE, never a secret.
+   */
+  public function resolve(string $clientIdentifier): ?array {
+    $client = $this->settings->client($clientIdentifier);
+    if ($client) {
+      return $client;
+    }
+    $provider = $this->documents->provider($clientIdentifier);
+    if ($provider === NULL) {
+      return NULL;
+    }
+    $redirects = $this->documents->redirects($clientIdentifier);
+    return $redirects ? ['provider' => $provider, 'redirects' => $redirects, 'secret' => ''] : NULL;
   }
 
   public function getScopeEntityByIdentifier(string $identifier): ?ScopeEntityInterface {

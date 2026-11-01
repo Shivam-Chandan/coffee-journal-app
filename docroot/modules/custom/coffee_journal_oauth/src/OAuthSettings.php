@@ -18,12 +18,23 @@ final class OAuthSettings {
    */
   private const CALLBACK_HOSTS = ['chatgpt' => 'chatgpt.com', 'claude' => 'claude.ai'];
 
+  /**
+   * Allowlisted Client ID Metadata Document URLs, keyed by provider.
+   *
+   * A client may present one of these HTTPS URLs as its client_id instead of a
+   * pre-registered string. Only these exact URLs are ever fetched.
+   */
+  private const METADATA_DOCUMENTS = [
+    'chatgpt' => 'https://chatgpt.com/oauth/client.json',
+  ];
+
   public function get(string $key, mixed $default = ''): mixed {
     return Settings::get('coffee_journal_oauth', [])[$key] ?? $default;
   }
 
   public function enabled(): bool {
-    return $this->get('enabled', FALSE) === TRUE && $this->clients() !== [];
+    return $this->get('enabled', FALSE) === TRUE
+      && ($this->clients() !== [] || $this->metadataDocuments() !== []);
   }
 
   public function issuer(): string {
@@ -68,6 +79,19 @@ final class OAuthSettings {
       }
     }
     return $clients;
+  }
+
+  /**
+   * Returns allowlisted metadata document URLs for providers with callbacks.
+   */
+  public function metadataDocuments(): array {
+    $documents = [];
+    foreach (self::METADATA_DOCUMENTS as $provider => $url) {
+      if ($this->redirects($provider)) {
+        $documents[$provider] = $url;
+      }
+    }
+    return $documents;
   }
 
   public function client(string $clientId): ?array {
