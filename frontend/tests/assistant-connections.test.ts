@@ -31,9 +31,11 @@ afterEach(async () => {
   vi.unstubAllGlobals()
 })
 
+const launchUrls = { chatgpt: 'https://chatgpt.com/plugins/test', claude: 'https://claude.ai/customize/connectors' }
+
 async function render(initial = bothAuthorized) {
   await act(async () => {
-    root.render(createElement(QueryClientProvider, { client: cache }, createElement(AssistantConnectionControls, { uid: 42, initial })))
+    root.render(createElement(QueryClientProvider, { client: cache }, createElement(AssistantConnectionControls, { uid: 42, initial, launchUrls })))
   })
 }
 
@@ -47,12 +49,32 @@ async function settle(assertion: () => void) {
 describe('assistant authorization controls', () => {
   it('uses the server state rather than an initial authorized snapshot', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({
-      data: { enabled: true, providers: [{ provider: 'claude', status: 'not_connected' }] },
+      data: { enabled: true, providers: [{ provider: 'claude', status: 'not_connected' }], mcp_url: 'https://journal.example/api/integrations/v1/mcp' },
     })))
     await render()
     await settle(() => expect(element.textContent).toContain('not connected'))
     expect(element.textContent).not.toContain('authorized to read and add coffees')
-    expect(element.querySelector('button')).toBeNull()
+    // An unconnected assistant offers a connect link, never a disconnect action.
+    const connect = element.querySelector('a')!
+    expect(connect.textContent).toContain('Connect Claude')
+    expect(connect.getAttribute('href')).toBe('https://claude.ai/customize/connectors')
+    expect(connect.getAttribute('rel')).toBe('noopener noreferrer')
+    expect(element.textContent).toContain('https://journal.example/api/integrations/v1/mcp')
+    expect([...element.querySelectorAll('button')].some((button) => button.textContent?.includes('Disconnect'))).toBe(false)
+  })
+
+  it('hides the connect link and server URL once an assistant is authorized', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({
+      data: {
+        enabled: true,
+        providers: [{ provider: 'claude', status: 'authorized', scopes: ['beans:read'], authorized_at: 1793491200 }],
+        mcp_url: 'https://journal.example/api/integrations/v1/mcp',
+      },
+    })))
+    await render()
+    await settle(() => expect(element.textContent).toContain('Disconnect Claude'))
+    expect(element.querySelector('a')).toBeNull()
+    expect(element.textContent).not.toContain('https://journal.example/api/integrations/v1/mcp')
   })
 
   it('does not report a failed status request as disconnected', async () => {

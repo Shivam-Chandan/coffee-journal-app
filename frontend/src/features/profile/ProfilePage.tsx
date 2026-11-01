@@ -73,6 +73,8 @@ function ProfileHeader({ uid, name, email }: { uid: number; name: string; email:
   const query = useQuery(profileQuery(uid))
   const stats = query.data?.data.stats
   const chatgptAppUrl = query.data?.data.chatgpt_app_url
+  const claudeConnectorsUrl = query.data?.data.claude_connectors_url
+  const connections = query.data?.data.assistant_connections
   const isIPhone = typeof navigator !== 'undefined' && /iPhone|iPod/.test(navigator.userAgent)
   // Native plugin-page routing needs verification on the installed iOS client.
   // Never automatically fall back to Safari: it has a separate login session.
@@ -91,15 +93,24 @@ function ProfileHeader({ uid, name, email }: { uid: number; name: string; email:
           <Stat label="Likes" value={stats?.likes} />
         </dl>
       </header>
-      {(chatgptAppUrl || query.data?.data.assistant_connections?.enabled) && (
+      {(chatgptAppUrl || connections?.enabled) && (
         <section className="cj-profile-connection" aria-labelledby="assistant-connection-title">
           <div className="cj-profile-connection__text">
             <h2 id="assistant-connection-title"><Icon name="sparkles" />Coffee Journal in your assistants</h2>
-            {query.data?.data.assistant_connections?.enabled
-              ? <AssistantConnectionControls uid={uid} initial={query.data.data.assistant_connections} />
+            {connections?.enabled
+              ? (
+                <AssistantConnectionControls
+                  uid={uid}
+                  initial={connections}
+                  launchUrls={{
+                    chatgpt: chatgptLaunchUrl,
+                    claude: claudeConnectorsUrl ?? undefined,
+                  }}
+                />
+              )
               : <p>Open your ChatGPT app to read and add coffees. First-time setup uses your personal connection token in the plugin’s credential settings.</p>}
           </div>
-          {chatgptAppUrl && (
+          {chatgptAppUrl && !connections?.enabled && (
             <a href={chatgptLaunchUrl} className="cj-button cj-button--primary">
               <Icon name="link" />Open ChatGPT
             </a>

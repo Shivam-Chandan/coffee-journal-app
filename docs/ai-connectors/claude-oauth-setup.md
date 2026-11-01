@@ -95,7 +95,12 @@ drush coffee:oauth-check
 
 ## Add the connector in Claude
 
-1. Open **Customize → Connectors** in Claude on the web.
+The coffee journal profile shows a **Connect Claude** button once OAuth is
+enabled. It opens Claude's connector settings and displays the exact server URL
+to paste. Claude has no per-connector deep link, so the button cannot pre-fill
+the dialog or start authorization by itself.
+
+1. Open **Customize → Connectors** in Claude on the web, or use the profile button.
 2. Choose **Add custom connector**.
 3. Enter the MCP server URL:
 
@@ -114,6 +119,9 @@ correct them, remove the connector and add it again.
 
 Enable the connector per conversation from the **+** menu, then ask for your
 coffees. Keep approval required for the create tool.
+
+This connection targets **claude.ai chat** on the web, Desktop and mobile. The
+same account connection is used across those surfaces.
 
 ## What the server enforces
 

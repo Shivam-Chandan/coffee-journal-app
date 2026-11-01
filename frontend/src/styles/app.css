@@ -242,6 +242,12 @@
   .cj-profile-connection h2 { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 650; }
   .cj-profile-connection h2 svg { flex: none; width: 18px; height: 18px; color: var(--cj-primary); }
   .cj-profile-connection p { margin-top: 8px; color: var(--cj-text-muted); font-size: 13px; line-height: 1.6; }
+  .cj-assistant-list { display: flex; flex-direction: column; gap: 18px; margin-top: 14px; }
+  .cj-assistant { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .cj-assistant strong { color: var(--cj-text); }
+  .cj-assistant .cj-button { align-self: flex-start; }
+  .cj-assistant__url { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
+  .cj-assistant__url code { width: 100%; padding: 10px 12px; border-radius: 12px; background: var(--cj-muted); color: var(--cj-text); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
 
   /* ── Sheets ──────────────────────────────────────────────────────────── */
   .cj-sheet-root { position: fixed; inset: 0; z-index: 400; display: flex; align-items: flex-end; justify-content: center; }

@@ -190,6 +190,7 @@ final class HeadlessReadController extends ControllerBase {
         'initial' => mb_strtoupper(mb_substr((string) $account->getDisplayName(), 0, 1)),
         'member_since' => (int) $user->getCreatedTime(),
         'chatgpt_app_url' => $this->connections->chatgptAppUrl($account),
+        'claude_connectors_url' => $this->connections->claudeConnectorsUrl($account),
         'assistant_connections' => $this->oauthStatus?->status($account),
         'stats' => [
           'beans' => $count('coffee_bean'),

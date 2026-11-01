@@ -18,6 +18,11 @@ final class PersonalConnections {
 
   private const CHATGPT_APP_URL = 'https://chatgpt.com/plugins/plugins_6ae669f6c27081919016002e9934f120';
 
+  /**
+   * Claude has no per-connector deep link, so this opens its connector list.
+   */
+  private const CLAUDE_CONNECTORS_URL = 'https://claude.ai/customize/connectors';
+
   public function __construct(
     private readonly Connection $database,
     private readonly EntityTypeManagerInterface $entities,
@@ -43,6 +48,17 @@ final class PersonalConnections {
     }
     $pilot = $this->pilot();
     return $pilot && (int) $pilot->id() === (int) $account->id() ? self::CHATGPT_APP_URL : NULL;
+  }
+
+  /**
+   * Returns Claude's connector page only for the enabled personal account.
+   */
+  public function claudeConnectorsUrl(AccountInterface $account): ?string {
+    if ($account->isAnonymous()) {
+      return NULL;
+    }
+    $pilot = $this->pilot();
+    return $pilot && (int) $pilot->id() === (int) $account->id() ? self::CLAUDE_CONNECTORS_URL : NULL;
   }
 
   public function issue(string $provider = 'chatgpt', int $days = 90, array $scopes = ['beans:read', 'beans:create']): array {

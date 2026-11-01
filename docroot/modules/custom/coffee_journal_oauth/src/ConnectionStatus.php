@@ -11,6 +11,14 @@ final class ConnectionStatus implements AssistantConnectionStatusInterface {
   public function __construct(private readonly OAuthSettings $settings, private readonly GrantStore $grants) {}
 
   public function status(AccountInterface $account): ?array {
-    return $this->settings->enabled() ? $this->grants->status($account) : NULL;
+    if (!$this->settings->enabled()) {
+      return NULL;
+    }
+    $status = $this->grants->status($account);
+    // Setup needs the exact MCP URL the connector must point at.
+    if ($status['enabled']) {
+      $status['mcp_url'] = $this->settings->resource();
+    }
+    return $status;
   }
 }

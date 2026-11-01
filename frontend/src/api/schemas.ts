@@ -122,6 +122,7 @@ export const assistantGrantSchema = z.object({
 export const assistantConnectionsSchema = z.object({
   enabled: z.boolean(),
   providers: z.array(assistantGrantSchema),
+  mcp_url: z.string().url().optional(),
 })
 export const assistantConnectionsResponse = z.object({ data: assistantConnectionsSchema })
 export type AssistantGrant = z.infer<typeof assistantGrantSchema>
@@ -135,6 +136,7 @@ export const profileSchema = z.object({
     initial: z.string(),
     member_since: z.number().int().nonnegative(),
     chatgpt_app_url: z.string().url().nullable().optional(),
+    claude_connectors_url: z.string().url().nullable().optional(),
     assistant_connections: assistantConnectionsSchema.nullable().optional(),
     stats: z.object({
       beans: z.number().int().nonnegative(),
