@@ -6,7 +6,7 @@ import { State } from '../../components/State'
 import { BeanTile } from '../beans/BeanTile'
 import { BrewCardItem } from '../brews/BrewCardItem'
 import { useLogout, useSession } from '../auth/useAuth'
-import { ChatgptConnectionControls } from './ChatgptConnectionControls'
+import { AssistantConnectionControls } from './AssistantConnectionControls'
 
 const TABS = [
   { id: 'posts', label: 'Brews' },
@@ -91,18 +91,20 @@ function ProfileHeader({ uid, name, email }: { uid: number; name: string; email:
           <Stat label="Likes" value={stats?.likes} />
         </dl>
       </header>
-      {chatgptAppUrl && (
-        <section className="cj-profile-connection" aria-labelledby="chatgpt-connection-title">
+      {(chatgptAppUrl || query.data?.data.assistant_connections?.enabled) && (
+        <section className="cj-profile-connection" aria-labelledby="assistant-connection-title">
           <div className="cj-profile-connection__text">
-            <h2 id="chatgpt-connection-title"><Icon name="sparkles" />Coffee Journal in ChatGPT</h2>
-            {query.data?.data.chatgpt_connection?.enabled
-              ? <ChatgptConnectionControls uid={uid} initial={query.data.data.chatgpt_connection} />
+            <h2 id="assistant-connection-title"><Icon name="sparkles" />Coffee Journal in your assistants</h2>
+            {query.data?.data.assistant_connections?.enabled
+              ? <AssistantConnectionControls uid={uid} initial={query.data.data.assistant_connections} />
               : <p>Open your ChatGPT app to read and add coffees. First-time setup uses your personal connection token in the plugin’s credential settings.</p>}
           </div>
-          <a href={chatgptLaunchUrl} className="cj-button cj-button--primary">
-            <Icon name="link" />Connect ChatGPT
-          </a>
-          {isIPhone && <p>If the plugin does not open, select Coffee Journal from Plugins inside the ChatGPT app.</p>}
+          {chatgptAppUrl && (
+            <a href={chatgptLaunchUrl} className="cj-button cj-button--primary">
+              <Icon name="link" />Open ChatGPT
+            </a>
+          )}
+          {chatgptAppUrl && isIPhone && <p>If the plugin does not open, select Coffee Journal from Plugins inside the ChatGPT app.</p>}
         </section>
       )}
     </>

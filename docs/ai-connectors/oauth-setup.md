@@ -1,5 +1,9 @@
 # Personal ChatGPT OAuth setup
 
+For Claude, see [Connect Claude with OAuth](claude-oauth-setup.md). Both
+assistants share this server but are registered as separate OAuth clients with
+their own callbacks, grants and revocation.
+
 Status: implemented and tested locally. Actual ChatGPT registration, cloud Dev/
 Test verification and production migration require the plugin's exact callback
 and client settings. Do not revoke the working personal credential until the
@@ -47,9 +51,11 @@ HTTPS origin for `COFFEE_OAUTH_ISSUER`; do not reuse production issuer/keys on D
 | `COFFEE_CONNECTOR_ACCOUNT_UUID` | Existing allowed Drupal account UUID |
 | `COFFEE_OAUTH_ENABLED` | `1` only after the remaining settings are configured |
 | `COFFEE_OAUTH_ISSUER` | Canonical HTTPS Drupal origin, no trailing slash/path |
-| `COFFEE_OAUTH_CLIENT_ID` | Agreed predefined client ID, 8–128 letters/digits/`.`/`_`/`-` |
-| `COFFEE_OAUTH_REDIRECT_URI` | Exact HTTPS ChatGPT callback from management UI |
-| `COFFEE_OAUTH_CLIENT_SECRET` | Only for a confidential client; absent for PKCE public client |
+| `COFFEE_OAUTH_CHATGPT_CLIENT_ID` | Agreed predefined client ID, 8–128 letters/digits/`.`/`_`/`:`/`-` |
+| `COFFEE_OAUTH_CHATGPT_REDIRECT_URIS` | Exact HTTPS ChatGPT callbacks, whitespace separated |
+| `COFFEE_OAUTH_CHATGPT_CLIENT_SECRET` | Only for a confidential client; absent for PKCE public client |
+| `COFFEE_OAUTH_CLAUDE_CLIENT_ID` | Claude's client ID; see [Claude setup](claude-oauth-setup.md) |
+| `COFFEE_OAUTH_CLAUDE_REDIRECT_URIS` | `https://claude.ai/api/mcp/auth_callback` |
 | `COFFEE_OAUTH_PRIVATE_KEY_PATH` | Absolute readable RSA private-key path outside docroot |
 | `COFFEE_OAUTH_PUBLIC_KEY_PATH` | Absolute readable matching public-key path outside docroot |
 | `COFFEE_OAUTH_PREVIOUS_PUBLIC_KEY_PATH` | Optional old public key during rotation overlap |

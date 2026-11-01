@@ -35,13 +35,17 @@ $settings['coffee_journal_connector_account_uuid'] = getenv('COFFEE_CONNECTOR_AC
 $settings['coffee_journal_connector_app_url'] = getenv('COFFEE_CONNECTOR_APP_URL') ?: '';
 
 // Optional OAuth pilot. Keys/secret paths are environment-specific, never config exports.
+// Each assistant is registered separately so its callbacks and credential
+// cannot authorize another provider's connection.
 $settings['coffee_journal_oauth'] = [
-  'discovery_enabled' => getenv('COFFEE_OAUTH_DISCOVERY_ENABLED') === '1',
   'enabled' => getenv('COFFEE_OAUTH_ENABLED') === '1',
   'issuer' => getenv('COFFEE_OAUTH_ISSUER') ?: '',
-  'client_id' => getenv('COFFEE_OAUTH_CLIENT_ID') ?: '',
-  'client_secret' => getenv('COFFEE_OAUTH_CLIENT_SECRET') ?: '',
-  'redirect_uri' => getenv('COFFEE_OAUTH_REDIRECT_URI') ?: '',
+  'chatgpt_client_id' => getenv('COFFEE_OAUTH_CHATGPT_CLIENT_ID') ?: '',
+  'chatgpt_client_secret' => getenv('COFFEE_OAUTH_CHATGPT_CLIENT_SECRET') ?: '',
+  'chatgpt_redirect_uris' => getenv('COFFEE_OAUTH_CHATGPT_REDIRECT_URIS') ?: '',
+  'claude_client_id' => getenv('COFFEE_OAUTH_CLAUDE_CLIENT_ID') ?: '',
+  'claude_client_secret' => getenv('COFFEE_OAUTH_CLAUDE_CLIENT_SECRET') ?: '',
+  'claude_redirect_uris' => getenv('COFFEE_OAUTH_CLAUDE_REDIRECT_URIS') ?: '',
   'private_key' => getenv('COFFEE_OAUTH_PRIVATE_KEY_PATH') ?: '',
   'public_key' => getenv('COFFEE_OAUTH_PUBLIC_KEY_PATH') ?: '',
   'previous_public_key' => getenv('COFFEE_OAUTH_PREVIOUS_PUBLIC_KEY_PATH') ?: '',

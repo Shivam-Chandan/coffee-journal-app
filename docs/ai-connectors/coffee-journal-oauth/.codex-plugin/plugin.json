@@ -1,0 +1,22 @@
+{
+  "interface": {
+    "defaultPrompt": "Help me manage my coffee journal.",
+    "developerName": "Shivam Chandan",
+    "displayName": "Coffee Journal",
+    "shortDescription": "Your personal coffee journal",
+    "longDescription": "Read and create coffees in my personal Drupal coffee journal.",
+    "category": "Other",
+    "capabilities": []
+  },
+  "requires_local_executor": false,
+  "name": "coffee-journal",
+  "version": "1.1.0",
+  "description": "Read and create coffees in my personal Drupal coffee journal.",
+  "author": {
+    "name": "Shivam Chandan",
+    "email": "shivam.k.chandan@gmail.com"
+  },
+  "keywords": [],
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json"
+}

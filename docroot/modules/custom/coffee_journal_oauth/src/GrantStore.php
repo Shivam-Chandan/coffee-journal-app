@@ -12,6 +12,9 @@ use League\OAuth2\Server\Exception\OAuthServerException;
 
 /**
  * Stable, revocable grant families and hashed token-identifier records.
+ *
+ * Grants are scoped to one account and one registered provider client, so each
+ * assistant connects, refreshes and disconnects independently.
  */
 final class GrantStore {
 
@@ -22,18 +25,19 @@ final class GrantStore {
     private readonly LockBackendInterface $lock,
   ) {}
 
-  public function consent(AccountInterface $account, array $scopes): string {
+  public function consent(AccountInterface $account, array $scopes, string $clientId): string {
     $pilot = $this->connections->pilot();
-    if (!$pilot || (int) $pilot->id() !== (int) $account->id() || !$scopes || array_diff($scopes, OAuthSettings::SCOPES)) {
+    if (!$pilot || (int) $pilot->id() !== (int) $account->id() || !$scopes
+      || array_diff($scopes, OAuthSettings::SCOPES) || !$this->settings->client($clientId)) {
       throw OAuthServerException::accessDenied('This account cannot authorize the journal.');
     }
-    $key = 'coffee_oauth_consent:' . hash('sha256', $pilot->uuid() . $this->settings->clientId());
+    $key = 'coffee_oauth_consent:' . hash('sha256', $pilot->uuid() . $clientId);
     if (!$this->lock->acquire($key, 30)) {
       throw OAuthServerException::serverError('Authorization is busy; try again.');
     }
     try {
       $record = $this->database->select('coffee_journal_oauth_grant', 'g')->fields('g')
-        ->condition('account_uuid', $pilot->uuid())->condition('client_id', $this->settings->clientId())
+        ->condition('account_uuid', $pilot->uuid())->condition('client_id', $clientId)
         ->condition('revoked', 0)->condition('expires', time(), '>')->orderBy('created', 'DESC')->range(0, 1)->execute()->fetchAssoc();
       if ($record) {
         $scopes = array_unique(array_merge(explode(' ', $record['scopes']), $scopes));
@@ -42,7 +46,7 @@ final class GrantStore {
       }
       $id = bin2hex(random_bytes(16));
       $this->database->insert('coffee_journal_oauth_grant')->fields([
-        'id' => $id, 'account_uuid' => $pilot->uuid(), 'client_id' => $this->settings->clientId(),
+        'id' => $id, 'account_uuid' => $pilot->uuid(), 'client_id' => $clientId,
         'scopes' => implode(' ', $scopes), 'created' => time(), 'expires' => time() + 30 * 86400,
         'authorized' => 0, 'revoked' => 0,
       ])->execute();
@@ -56,12 +60,13 @@ final class GrantStore {
   public function grant(string $id, bool $authorized = FALSE): ?array {
     $record = $this->database->select('coffee_journal_oauth_grant', 'g')->fields('g')->condition('id', $id)->execute()->fetchAssoc();
     $pilot = $this->connections->pilot();
-    if (!$this->settings->enabled() || !$record || !$pilot || $record['account_uuid'] !== $pilot->uuid()
-      || $record['client_id'] !== $this->settings->clientId() || $record['revoked'] || (int) $record['expires'] <= time()
-      || ($authorized && !$record['authorized'])) {
+    $client = $record ? $this->settings->client($record['client_id']) : NULL;
+    if (!$this->settings->enabled() || !$record || !$pilot || !$client || $record['account_uuid'] !== $pilot->uuid()
+      || $record['revoked'] || (int) $record['expires'] <= time() || ($authorized && !$record['authorized'])) {
       return NULL;
     }
-    return ['id' => $id, 'account' => $pilot, 'scopes' => explode(' ', $record['scopes']), 'provider' => 'chatgpt', 'auth_type' => 'oauth',
+    return ['id' => $id, 'account' => $pilot, 'scopes' => explode(' ', $record['scopes']),
+      'provider' => $client['provider'], 'client_id' => $record['client_id'], 'auth_type' => 'oauth',
       'created' => (int) $record['created'], 'expires' => (int) $record['expires']];
   }
 
@@ -114,28 +119,42 @@ final class GrantStore {
     return !$record || $record['revoked'] || $record['expires'] <= time() || !$this->grant($record['grant']);
   }
 
+  /**
+   * Returns each configured provider's authorization status for this account.
+   */
   public function status(AccountInterface $account): array {
     $pilot = $this->connections->pilot();
     if (!$pilot || (int) $pilot->id() !== (int) $account->id()) {
-      return ['enabled' => FALSE, 'status' => 'unavailable'];
+      return ['enabled' => FALSE, 'providers' => []];
     }
-    $records = $this->database->select('coffee_journal_oauth_grant', 'g')->fields('g', ['id'])
-      ->condition('account_uuid', $pilot->uuid())->condition('client_id', $this->settings->clientId())
-      ->condition('authorized', 1)->orderBy('created', 'DESC')->execute()->fetchCol();
-    foreach ($records as $id) {
-      if ($grant = $this->grant($id, TRUE)) {
-        return ['enabled' => TRUE, 'status' => 'authorized', 'scopes' => $grant['scopes'], 'authorized_at' => $grant['created'], 'expires_at' => $grant['expires']];
+    $providers = [];
+    foreach ($this->settings->clients() as $clientId => $client) {
+      $ids = $this->database->select('coffee_journal_oauth_grant', 'g')->fields('g', ['id'])
+        ->condition('account_uuid', $pilot->uuid())->condition('client_id', $clientId)
+        ->condition('authorized', 1)->orderBy('created', 'DESC')->execute()->fetchCol();
+      $entry = ['provider' => $client['provider'], 'status' => $ids ? 'reconnect_required' : 'not_connected'];
+      foreach ($ids as $id) {
+        if ($grant = $this->grant($id, TRUE)) {
+          $entry = ['provider' => $client['provider'], 'status' => 'authorized', 'scopes' => $grant['scopes'],
+            'authorized_at' => $grant['created'], 'expires_at' => $grant['expires']];
+          break;
+        }
       }
+      $providers[] = $entry;
     }
-    return ['enabled' => TRUE, 'status' => $records ? 'reconnect_required' : 'not_connected'];
+    return ['enabled' => TRUE, 'providers' => $providers];
   }
 
-  public function disconnect(AccountInterface $account): void {
+  /**
+   * Revokes one provider's grants, leaving other assistants connected.
+   */
+  public function disconnect(AccountInterface $account, string $provider): void {
     $pilot = $this->connections->pilot();
-    if (!$pilot || (int) $pilot->id() !== (int) $account->id()) {
+    $clients = array_keys(array_filter($this->settings->clients(), static fn ($client) => $client['provider'] === $provider));
+    if (!$pilot || (int) $pilot->id() !== (int) $account->id() || !$clients) {
       throw OAuthServerException::accessDenied();
     }
     $this->database->update('coffee_journal_oauth_grant')->fields(['revoked' => 1])
-      ->condition('account_uuid', $pilot->uuid())->condition('client_id', $this->settings->clientId())->execute();
+      ->condition('account_uuid', $pilot->uuid())->condition('client_id', $clients, 'IN')->execute();
   }
 }

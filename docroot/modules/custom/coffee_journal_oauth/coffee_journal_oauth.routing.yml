@@ -8,8 +8,29 @@ coffee_journal_oauth.resource_metadata:
     _access: 'TRUE'
   options:
     no_cache: TRUE
+# Claude probes the path-suffixed location when a challenge is unavailable.
+coffee_journal_oauth.resource_metadata_path:
+  path: '/.well-known/oauth-protected-resource/api/integrations/v1/mcp'
+  defaults:
+    _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::discovery'
+    kind: resource
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
 coffee_journal_oauth.server_metadata:
   path: '/.well-known/oauth-authorization-server'
+  defaults:
+    _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::discovery'
+    kind: server
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+coffee_journal_oauth.openid_metadata:
+  path: '/.well-known/openid-configuration'
   defaults:
     _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::discovery'
     kind: server
@@ -22,7 +43,7 @@ coffee_journal_oauth.authorize:
   path: '/coffee/oauth/authorize'
   defaults:
     _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::authorize'
-    _title: 'Connect Coffee Journal to ChatGPT'
+    _title: 'Connect your coffee journal'
   methods: [GET, POST]
   requirements:
     _access: 'TRUE'
@@ -41,7 +62,7 @@ coffee_journal_oauth.token:
     _auth: []
     no_cache: TRUE
 coffee_journal_oauth.connection:
-  path: '/api/v1/me/connections/chatgpt'
+  path: '/api/v1/me/connections'
   defaults:
     _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::connection'
   methods: [GET]
@@ -51,13 +72,14 @@ coffee_journal_oauth.connection:
     _auth: ['cookie']
     no_cache: TRUE
 coffee_journal_oauth.disconnect:
-  path: '/api/v1/me/connections/chatgpt'
+  path: '/api/v1/me/connections/{provider}'
   defaults:
     _controller: '\Drupal\coffee_journal_oauth\Controller\OAuthController::connection'
   methods: [DELETE]
   requirements:
     _user_is_logged_in: 'TRUE'
     _csrf_request_header_token: 'TRUE'
+    provider: 'chatgpt|claude'
   options:
     _auth: ['cookie']
     no_cache: TRUE

@@ -13,16 +13,17 @@ final class OAuthSettings {
 
   public const SCOPES = ['beans:read', 'beans:create'];
 
+  /**
+   * Documented callback hosts per provider. Exact URIs stay runtime settings.
+   */
+  private const CALLBACK_HOSTS = ['chatgpt' => 'chatgpt.com', 'claude' => 'claude.ai'];
+
   public function get(string $key, mixed $default = ''): mixed {
     return Settings::get('coffee_journal_oauth', [])[$key] ?? $default;
   }
 
   public function enabled(): bool {
-    return $this->get('enabled', FALSE) === TRUE;
-  }
-
-  public function discoveryEnabled(): bool {
-    return $this->enabled() || $this->get('discovery_enabled', FALSE) === TRUE;
+    return $this->get('enabled', FALSE) === TRUE && $this->clients() !== [];
   }
 
   public function issuer(): string {
@@ -42,25 +43,55 @@ final class OAuthSettings {
   }
 
   public function challenge(): string {
-    return 'Bearer resource_metadata="' . $this->metadataUrl() . '", error="invalid_token", error_description="Connect your Coffee Journal account to continue"';
+    return 'Bearer resource_metadata="' . $this->metadataUrl() . '", scope="'
+      . implode(' ', self::SCOPES)
+      . '", error="invalid_token", error_description="Connect your Coffee Journal account to continue"';
   }
 
-  public function clientId(): string {
-    $id = $this->get('client_id');
-    if (!is_string($id) || !preg_match('/^[A-Za-z0-9._-]{8,128}$/D', $id)) {
-      throw new \LogicException('Configure a predefined ChatGPT OAuth client ID.');
+  /**
+   * Returns every configured provider client keyed by its client ID.
+   *
+   * Each provider is registered independently so one client's credential or
+   * callback can never authorize another provider's connection.
+   */
+  public function clients(): array {
+    $clients = [];
+    foreach (array_keys(self::CALLBACK_HOSTS) as $provider) {
+      $id = $this->get($provider . '_client_id');
+      $redirects = $this->redirects($provider);
+      if (is_string($id) && preg_match('/^[A-Za-z0-9._:-]{8,128}$/D', $id) && $redirects) {
+        $clients[$id] = [
+          'provider' => $provider,
+          'redirects' => $redirects,
+          'secret' => (string) $this->get($provider . '_client_secret'),
+        ];
+      }
     }
-    return $id;
+    return $clients;
   }
 
-  public function redirectUri(): string {
-    $uri = $this->get('redirect_uri');
-    $parts = is_string($uri) ? parse_url($uri) : FALSE;
-    if (!$parts || ($parts['scheme'] ?? '') !== 'https' || ($parts['host'] ?? '') !== 'chatgpt.com'
-      || isset($parts['user']) || isset($parts['pass']) || isset($parts['fragment']) || str_contains($uri, '*')) {
-      throw new \LogicException('Configure the exact HTTPS ChatGPT callback from the plugin management page.');
+  public function client(string $clientId): ?array {
+    return $this->clients()[$clientId] ?? NULL;
+  }
+
+  /**
+   * Validates the provider's exact registered callbacks from its own settings.
+   */
+  public function redirects(string $provider): array {
+    $configured = $this->get($provider . '_redirect_uris');
+    $host = self::CALLBACK_HOSTS[$provider] ?? NULL;
+    if (!$host || !is_string($configured) || $configured === '') {
+      return [];
     }
-    return $uri;
+    $valid = [];
+    foreach (preg_split('/\s+/', trim($configured)) as $uri) {
+      $parts = parse_url($uri);
+      if ($parts && ($parts['scheme'] ?? '') === 'https' && ($parts['host'] ?? '') === $host
+        && !isset($parts['user'], $parts['pass']) && !isset($parts['fragment']) && !str_contains($uri, '*')) {
+        $valid[] = $uri;
+      }
+    }
+    return array_values(array_unique($valid));
   }
 
   public function keyPath(string $type): string {

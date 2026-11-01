@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\{JsonResponse, RedirectResponse, Request, Response};
 
 /**
- * Discovery and consent/code exchange for one explicitly configured client.
+ * Discovery and consent/code exchange for the explicitly configured clients.
  */
 final class OAuthController extends ControllerBase {
 
@@ -24,8 +24,8 @@ final class OAuthController extends ControllerBase {
     return new static($container->get('coffee_journal_oauth.settings'), $container->get('coffee_journal_oauth.server'), $container->get('coffee_journal_oauth.grants'), $container->get('flood'));
   }
 
-  private function available(Request $request, bool $discovery = FALSE): ?JsonResponse {
-    if (!($discovery ? $this->settings->discoveryEnabled() : $this->settings->enabled())) {
+  private function available(Request $request): ?JsonResponse {
+    if (!$this->settings->enabled()) {
       return new JsonResponse(['error' => 'not_found'], 404, ['Cache-Control' => 'no-store']);
     }
     $id = hash('sha256', (string) $request->getClientIp());
@@ -37,17 +37,25 @@ final class OAuthController extends ControllerBase {
   }
 
   public function discovery(Request $request, string $kind): Response {
-    if ($failure = $this->available($request, TRUE)) { return $failure; }
+    if ($failure = $this->available($request)) { return $failure; }
     $issuer = $this->settings->issuer();
-    $data = $kind === 'resource' ? [
-      'resource' => $this->settings->resource(), 'authorization_servers' => [$issuer], 'scopes_supported' => OAuthSettings::SCOPES,
-    ] : [
+    if ($kind === 'resource') {
+      return new JsonResponse([
+        'resource' => $this->settings->resource(), 'authorization_servers' => [$issuer], 'scopes_supported' => OAuthSettings::SCOPES,
+      ], 200, ['Cache-Control' => 'private, no-store']);
+    }
+    // Advertise every method a configured client can actually use, so a public
+    // PKCE client and a confidential client can both be registered.
+    $methods = [];
+    foreach ($this->settings->clients() as $client) {
+      $methods = array_merge($methods, $client['secret'] === '' ? ['none'] : ['client_secret_post', 'client_secret_basic']);
+    }
+    return new JsonResponse([
       'issuer' => $issuer, 'authorization_endpoint' => $issuer . '/coffee/oauth/authorize', 'token_endpoint' => $issuer . '/coffee/oauth/token',
       'response_types_supported' => ['code'], 'grant_types_supported' => ['authorization_code', 'refresh_token'],
       'code_challenge_methods_supported' => ['S256'], 'scopes_supported' => OAuthSettings::SCOPES,
-      'token_endpoint_auth_methods_supported' => $this->settings->get('client_secret') === '' ? ['none'] : ['client_secret_post', 'client_secret_basic'],
-    ];
-    return new JsonResponse($data, 200, ['Cache-Control' => 'private, no-store']);
+      'token_endpoint_auth_methods_supported' => array_values(array_unique($methods)),
+    ], 200, ['Cache-Control' => 'private, no-store']);
   }
 
   public function authorize(Request $request): array|Response {
@@ -78,11 +86,14 @@ final class OAuthController extends ControllerBase {
     return $this->server->token($body, $request->headers->all());
   }
 
-  public function connection(Request $request): Response {
+  /**
+   * Browser-owned status, and revocation of one named provider's grants.
+   */
+  public function connection(Request $request, string $provider = ''): Response {
     if ($failure = $this->available($request)) { return $failure; }
     try {
       if ($request->isMethod('DELETE')) {
-        $this->grants->disconnect($this->currentUser());
+        $this->grants->disconnect($this->currentUser(), $provider);
       }
       return new JsonResponse(['data' => $this->grants->status($this->currentUser())], 200, ['Cache-Control' => 'private, no-store']);
     }

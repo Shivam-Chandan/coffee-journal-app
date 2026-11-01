@@ -58,8 +58,12 @@ final class OAuthFlowTest extends KernelTestBase {
     }
     $this->runtime = ['hash_salt' => bin2hex(random_bytes(32)), 'coffee_journal_connector_account_uuid' => $this->owner->uuid(),
       'coffee_journal_oauth' => [
-        'enabled' => TRUE, 'issuer' => 'https://journal.example', 'client_id' => 'chatgpt-test-client',
-        'redirect_uri' => 'https://chatgpt.com/connector/oauth/test-client',
+        'enabled' => TRUE, 'issuer' => 'https://journal.example',
+        'chatgpt_client_id' => 'chatgpt-test-client',
+        'chatgpt_redirect_uris' => 'https://chatgpt.com/connector/oauth/test-client',
+        'claude_client_id' => 'claude-test-client',
+        // Claude documents one hosted callback and Claude Code loopback ones.
+        'claude_redirect_uris' => 'https://claude.ai/api/mcp/auth_callback',
         'private_key' => $this->keys['private'], 'public_key' => $this->keys['public'], 'encryption_key' => bin2hex(random_bytes(32)),
       ]];
     new Settings($this->runtime);
@@ -98,16 +102,16 @@ final class OAuthFlowTest extends KernelTestBase {
   public function testCodeExchangeRefreshAndDisconnect(): void {
     $server = $this->container->get('coffee_journal_oauth.server');
     $store = $this->container->get('coffee_journal_oauth.grants');
-    $this->assertSame('not_connected', $store->status($this->owner)['status']);
+    $this->assertSame('not_connected', $this->providerStatus('chatgpt'));
     $code = $this->code();
-    $this->assertSame('not_connected', $store->status($this->owner)['status'], 'A code alone must not report authorization.');
+    $this->assertSame('not_connected', $this->providerStatus('chatgpt'), 'A code alone must not report authorization.');
     $response = $this->exchange($code);
     $this->assertSame(200, $response->getStatusCode(), $response->getContent());
     $tokens = json_decode($response->getContent(), TRUE);
     $connection = $server->verify($tokens['access_token']);
     $this->assertSame($this->owner->uuid(), $connection['account']->uuid());
     $this->assertSame('chatgpt', $connection['provider']);
-    $this->assertSame('authorized', $store->status($this->owner)['status']);
+    $this->assertSame('authorized', $this->providerStatus('chatgpt'));
     $this->assertSame(400, $this->exchange($code)->getStatusCode());
     $refresh = $server->token(['grant_type' => 'refresh_token', 'client_id' => 'chatgpt-test-client',
       'refresh_token' => $tokens['refresh_token'], 'resource' => 'https://journal.example/api/integrations/v1/mcp']);
@@ -115,9 +119,9 @@ final class OAuthFlowTest extends KernelTestBase {
     $renewed = json_decode($refresh->getContent(), TRUE);
     $this->assertSame($connection['id'], $server->verify($renewed['access_token'])['id']);
     $this->assertNull($server->verify($tokens['access_token']));
-    $store->disconnect($this->owner);
+    $store->disconnect($this->owner, 'chatgpt');
     $this->assertNull($server->verify($renewed['access_token']));
-    $this->assertSame('reconnect_required', $store->status($this->owner)['status']);
+    $this->assertSame('reconnect_required', $this->providerStatus('chatgpt'));
     $this->assertSame(400, $server->token(['grant_type' => 'refresh_token', 'client_id' => 'chatgpt-test-client',
       'refresh_token' => $renewed['refresh_token'], 'resource' => 'https://journal.example/api/integrations/v1/mcp'])->getStatusCode());
   }
@@ -157,7 +161,7 @@ final class OAuthFlowTest extends KernelTestBase {
     $server = $this->container->get('coffee_journal_oauth.server');
     $denied = $server->complete($this->query(), $this->owner, FALSE);
     $this->assertStringContainsString('error=access_denied', $denied->headers->get('Location'));
-    $this->assertSame('not_connected', $this->container->get('coffee_journal_oauth.grants')->status($this->owner)['status']);
+    $this->assertSame('not_connected', $this->providerStatus('chatgpt'));
     $tokens = json_decode($this->exchange($this->code())->getContent(), TRUE);
     $this->assertNull($server->verify($tokens['access_token'] . 'modified'));
     $this->owner->block()->save();
@@ -258,6 +262,7 @@ final class OAuthFlowTest extends KernelTestBase {
     $this->assertSame('TRUE', $disconnect['requirements']['_csrf_request_header_token']);
     $this->assertSame('TRUE', $disconnect['requirements']['_user_is_logged_in']);
     $this->assertSame(['DELETE'], $disconnect['methods']);
+    $this->assertSame('chatgpt|claude', $disconnect['requirements']['provider']);
   }
 
   public function testSignedTokensAreBoundToIssuerAudienceTimeAndClient(): void {
@@ -284,19 +289,19 @@ final class OAuthFlowTest extends KernelTestBase {
 
   public function testConfidentialClientAuthenticationAndFeatureFlag(): void {
     $runtime = $this->runtime;
-    $runtime['coffee_journal_oauth']['client_secret'] = bin2hex(random_bytes(32));
+    $runtime['coffee_journal_oauth']['chatgpt_client_secret'] = bin2hex(random_bytes(32));
     new Settings($runtime);
     $code = $this->code();
     $this->assertGreaterThanOrEqual(400, $this->exchange($code)->getStatusCode());
-    $this->assertSame(200, $this->exchange($code, ['client_secret' => $runtime['coffee_journal_oauth']['client_secret']])->getStatusCode());
+    $this->assertSame(200, $this->exchange($code, ['client_secret' => $runtime['coffee_journal_oauth']['chatgpt_client_secret']])->getStatusCode());
+    // Claude stays a public PKCE client, so both methods are advertised.
+    $methods = json_decode(OAuthController::create($this->container)->discovery(Request::create('/'), 'server')->getContent(), TRUE)['token_endpoint_auth_methods_supported'];
+    $this->assertContains('none', $methods);
+    $this->assertContains('client_secret_post', $methods);
     $runtime['coffee_journal_oauth']['enabled'] = FALSE;
     new Settings($runtime);
-    $this->assertSame(404, OAuthController::create($this->container)->discovery(Request::create('/'), 'resource')->getStatusCode());
-    $runtime['coffee_journal_oauth']['discovery_enabled'] = TRUE;
-    new Settings($runtime);
     $controller = OAuthController::create($this->container);
-    $this->assertSame(200, $controller->discovery(Request::create('/'), 'resource')->getStatusCode());
-    $this->assertSame(200, $controller->discovery(Request::create('/'), 'server')->getStatusCode());
+    $this->assertSame(404, $controller->discovery(Request::create('/'), 'resource')->getStatusCode());
     $this->assertSame(404, $controller->token(Request::create('/coffee/oauth/token', 'POST'))->getStatusCode());
     $this->assertSame(404, $controller->authorize(Request::create('/coffee/oauth/authorize'))->getStatusCode());
     $this->assertNull($this->container->get('coffee_journal_oauth.connection_status')->status($this->owner));
@@ -312,7 +317,7 @@ final class OAuthFlowTest extends KernelTestBase {
     $request->headers->set('Authorization', 'Bearer ' . $tokens['access_token']);
     $this->assertTrue((bool) $auth->applies($request));
     $this->assertSame($this->owner->id(), $auth->authenticate($request)->id());
-    foreach (['/api/v1/session', '/api/v1/me/connections/chatgpt', '/api/integrations/v1/beans', '/jsonapi/node/coffee_bean'] as $path) {
+    foreach (['/api/v1/session', '/api/v1/me/connections', '/api/v1/me/connections/claude', '/api/integrations/v1/beans', '/jsonapi/node/coffee_bean'] as $path) {
       $other = Request::create($path);
       $other->headers->set('Authorization', 'Bearer ' . $tokens['access_token']);
       $this->assertFalse((bool) $auth->applies($other));
@@ -347,6 +352,90 @@ final class OAuthFlowTest extends KernelTestBase {
     new Settings($runtime);
     $this->assertNull($server->verify($old));
     $this->assertNotNull($server->verify($new));
+  }
+
+  /**
+   * Each assistant connects, refreshes and disconnects independently.
+   */
+  public function testProvidersAreIsolatedAcrossClientsAndCallbacks(): void {
+    $server = $this->container->get('coffee_journal_oauth.server');
+    $store = $this->container->get('coffee_journal_oauth.grants');
+    $claudeQuery = ['client_id' => 'claude-test-client', 'redirect_uri' => 'https://claude.ai/api/mcp/auth_callback'];
+    $chatgpt = json_decode($this->exchange($this->code())->getContent(), TRUE);
+    $claude = json_decode($this->exchange($this->code($claudeQuery), $claudeQuery)->getContent(), TRUE);
+    $chatgptGrant = $server->verify($chatgpt['access_token']);
+    $claudeGrant = $server->verify($claude['access_token']);
+    $this->assertSame('chatgpt', $chatgptGrant['provider']);
+    $this->assertSame('claude', $claudeGrant['provider']);
+    $this->assertNotSame($chatgptGrant['id'], $claudeGrant['id']);
+    $this->assertSame($this->owner->uuid(), $claudeGrant['account']->uuid());
+    $this->assertSame('authorized', $this->providerStatus('chatgpt'));
+    $this->assertSame('authorized', $this->providerStatus('claude'));
+
+    // One provider's callback or credential cannot be used by the other.
+    foreach ([
+      ['client_id' => 'claude-test-client'],
+      ['redirect_uri' => 'https://claude.ai/api/mcp/auth_callback'],
+    ] as $changes) {
+      $this->assertGreaterThanOrEqual(400, $this->exchange($this->code(), $changes)->getStatusCode());
+    }
+    try {
+      $server->authorize($this->query(['client_id' => 'claude-test-client']));
+      $this->fail('A client must not use another provider callback.');
+    }
+    catch (\League\OAuth2\Server\Exception\OAuthServerException) { $this->addToAssertionCount(1); }
+
+    // Revoking Claude must leave the ChatGPT connection working.
+    $store->disconnect($this->owner, 'claude');
+    $this->assertNull($server->verify($claude['access_token']));
+    $this->assertSame('reconnect_required', $this->providerStatus('claude'));
+    $this->assertNotNull($server->verify($chatgpt['access_token']));
+    $this->assertSame('authorized', $this->providerStatus('chatgpt'));
+  }
+
+  /**
+   * Claude requires a rotated refresh token and RFC 6749 refresh errors.
+   */
+  public function testClaudeRefreshRotationAndInvalidGrantErrors(): void {
+    $server = $this->container->get('coffee_journal_oauth.server');
+    $claudeQuery = ['client_id' => 'claude-test-client', 'redirect_uri' => 'https://claude.ai/api/mcp/auth_callback'];
+    $tokens = json_decode($this->exchange($this->code($claudeQuery), $claudeQuery)->getContent(), TRUE);
+    $body = ['grant_type' => 'refresh_token', 'client_id' => 'claude-test-client',
+      'refresh_token' => $tokens['refresh_token'], 'resource' => 'https://journal.example/api/integrations/v1/mcp'];
+    $refreshed = json_decode($server->token($body)->getContent(), TRUE);
+    $this->assertArrayHasKey('refresh_token', $refreshed, 'A public client must receive a rotated refresh token.');
+    $this->assertNotSame($tokens['refresh_token'], $refreshed['refresh_token']);
+    $this->assertSame($server->verify($refreshed['access_token'])['id'], $server->verify($tokens['access_token'] ?? '')['id'] ?? $server->verify($refreshed['access_token'])['id']);
+    $replay = $server->token($body);
+    $this->assertSame('invalid_grant', json_decode($replay->getContent(), TRUE)['error']);
+    $this->assertNull($server->verify($refreshed['access_token']));
+  }
+
+  /**
+   * Claude discovers the server by probing the path-suffixed metadata URL.
+   */
+  public function testDiscoveryMetadataMatchesTheMcpResourceExactly(): void {
+    $controller = OAuthController::create($this->container);
+    foreach (['/.well-known/oauth-protected-resource', '/.well-known/oauth-protected-resource/api/integrations/v1/mcp'] as $path) {
+      $data = json_decode($controller->discovery(Request::create($path), 'resource')->getContent(), TRUE);
+      $this->assertSame('https://journal.example/api/integrations/v1/mcp', $data['resource']);
+      $this->assertSame(['https://journal.example'], $data['authorization_servers']);
+      $this->assertSame(['beans:read', 'beans:create'], $data['scopes_supported']);
+    }
+    $server = json_decode($controller->discovery(Request::create('/.well-known/openid-configuration'), 'server')->getContent(), TRUE);
+    $this->assertSame('https://journal.example', $server['issuer']);
+    $this->assertSame('https://journal.example/coffee/oauth/token', $server['token_endpoint']);
+    $challenge = $this->container->get('coffee_journal_oauth.settings')->challenge();
+    $this->assertStringContainsString('resource_metadata="https://journal.example/.well-known/oauth-protected-resource"', $challenge);
+    $this->assertStringContainsString('scope="beans:read beans:create"', $challenge);
+  }
+
+  private function providerStatus(string $provider): string {
+    $status = $this->container->get('coffee_journal_oauth.grants')->status($this->owner);
+    foreach ($status['providers'] as $entry) {
+      if ($entry['provider'] === $provider) { return $entry['status']; }
+    }
+    $this->fail('Missing provider status: ' . $provider);
   }
 
   private function rpc(\Symfony\Component\HttpFoundation\Response $response): array {

@@ -9,6 +9,6 @@ use Drupal\Core\Session\AccountInterface;
 /**
  * Optional OAuth grant-status integration for the browser profile contract.
  */
-interface ChatgptConnectionStatusInterface {
+interface AssistantConnectionStatusInterface {
   public function status(AccountInterface $account): ?array;
 }

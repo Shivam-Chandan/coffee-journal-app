@@ -112,15 +112,20 @@ export const savedSchema = z.object({
   ])),
   meta,
 })
-export const chatgptConnectionSchema = z.object({
-  enabled: z.boolean(),
-  status: z.enum(['not_connected', 'authorized', 'reconnect_required', 'unavailable']),
+export const assistantGrantSchema = z.object({
+  provider: z.enum(['chatgpt', 'claude']),
+  status: z.enum(['not_connected', 'authorized', 'reconnect_required']),
   scopes: z.array(z.string()).optional(),
   authorized_at: z.number().int().optional(),
   expires_at: z.number().int().optional(),
 })
-export const chatgptConnectionResponse = z.object({ data: chatgptConnectionSchema })
-export type ChatgptConnection = z.infer<typeof chatgptConnectionSchema>
+export const assistantConnectionsSchema = z.object({
+  enabled: z.boolean(),
+  providers: z.array(assistantGrantSchema),
+})
+export const assistantConnectionsResponse = z.object({ data: assistantConnectionsSchema })
+export type AssistantGrant = z.infer<typeof assistantGrantSchema>
+export type AssistantConnections = z.infer<typeof assistantConnectionsSchema>
 
 export const profileSchema = z.object({
   data: z.object({
@@ -130,7 +135,7 @@ export const profileSchema = z.object({
     initial: z.string(),
     member_since: z.number().int().nonnegative(),
     chatgpt_app_url: z.string().url().nullable().optional(),
-    chatgpt_connection: chatgptConnectionSchema.nullable().optional(),
+    assistant_connections: assistantConnectionsSchema.nullable().optional(),
     stats: z.object({
       beans: z.number().int().nonnegative(),
       brews: z.number().int().nonnegative(),

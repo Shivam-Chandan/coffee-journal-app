@@ -11,10 +11,14 @@ use League\OAuth2\Server\Entities\Traits\EntityTrait;
 final class Client implements ClientEntityInterface {
   use ClientTrait, EntityTrait;
 
-  public function __construct(string $id, string $redirect, bool $confidential) {
+  /**
+   * @param string[] $redirects
+   *   Every exact callback registered for this provider's client.
+   */
+  public function __construct(string $id, array $redirects, bool $confidential) {
     $this->identifier = $id;
-    $this->redirectUri = $redirect;
-    $this->name = 'Coffee Journal in ChatGPT';
+    $this->redirectUri = $redirects;
+    $this->name = 'Coffee Journal';
     $this->isConfidential = $confidential;
   }
 }

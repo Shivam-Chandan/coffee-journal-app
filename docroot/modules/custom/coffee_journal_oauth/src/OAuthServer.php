@@ -44,12 +44,12 @@ final class OAuthServer {
     if (!is_string($key) || strlen($key) < 64) {
       throw new \LogicException('Configure an independent OAuth encryption secret of at least 64 characters.');
     }
-    $this->settings->clientId();
-    $this->settings->redirectUri();
     $server = new AuthorizationServer($this->repositories, $this->repositories, $this->repositories,
       new CryptKey($this->settings->keyPath('private')), $key);
     $code = new AuthCodeGrant($this->repositories, $this->repositories, new \DateInterval('PT5M'));
     $code->setRefreshTokenTTL(new \DateInterval('P30D'));
+    // Public clients must receive a rotated refresh token, and the consumed
+    // one must stay revoked so reuse revokes the whole family.
     $refresh = new RefreshTokenGrant($this->repositories);
     $refresh->setRefreshTokenTTL(new \DateInterval('P30D'));
     $server->enableGrantType($code, new \DateInterval('PT15M'));
@@ -58,16 +58,20 @@ final class OAuthServer {
     return $server;
   }
 
+  /**
+   * Validates the request against the specific provider client it names.
+   */
   public function authorize(array $query): AuthorizationRequestInterface {
     foreach ($query as $value) {
       if (!is_string($value)) { throw OAuthServerException::invalidRequest('authorization parameters'); }
     }
-    if (isset($query['destination']) || ($query['resource'] ?? NULL) !== $this->settings->resource()
+    $client = is_string($query['client_id'] ?? NULL) ? $this->settings->client($query['client_id']) : NULL;
+    if (!$client || isset($query['destination']) || ($query['resource'] ?? NULL) !== $this->settings->resource()
       || ($query['code_challenge_method'] ?? '') !== 'S256'
       || !is_string($query['code_challenge'] ?? NULL) || !preg_match('/^[A-Za-z0-9_-]{43}$/D', $query['code_challenge'])
       || !is_string($query['state'] ?? NULL) || strlen($query['state']) < 8 || strlen($query['state']) > 2048
-      || ($query['redirect_uri'] ?? NULL) !== $this->settings->redirectUri()) {
-      throw OAuthServerException::invalidRequest('resource, redirect_uri, state or PKCE');
+      || !in_array($query['redirect_uri'] ?? NULL, $client['redirects'], TRUE)) {
+      throw OAuthServerException::invalidRequest('client_id, resource, redirect_uri, state or PKCE');
     }
     return $this->server()->validateAuthorizationRequest((new ServerRequest('GET', $this->settings->issuer() . '/coffee/oauth/authorize'))->withQueryParams($query));
   }
@@ -75,7 +79,7 @@ final class OAuthServer {
   public function complete(array $query, AccountInterface $account, bool $approved): Response {
     $request = $this->authorize($query);
     $scopes = array_map(static fn ($scope) => $scope->getIdentifier(), $request->getScopes());
-    $grant = $approved ? $this->store->consent($account, $scopes) : 'denied';
+    $grant = $approved ? $this->store->consent($account, $scopes, $query['client_id']) : 'denied';
     $request->setUser(new User($grant));
     $request->setAuthorizationApproved($approved);
     try {
@@ -87,11 +91,13 @@ final class OAuthServer {
   }
 
   public function token(array $body, array $headers = []): Response {
-    if (($body['resource'] ?? NULL) !== $this->settings->resource()
+    $clientId = $body['client_id'] ?? NULL;
+    if (!is_string($clientId) || !$this->settings->client($clientId)
+      || ($body['resource'] ?? NULL) !== $this->settings->resource()
       || !in_array($body['grant_type'] ?? NULL, ['authorization_code', 'refresh_token'], TRUE)) {
-      return $this->error(OAuthServerException::invalidRequest('resource or grant_type'));
+      return $this->error(OAuthServerException::invalidRequest('client_id, resource or grant_type'));
     }
-    $key = 'coffee_oauth_exchange:' . hash('sha256', $this->settings->clientId());
+    $key = 'coffee_oauth_exchange:' . hash('sha256', $clientId);
     // Serializes one-time code/refresh consumption across workers.
     if (!$this->lock->acquire($key, 120.0)) {
       return new JsonResponse(['error' => 'temporarily_unavailable'], 503, ['Retry-After' => '2', 'Cache-Control' => 'no-store']);
@@ -141,8 +147,8 @@ final class OAuthServer {
       $grantId = $claims->get('sub');
       $scopes = $claims->get('scopes');
       if (!is_string($id) || !is_string($grantId) || !is_array($scopes) || !$scopes
-        || $claims->get('client_id') !== $this->settings->clientId()
         || $this->store->revoked('access', $id) || !($grant = $this->store->grant($grantId, TRUE))
+        || $claims->get('client_id') !== $grant['client_id']
         || ($this->store->record('access', $id)['grant'] ?? NULL) !== $grantId
         || array_diff($scopes, $grant['scopes'])) {
         return NULL;
