@@ -54,7 +54,9 @@ final class JournalMcp {
     }
     foreach ($tools as $name => [$operation, $description, $schema]) {
       $scope = $operation === 'profile' ? NULL : match ($operation) { 'create' => 'beans:create', 'update' => 'beans:update', default => 'beans:read' };
-      if ($scope === NULL || in_array($scope, $connection['scopes'], TRUE)) {
+      // OAuth discovery must expose new tools so existing grants can upgrade.
+      // JournalTool still enforces scopes before executing any operation.
+      if ($oauth || $scope === NULL || in_array($scope, $connection['scopes'], TRUE)) {
         $meta = $oauth ? ['securitySchemes' => [['type' => 'oauth2', 'scopes' => $scope ? [$scope] : []]]] : NULL;
         $output = NULL;
         if ($operation === 'profile') {

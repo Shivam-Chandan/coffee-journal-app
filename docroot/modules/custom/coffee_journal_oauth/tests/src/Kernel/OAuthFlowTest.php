@@ -208,6 +208,16 @@ final class OAuthFlowTest extends KernelTestBase {
     $this->assertSame(404, $call(['jsonrpc' => '2.0', 'id' => 4, 'method' => 'tools/list'], $session, $connection)->getStatusCode());
     $authenticated = $call($init, NULL, $connection)->headers->get('Mcp-Session-Id');
     $call(['jsonrpc' => '2.0', 'method' => 'notifications/initialized'], $authenticated, $connection);
+    $tools = $this->rpc($call(['jsonrpc' => '2.0', 'id' => 20, 'method' => 'tools/list'], $authenticated, $connection))['result']['tools'];
+    $update = array_values(array_filter($tools, static fn ($tool) => $tool['name'] === 'update_coffee'))[0];
+    $this->assertSame(['beans:update'], $update['securitySchemes'][0]['scopes']);
+    $body = $this->rpc($call(['jsonrpc' => '2.0', 'id' => 21, 'method' => 'tools/call', 'params' => [
+      'name' => 'update_coffee', 'arguments' => ['uuid' => $this->owner->uuid(), 'title' => 'Permission check'],
+    ]], $authenticated, $connection));
+    $this->assertTrue($body['result']['isError']);
+    $challenge = $body['result']['_meta']['mcp/www_authenticate'][0];
+    $this->assertStringContainsString('scope="beans:update"', $challenge);
+    $this->assertStringContainsString('error="insufficient_scope"', $challenge);
     $body = $this->rpc($call($invoke, $authenticated, $connection));
     $this->assertSame($this->owner->uuid(), $body['result']['structuredContent']['id']);
     $this->assertSame('owner@example.com', $body['result']['structuredContent']['email']);

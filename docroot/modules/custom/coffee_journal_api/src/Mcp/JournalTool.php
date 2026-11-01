@@ -36,6 +36,12 @@ final class JournalTool implements ToolHandlerInterface {
     }
     $scope = match ($this->operation) { 'create' => 'beans:create', 'update' => 'beans:update', default => 'beans:read' };
     if (!in_array($scope, $this->connection['scopes'], TRUE)) {
+      if (isset($this->connection['oauth_challenge'])) {
+        $challenge = preg_replace('/scope="[^"]*"/', 'scope="' . $scope . '"', $this->connection['oauth_challenge']);
+        $challenge = str_replace('error="invalid_token"', 'error="insufficient_scope"', $challenge);
+        return new CallToolResult([new TextContent('Authorize the required permission to continue: ' . $scope)], TRUE,
+          meta: ['mcp/www_authenticate' => [$challenge]]);
+      }
       return CallToolResult::error([new TextContent('This connection does not allow this operation.')]);
     }
     $response = match ($this->operation) {
