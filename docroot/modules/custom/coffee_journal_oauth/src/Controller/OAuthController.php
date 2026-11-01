@@ -24,8 +24,8 @@ final class OAuthController extends ControllerBase {
     return new static($container->get('coffee_journal_oauth.settings'), $container->get('coffee_journal_oauth.server'), $container->get('coffee_journal_oauth.grants'), $container->get('flood'));
   }
 
-  private function available(Request $request): ?JsonResponse {
-    if (!$this->settings->enabled()) {
+  private function available(Request $request, bool $discovery = FALSE): ?JsonResponse {
+    if (!($discovery ? $this->settings->discoveryEnabled() : $this->settings->enabled())) {
       return new JsonResponse(['error' => 'not_found'], 404, ['Cache-Control' => 'no-store']);
     }
     $id = hash('sha256', (string) $request->getClientIp());
@@ -37,7 +37,7 @@ final class OAuthController extends ControllerBase {
   }
 
   public function discovery(Request $request, string $kind): Response {
-    if ($failure = $this->available($request)) { return $failure; }
+    if ($failure = $this->available($request, TRUE)) { return $failure; }
     $issuer = $this->settings->issuer();
     $data = $kind === 'resource' ? [
       'resource' => $this->settings->resource(), 'authorization_servers' => [$issuer], 'scopes_supported' => OAuthSettings::SCOPES,

@@ -15,7 +15,7 @@ final class McpGateway {
 
   public function __construct(private readonly OAuthSettings $settings, private readonly ConnectorAccess $access, private readonly JournalMcp $mcp, private readonly FloodInterface $flood) {}
 
-  public function enabled(): bool { return $this->settings->enabled(); }
+  public function enabled(): bool { return $this->settings->discoveryEnabled(); }
 
   public function handle(Request $request): Response {
     if ($request->attributes->has('_coffee_connection')) {

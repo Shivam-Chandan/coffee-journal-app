@@ -36,6 +36,7 @@ $settings['coffee_journal_connector_app_url'] = getenv('COFFEE_CONNECTOR_APP_URL
 
 // Optional OAuth pilot. Keys/secret paths are environment-specific, never config exports.
 $settings['coffee_journal_oauth'] = [
+  'discovery_enabled' => getenv('COFFEE_OAUTH_DISCOVERY_ENABLED') === '1',
   'enabled' => getenv('COFFEE_OAUTH_ENABLED') === '1',
   'issuer' => getenv('COFFEE_OAUTH_ISSUER') ?: '',
   'client_id' => getenv('COFFEE_OAUTH_CLIENT_ID') ?: '',
@@ -46,3 +47,22 @@ $settings['coffee_journal_oauth'] = [
   'previous_public_key' => getenv('COFFEE_OAUTH_PREVIOUS_PUBLIC_KEY_PATH') ?: '',
   'encryption_key' => getenv('COFFEE_OAUTH_ENCRYPTION_KEY') ?: '',
 ];
+
+// Optional private runtime file, provisioned server-side outside the web root.
+// Environment variables above remain authoritative when configured.
+if (getenv('COFFEE_OAUTH_RUNTIME_FILE')) {
+  $coffeeOauthRuntimeFile = realpath(getenv('COFFEE_OAUTH_RUNTIME_FILE'));
+  if (!$coffeeOauthRuntimeFile || !is_readable($coffeeOauthRuntimeFile)
+    || str_starts_with($coffeeOauthRuntimeFile, realpath(DRUPAL_ROOT) . DIRECTORY_SEPARATOR)) {
+    throw new \RuntimeException('OAuth runtime file must be readable outside the web root.');
+  }
+  $coffeeOauthRuntime = json_decode(file_get_contents($coffeeOauthRuntimeFile), TRUE, 512, JSON_THROW_ON_ERROR);
+  if (!is_array($coffeeOauthRuntime)) {
+    throw new \RuntimeException('Invalid OAuth runtime configuration.');
+  }
+  foreach (['private_key', 'public_key', 'encryption_key'] as $coffeeOauthKey) {
+    if (empty($settings['coffee_journal_oauth'][$coffeeOauthKey]) && isset($coffeeOauthRuntime[$coffeeOauthKey])) {
+      $settings['coffee_journal_oauth'][$coffeeOauthKey] = $coffeeOauthRuntime[$coffeeOauthKey];
+    }
+  }
+}

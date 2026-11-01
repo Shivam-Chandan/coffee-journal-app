@@ -21,6 +21,10 @@ final class OAuthSettings {
     return $this->get('enabled', FALSE) === TRUE;
   }
 
+  public function discoveryEnabled(): bool {
+    return $this->enabled() || $this->get('discovery_enabled', FALSE) === TRUE;
+  }
+
   public function issuer(): string {
     $issuer = $this->get('issuer');
     if (!is_string($issuer) || !preg_match('#^https://[a-z0-9.-]+(?::[0-9]+)?$#Di', $issuer)) {

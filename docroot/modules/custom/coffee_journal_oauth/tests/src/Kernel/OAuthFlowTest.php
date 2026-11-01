@@ -292,6 +292,13 @@ final class OAuthFlowTest extends KernelTestBase {
     $runtime['coffee_journal_oauth']['enabled'] = FALSE;
     new Settings($runtime);
     $this->assertSame(404, OAuthController::create($this->container)->discovery(Request::create('/'), 'resource')->getStatusCode());
+    $runtime['coffee_journal_oauth']['discovery_enabled'] = TRUE;
+    new Settings($runtime);
+    $controller = OAuthController::create($this->container);
+    $this->assertSame(200, $controller->discovery(Request::create('/'), 'resource')->getStatusCode());
+    $this->assertSame(200, $controller->discovery(Request::create('/'), 'server')->getStatusCode());
+    $this->assertSame(404, $controller->token(Request::create('/coffee/oauth/token', 'POST'))->getStatusCode());
+    $this->assertSame(404, $controller->authorize(Request::create('/coffee/oauth/authorize'))->getStatusCode());
     $this->assertNull($this->container->get('coffee_journal_oauth.connection_status')->status($this->owner));
   }
 
